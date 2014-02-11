@@ -9,16 +9,16 @@ namespace ERoD
 {
     public class LightingMaterial : Material
     {
-        public Vector3 AmbientColor { get; set; }
+        public Vector4 AmbientColor { get; set; }
         public Vector3 LightDirection { get; set; }
-        public Vector3 LightColor { get; set; }
-        public Vector3 SpecularColor { get; set; }
+        public Vector4 LightColor { get; set; }
+        public Vector4 SpecularColor { get; set; }
         public LightingMaterial()
         {
-            AmbientColor = new Vector3(.1f, .1f, .1f);
+            AmbientColor = new Vector4(.1f, .1f, .1f, 1.0f);
             LightDirection = new Vector3(1, 1, 1);
-            LightColor = new Vector3(0.9f, 0.9f, 0.9f);
-            SpecularColor = new Vector3(1, 1, 1);
+            LightColor = new Vector4(0.9f, 0.9f, 0.9f, 1.0f);
+            SpecularColor = new Vector4(1, 1, 1, 1);
         }
 
         public override void SetEffectParameters(Effect effect)
@@ -27,13 +27,13 @@ namespace ERoD
             {
                 effect.Parameters["AmbientColor"].SetValue(AmbientColor);
             }
-            if (effect.Parameters["LightDirection"] != null)
+            if (effect.Parameters["DiffuseLightDirection"] != null)
             {
-                effect.Parameters["LightDirection"].SetValue(LightDirection);
+                effect.Parameters["DiffuseLightDirection"].SetValue(LightDirection);
             }
-            if (effect.Parameters["LightColor"] != null)
+            if (effect.Parameters["DiffuseColor"] != null)
             {
-                effect.Parameters["LightColor"].SetValue(LightColor);
+                effect.Parameters["DiffuseColor"].SetValue(LightColor);
             }
             if (effect.Parameters["SpecularColor"] != null)
             {

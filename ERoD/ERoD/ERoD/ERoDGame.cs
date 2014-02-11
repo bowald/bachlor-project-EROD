@@ -23,11 +23,6 @@ namespace ERoD
         //Model shrine;
         List<ObjModel> models = new List<ObjModel>();
 
-
-        // Textures // 
-        Texture2D shrineTexture;
-        Texture2D shrineNormal;
-
         // Shaders //
         Effect BumpShader;
         Effect TextureShader;
@@ -128,7 +123,13 @@ namespace ERoD
             models[0].SetModelEffect(TextureShader, true);
             models[1].SetModelEffect(TextureShader, true);
 
-            
+            PointLightMaterial mat = new PointLightMaterial();
+            mat.LightPosition = new Vector3(0, 100, 100);
+            mat.LightAttenuation = 300;
+
+            models[0].Material = mat;
+            models[1].Material = mat;
+
             // Load Camera
             camera = new ChaseCamera(new Vector3(0, 0.5f, 20.0f),
             new Vector3(0, 0, 0),

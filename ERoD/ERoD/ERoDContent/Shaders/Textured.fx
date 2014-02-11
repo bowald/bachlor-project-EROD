@@ -3,19 +3,26 @@ float4x4 View;
 float4x4 Projection;
 float4x4 WorldInverseTranspose;
 
-float4 AmbientColor = float4(1, 1, 1, 1);
+//float4 AmbientColor; // = float4(1, 1, 1, 1);
 float AmbientIntensity = 0.2f;
 
 float3 DiffuseLightDirection = float3(1, 0.5f, 0);
-float4 DiffuseColor = float4(1, 1, 1, 1);
+//float4 DiffuseColor; // = float4(1, 1, 1, 1);
 float DiffuseIntensity = 1;
 
 float Shininess = 23;
 float4 SpecularColor = float4(1, 1, 1, 1);
-float SpecularIntensity = 0.5;
+float SpecularIntensity = 0.1;
 float3 ViewVector;
 
 float3 CameraPosition;
+
+float4 AmbientLightColor; // = float3(.15, .15, .15);
+float4 DiffuseColor; // = float3(.85, .85, .85);
+float3 LightPosition; // = float3(0, 0, 0);
+float4 LightColor; // = float3(1, 1, 1);
+float LightAttenuation; // = 5000;
+float LightFalloff; // = 2;
 
 bool TextureEnabled = false;
 texture ModelTexture;
@@ -37,10 +44,10 @@ struct VertexShaderInput
 struct VertexShaderOutput
 {
 	float4 Position : POSITION0;
-	float4 Color : COLOR0;
 	float2 TexCoord : TEXCOORD0;
 	float3 Normal : TEXCOORD1;
-	float3  ViewDirection : TEXCOORD2;
+	float3 ViewDirection : TEXCOORD2;
+	float4 WorldPosition : TEXCOORD3;
 };
 
 VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
@@ -51,34 +58,38 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 	float4 viewPosition = mul(worldPosition, View);
 	output.Position = mul(viewPosition, Projection);
 
-	float4 normal = normalize(mul(input.Normal, WorldInverseTranspose));
-	float lightIntensity = dot(normal, DiffuseLightDirection);
-	output.Color = saturate(DiffuseColor * DiffuseIntensity * lightIntensity);
-
-	output.Normal = normal;
-
+	output.WorldPosition = worldPosition;
+	output.Normal = normalize(mul(input.Normal, WorldInverseTranspose));
 	output.ViewDirection = worldPosition - CameraPosition;
-	
 	output.TexCoord = input.TexCoord;
+
 	return output;
 }
 
 
 float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 {
+	float4 diffuseColor = DiffuseColor;
+	if (TextureEnabled)
+		diffuseColor *= tex2D(textureSampler, input.TexCoord);
+	float4 totalLight = float4(0, 0, 0, 1);
+
+	totalLight += AmbientLightColor;
+	float3 lightDir = normalize(LightPosition - input.WorldPosition);
+	float diffuse = saturate(dot(normalize(input.Normal), lightDir));
+	float d = distance(LightPosition, input.WorldPosition);
+	float att = 1 - pow(clamp(d / LightAttenuation, 0, 1), LightFalloff);
+	totalLight += diffuse * att * LightColor;
+
 	float3 viewVector = normalize(input.ViewDirection);
-	float3 light = normalize(DiffuseLightDirection);
 	float3 normal = normalize(input.Normal);
-	float3 r = normalize(2 * dot(light, normal) * normal - light);
+	float3 r = normalize(2 * dot(lightDir, normal) * normal - lightDir);
 	float3 v = normalize(mul(normalize(viewVector), World));
 	float dotProduct = dot(r, v);
 
-	float4 specular = SpecularIntensity * SpecularColor * max(pow(dotProduct, Shininess), 0) * length(input.Color);
+	float4 specular = SpecularIntensity * SpecularColor * max(pow(dotProduct, Shininess), 0) * att;
 
-	float4 textureColor = tex2D(textureSampler, input.TexCoord);
-	textureColor.a = 1;
-
-	return saturate(textureColor * (input.Color) + AmbientColor * AmbientIntensity + specular);
+	return saturate(diffuseColor * totalLight + specular);
 }
 
 technique Textured

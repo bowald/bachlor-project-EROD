@@ -59,7 +59,7 @@ namespace ERoD
             this.Model = Model;
             modelTransforms = new Matrix[Model.Bones.Count];
             Model.CopyAbsoluteBoneTransformsTo(modelTransforms);
-
+            this.Material = new Material();
 
             this.Position = Position;
             this.Rotation = Rotation;
@@ -151,6 +151,7 @@ namespace ERoD
                     setEffectParameter(effect, "CameraPosition", cameraPosition);
                     setEffectParameter(effect, "ModelTexture", DiffuseTexture);
                     setEffectParameter(effect, "NormalMap", NormalTexture);
+                    Material.SetEffectParameters(effect);
 
                 }
                 mesh.Draw();
