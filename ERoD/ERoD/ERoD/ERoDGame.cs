@@ -47,7 +47,6 @@ namespace ERoD
         //Vector3 CameraLocation = new Vector3(0.0f, 0.5f, 20.0f);
         //Vector3 CameraTarget = new Vector3(0, 0, 0);
         //float CameraRotation = 0.5f;
-        Vector3 viewVector;
         ChaseCamera camera;
 
         // Lights //
@@ -124,6 +123,11 @@ namespace ERoD
             BumpShader = Content.Load<Effect>("Shaders/NormalMap");
             TextureShader = Content.Load<Effect>("Shaders/Textured");
             ShadowMap = Content.Load<Effect>("Shaders/ShadowMap");
+
+            // Assign shaders to models
+            models[0].SetModelEffect(TextureShader, true);
+            models[1].SetModelEffect(TextureShader, true);
+
             
             // Load Camera
             camera = new ChaseCamera(new Vector3(0, 0.5f, 20.0f),
@@ -150,9 +154,6 @@ namespace ERoD
 
             updateModel(gameTime);
             updateCamera(gameTime);
-            // view vector is used for specular light
-            viewVector = Vector3.Transform(camera.Target - camera.Position, Matrix.CreateRotationY(0));
-            viewVector.Normalize();
 
             base.Update(gameTime);
         }
@@ -248,11 +249,11 @@ namespace ERoD
                 {
                     if (model.NormalExists)
                     {
-                        model.Draw(BumpShader, camera.View, Projection, viewVector);
+                        model.Draw(BumpShader, camera.View, Projection, camera.Position);
                     }
                     else
                     {
-                        model.Draw(TextureShader, camera.View, Projection, viewVector);
+                        model.Draw(TextureShader, camera.View, Projection, camera.Position);
                     }
                 }
             }
