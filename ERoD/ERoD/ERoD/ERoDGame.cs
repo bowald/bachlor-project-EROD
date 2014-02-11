@@ -20,7 +20,6 @@ namespace ERoD
 
         // Game Variables //
         // Models //
-        //Model shrine;
         List<ObjModel> models = new List<ObjModel>();
 
         // Shaders //
@@ -38,21 +37,13 @@ namespace ERoD
 
 
         // Cameras //
-        // TODO: Replace with camera class
-        //Vector3 CameraLocation = new Vector3(0.0f, 0.5f, 20.0f);
-        //Vector3 CameraTarget = new Vector3(0, 0, 0);
-        //float CameraRotation = 0.5f;
         ChaseCamera camera;
 
         // Lights //
-        // TODO: Replace with light class
-        Vector3 LightLocation = new Vector3(20.0f, 10.0f, 0.0f);
-        Vector3 LightTarget = new Vector3(0, 0, 0);
 
         // Render Matrices (Put inside Light/Camera class?)
         Matrix World; // Inside model?
-        Matrix View, Projection;
-        Matrix LightView, LightProjection;
+        Matrix Projection;
 
         public ERoDGame()
         {
@@ -72,11 +63,6 @@ namespace ERoD
                 MathHelper.ToRadians(45.0f), 
                 aspectRatio,
                 1.0f, 10000.0f);
-
-            // Light view and projection matrices
-            LightView = Matrix.CreateLookAt(LightLocation, LightTarget, Vector3.Up);
-            LightProjection = Matrix.CreateOrthographic(aspectRatio * 20.0f,
-                20.0f, 10.0f, 50.0f);
 
             // Create custom rasterizerstates for the culling of the 
             // vertices on the skybox, only show the inside triangles.
@@ -105,11 +91,14 @@ namespace ERoD
             new Vector3(MathHelper.ToRadians(90), 0, 0), new Vector3(1.0f), GraphicsDevice));
             models.Add(new ObjModel(Content.Load<Model>("Models/ship"), new Vector3(0, 0, 20.0f),
             new Vector3(0, 0, 0), new Vector3(0.002f), GraphicsDevice));
-            
+            models.Add(new ObjModel(Content.Load<Model>("Models/ground"), new Vector3(0, 0, 0),
+            new Vector3(MathHelper.ToRadians(90), 0, 0), new Vector3(0.1f), GraphicsDevice));
+
             // Load Textures
             models[0].DiffuseTexture = Content.Load<Texture2D>("Textures/shrine_diff");
             models[0].NormalTexture = Content.Load<Texture2D>("Textures/shrine_normal");
             models[1].DiffuseTexture = Content.Load<Texture2D>("Textures/ship_diff");
+            models[2].DiffuseTexture = Content.Load<Texture2D>("Textures/ground");
 
             // Load Skybox
             skybox = new Skybox("Skyboxes/SkyBox", Content);
@@ -122,13 +111,20 @@ namespace ERoD
             // Assign shaders to models
             models[0].SetModelEffect(TextureShader, true);
             models[1].SetModelEffect(TextureShader, true);
+            models[2].SetModelEffect(TextureShader, true);
 
-            PointLightMaterial mat = new PointLightMaterial();
-            mat.LightPosition = new Vector3(0, 100, 100);
-            mat.LightAttenuation = 300;
+            //PointLightMaterial mat = new PointLightMaterial();
+            //mat.LightPosition = new Vector3(0, 100, 100);
+            //mat.LightAttenuation = 300;
+
+            SpotLightMaterial mat = new SpotLightMaterial();
+            mat.LightDirection = new Vector3(-1, -1, -1);
+            mat.LightPosition = new Vector3(40, 40, 40);
+            mat.LightFalloff = 200;
 
             models[0].Material = mat;
             models[1].Material = mat;
+            models[2].Material = mat;
 
             // Load Camera
             camera = new ChaseCamera(new Vector3(0, 0.5f, 20.0f),
@@ -173,17 +169,26 @@ namespace ERoD
 
                 models[1].Rotation += rotChange;
 
-                if (!(currentState.Triggers.Right > 0))
+                if (currentState.Triggers.Right > 0)
                 {
-                    return;
+                    // Determine what direction to move in
+                    Matrix rotation = Matrix.CreateFromYawPitchRoll(
+                    models[1].Rotation.Y, models[1].Rotation.X,
+                    models[1].Rotation.Z);
+                    // Move in the direction dictated by our rotation matrix
+                    models[1].Position += Vector3.Transform(Vector3.Forward,
+                    rotation) * (float)gameTime.ElapsedGameTime.TotalMilliseconds * 0.01f;
                 }
-                // Determine what direction to move in
-                Matrix rotation = Matrix.CreateFromYawPitchRoll(
-                models[1].Rotation.Y, models[1].Rotation.X,
-                models[1].Rotation.Z);
-                // Move in the direction dictated by our rotation matrix
-                models[1].Position += Vector3.Transform(Vector3.Forward,
-                rotation) * (float)gameTime.ElapsedGameTime.TotalMilliseconds * 0.01f;
+                if (currentState.Triggers.Left > 0)
+                {
+                    // Determine what direction to move in
+                    Matrix rotation = Matrix.CreateFromYawPitchRoll(
+                    models[1].Rotation.Y, models[1].Rotation.X,
+                    models[1].Rotation.Z);
+                    // Move in the direction dictated by our rotation matrix
+                    models[1].Position += Vector3.Transform(Vector3.Forward,
+                    rotation) * (float)gameTime.ElapsedGameTime.TotalMilliseconds * -0.01f;
+                }
 
             }
             else
@@ -290,8 +295,8 @@ namespace ERoD
                     part.Effect = ShadowMap;
                     // Set parameters of the shadowmap shader.
                     ShadowMap.Parameters["World"].SetValue(World * mesh.ParentBone.Transform);
-                    ShadowMap.Parameters["LightView"].SetValue(LightView);
-                    ShadowMap.Parameters["LightProjection"].SetValue(LightProjection);
+                    //ShadowMap.Parameters["LightView"].SetValue(LightView);
+                    //ShadowMap.Parameters["LightProjection"].SetValue(LightProjection);
 
                 }
                 mesh.Draw();

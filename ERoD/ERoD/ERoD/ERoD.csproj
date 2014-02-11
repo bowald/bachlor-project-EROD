@@ -82,6 +82,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="ERoDGame.cs" />
     <Compile Include="Skybox.cs" />
+    <Compile Include="SpotLightMaterial.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Game.ico" />

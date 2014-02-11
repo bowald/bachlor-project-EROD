@@ -17,12 +17,20 @@ float3 ViewVector;
 
 float3 CameraPosition;
 
-float4 AmbientLightColor; // = float3(.15, .15, .15);
-float4 DiffuseColor; // = float3(.85, .85, .85);
-float3 LightPosition; // = float3(0, 0, 0);
-float4 LightColor; // = float3(1, 1, 1);
+//float4 AmbientLightColor; // = float3(.15, .15, .15);
+//float4 DiffuseColor; // = float3(.85, .85, .85);
+//float3 LightPosition; // = float3(0, 0, 0);
+//float4 LightColor; // = float3(1, 1, 1);
 float LightAttenuation; // = 5000;
-float LightFalloff; // = 2;
+//float LightFalloff; // = 2;
+
+float4 AmbientLightColor = float4(.15, .15, .15, 1);
+float4 DiffuseColor = float4(.85, .85, .85, 1);
+float3 LightPosition = float3(0, 5000, 0);
+float3 LightDirection = float3(0, -1, 0);
+float4 LightColor = float4(1, 1, 1, 1);
+float ConeAngle = 90;
+float LightFalloff = 20;
 
 bool TextureEnabled = false;
 texture ModelTexture;
@@ -70,6 +78,7 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 {
 	float4 diffuseColor = DiffuseColor;
+
 	if (TextureEnabled)
 		diffuseColor *= tex2D(textureSampler, input.TexCoord);
 	float4 totalLight = float4(0, 0, 0, 1);
@@ -77,8 +86,20 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 	totalLight += AmbientLightColor;
 	float3 lightDir = normalize(LightPosition - input.WorldPosition);
 	float diffuse = saturate(dot(normalize(input.Normal), lightDir));
-	float d = distance(LightPosition, input.WorldPosition);
-	float att = 1 - pow(clamp(d / LightAttenuation, 0, 1), LightFalloff);
+
+	// (dot(p - lp, ld) / cos(a))^f
+	float d = dot(-lightDir, normalize(LightDirection));
+	float a = cos(ConeAngle);
+
+	float att = 0;
+
+	if (a < d)
+	{
+		att = 1 - pow(clamp(a / d, 0, 1), LightFalloff);
+	}
+
+	//float d = distance(LightPosition, input.WorldPosition);
+	//float att = 1 - pow(clamp(d / LightAttenuation, 0, 1), LightFalloff);
 	totalLight += diffuse * att * LightColor;
 
 	float3 viewVector = normalize(input.ViewDirection);
@@ -89,7 +110,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 
 	float4 specular = SpecularIntensity * SpecularColor * max(pow(dotProduct, Shininess), 0) * att;
 
-	return saturate(diffuseColor * totalLight + specular);
+		return saturate(diffuseColor * totalLight);// +specular);
 }
 
 technique Textured
