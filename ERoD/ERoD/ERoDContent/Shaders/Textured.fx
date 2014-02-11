@@ -10,11 +10,14 @@ float3 DiffuseLightDirection = float3(1, 0.5f, 0);
 float4 DiffuseColor = float4(1, 1, 1, 1);
 float DiffuseIntensity = 1;
 
-float Shininess = 50;
+float Shininess = 23;
 float4 SpecularColor = float4(1, 1, 1, 1);
 float SpecularIntensity = 0.5;
-float3 ViewVector = float3(1, 0, 0);
+float3 ViewVector;
 
+float3 CameraPosition;
+
+bool TextureEnabled = false;
 texture ModelTexture;
 sampler2D textureSampler = sampler_state {
 	Texture = (ModelTexture);
@@ -37,6 +40,7 @@ struct VertexShaderOutput
 	float4 Color : COLOR0;
 	float2 TexCoord : TEXCOORD0;
 	float3 Normal : TEXCOORD1;
+	float3  ViewDirection : TEXCOORD2;
 };
 
 VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
@@ -53,16 +57,20 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 
 	output.Normal = normal;
 
+	output.ViewDirection = worldPosition - CameraPosition;
+	
 	output.TexCoord = input.TexCoord;
 	return output;
 }
 
+
 float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 {
+	float3 viewVector = normalize(input.ViewDirection);
 	float3 light = normalize(DiffuseLightDirection);
 	float3 normal = normalize(input.Normal);
 	float3 r = normalize(2 * dot(light, normal) * normal - light);
-	float3 v = normalize(mul(normalize(ViewVector), World));
+	float3 v = normalize(mul(normalize(viewVector), World));
 	float dotProduct = dot(r, v);
 
 	float4 specular = SpecularIntensity * SpecularColor * max(pow(dotProduct, Shininess), 0) * length(input.Color);
