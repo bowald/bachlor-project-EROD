@@ -44,10 +44,11 @@ namespace ERoD
 
         // Cameras //
         // TODO: Replace with camera class
-        Vector3 CameraLocation = new Vector3(0.0f, 0.5f, 20.0f);
-        Vector3 CameraTarget = new Vector3(0, 0, 0);
-        float CameraRotation = 0.5f;
+        //Vector3 CameraLocation = new Vector3(0.0f, 0.5f, 20.0f);
+        //Vector3 CameraTarget = new Vector3(0, 0, 0);
+        //float CameraRotation = 0.5f;
         Vector3 viewVector;
+        ChaseCamera camera;
 
         // Lights //
         // TODO: Replace with light class
@@ -72,11 +73,11 @@ namespace ERoD
             float aspectRatio = graphics.GraphicsDevice.Viewport.AspectRatio;
 
             // Camera view and projection matrices
-            View = Matrix.CreateLookAt(CameraLocation, CameraTarget, Vector3.Up);
+            //View = Matrix.CreateLookAt(CameraLocation, CameraTarget, Vector3.Up);
             Projection = Matrix.CreatePerspectiveFieldOfView(
                 MathHelper.ToRadians(45.0f), 
                 aspectRatio,
-                1.0f, 1000.0f);
+                1.0f, 10000.0f);
 
             // Light view and projection matrices
             LightView = Matrix.CreateLookAt(LightLocation, LightTarget, Vector3.Up);
@@ -124,6 +125,11 @@ namespace ERoD
             TextureShader = Content.Load<Effect>("Shaders/Textured");
             ShadowMap = Content.Load<Effect>("Shaders/ShadowMap");
             
+            // Load Camera
+            camera = new ChaseCamera(new Vector3(0, 0.5f, 20.0f),
+            new Vector3(0, 0, 0),
+            new Vector3(0, 0, 0), GraphicsDevice);
+
             // Load Sounds
 
         }
@@ -138,22 +144,86 @@ namespace ERoD
                 this.Exit();
 
             // Update camera and view vector
-            CameraRotation += 0.01f;
-            CameraLocation = new Vector3((float)Math.Sin(CameraRotation) * 20.0f,
-                5.0f, (float)Math.Cos(CameraRotation) * 20.0f);
-            View = Matrix.CreateLookAt(CameraLocation, CameraTarget, Vector3.Up);
+            //CameraRotation += 0.01f;
+            //CameraLocation = new Vector3((float)Math.Sin(CameraRotation) * 20.0f,
+            //    5.0f, (float)Math.Cos(CameraRotation) * 20.0f);
+
+            updateModel(gameTime);
+            updateCamera(gameTime);
             // view vector is used for specular light
-            viewVector = Vector3.Transform(CameraTarget - CameraLocation, Matrix.CreateRotationY(0));
+            viewVector = Vector3.Transform(camera.Target - camera.Position, Matrix.CreateRotationY(0));
             viewVector.Normalize();
 
             base.Update(gameTime);
+        }
+
+        private void updateModel(GameTime gameTime)
+        {
+            KeyboardState keyState = Keyboard.GetState();
+            GamePadState currentState = GamePad.GetState(PlayerIndex.One);
+
+            if (currentState.IsConnected)
+            {
+                Vector3 rotChange = new Vector3(0, 0, 0);
+
+                rotChange.X = -currentState.ThumbSticks.Left.Y * 0.05f;
+                rotChange.Y = -currentState.ThumbSticks.Left.X * 0.05f;
+
+                models[1].Rotation += rotChange;
+
+                if (!(currentState.Triggers.Right > 0))
+                {
+                    return;
+                }
+                // Determine what direction to move in
+                Matrix rotation = Matrix.CreateFromYawPitchRoll(
+                models[1].Rotation.Y, models[1].Rotation.X,
+                models[1].Rotation.Z);
+                // Move in the direction dictated by our rotation matrix
+                models[1].Position += Vector3.Transform(Vector3.Forward,
+                rotation) * (float)gameTime.ElapsedGameTime.TotalMilliseconds * 0.01f;
+
+            }
+            else
+            {
+                Vector3 rotChange = new Vector3(0, 0, 0);
+                // Determine on which axes the ship should be rotated on, if any
+                if (keyState.IsKeyDown(Keys.W))
+                    rotChange += new Vector3(1, 0, 0);
+                if (keyState.IsKeyDown(Keys.S))
+                    rotChange += new Vector3(-1, 0, 0);
+                if (keyState.IsKeyDown(Keys.A))
+                    rotChange += new Vector3(0, 1, 0);
+                if (keyState.IsKeyDown(Keys.D))
+                    rotChange += new Vector3(0, -1, 0);
+                models[1].Rotation += rotChange * .025f;
+                // If space isn't down, the ship shouldn't move
+                if (!keyState.IsKeyDown(Keys.Space))
+                    return;
+                // Determine what direction to move in
+                Matrix rotation = Matrix.CreateFromYawPitchRoll(
+                models[1].Rotation.Y, models[1].Rotation.X,
+                models[1].Rotation.Z);
+                // Move in the direction dictated by our rotation matrix
+                models[1].Position += Vector3.Transform(Vector3.Forward,
+                rotation) * (float)gameTime.ElapsedGameTime.TotalMilliseconds * 0.01f;
+            }
+        }
+
+        void updateCamera(GameTime gameTime)
+        {
+            // Move the camera to the new model's position and orientation
+            ((ChaseCamera)camera).Move(models[1].Position,
+            models[1].Rotation);
+            // Update the camera
+            camera.Update();
         }
 
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
-            DrawSceneToTexture(shadowRenderTarget);
+            //DrawSceneToTexture(shadowRenderTarget);
 
             // Commented code will draw the shadow depth texture to screen
             //spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque,
@@ -201,7 +271,7 @@ namespace ERoD
 
             // Draw the scene
             GraphicsDevice.Clear(Color.CornflowerBlue);
-            DrawShadowCaster(shrine);
+            //DrawShadowCaster(shrine);
             //DrawModelWithEffect(model, World, View, LightProjection);
 
             GraphicsDevice.SetRenderTarget(null);
