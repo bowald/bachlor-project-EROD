@@ -20,7 +20,9 @@ namespace ERoD
 
         // Game Variables //
         // Models //
-        Model shrine;
+        //Model shrine;
+        List<ObjModel> models = new List<ObjModel>();
+
 
         // Textures // 
         Texture2D shrineTexture;
@@ -104,11 +106,15 @@ namespace ERoD
             spriteBatch = new SpriteBatch(GraphicsDevice);
             
             // Load Models
-            shrine = Content.Load<Model>("Models/shrine");
+            models.Add(new ObjModel(Content.Load<Model>("Models/shrine"), new Vector3(0, 0, 0),
+            new Vector3(MathHelper.ToRadians(90), 0, 0), new Vector3(1.0f), GraphicsDevice));
+            models.Add(new ObjModel(Content.Load<Model>("Models/ship"), new Vector3(0, 0, 20.0f),
+            new Vector3(0, 0, 0), new Vector3(0.002f), GraphicsDevice));
             
             // Load Textures
-            shrineTexture = Content.Load<Texture2D>("Textures/shrine_diff");
-            shrineNormal = Content.Load<Texture2D>("Textures/shrine_normal");
+            models[0].DiffuseTexture = Content.Load<Texture2D>("Textures/shrine_diff");
+            models[0].NormalTexture = Content.Load<Texture2D>("Textures/shrine_normal");
+            models[1].DiffuseTexture = Content.Load<Texture2D>("Textures/ship_diff");
 
             // Load Skybox
             skybox = new Skybox("Skyboxes/SkyBox", Content);
@@ -162,11 +168,25 @@ namespace ERoD
 
             // Invert the culling for the skybox cube and draw the skybox
             graphics.GraphicsDevice.RasterizerState = CullClockwiseFace;
-            skybox.Draw(View, Projection, CameraLocation);
+            skybox.Draw(camera.View, Projection, camera.Position);
             graphics.GraphicsDevice.RasterizerState = StandardCull;
 
             // draw the shrine
-            DrawModelWithEffect(shrine, World, View, Projection);
+            foreach (ObjModel model in models)
+            {
+                if (model.DiffuseExists)
+                {
+                    if (model.NormalExists)
+                    {
+                        model.Draw(BumpShader, camera.View, Projection, viewVector);
+                    }
+                    else
+                    {
+                        model.Draw(TextureShader, camera.View, Projection, viewVector);
+                    }
+                }
+            }
+            //DrawModelWithEffect(shrine, World, View, Projection);
 
             base.Draw(gameTime);
         }
@@ -207,26 +227,6 @@ namespace ERoD
         }
 
         // Draw a model with a shader, now hardcoded to use the BumpShader with normalmaps
-        private void DrawModelWithEffect(Model model, Matrix world, Matrix view, Matrix projection)
-        {
-            foreach (ModelMesh mesh in model.Meshes)
-            {
-                foreach (ModelMeshPart part in mesh.MeshParts)
-                {
-                    // Set the part to use the shader effect.
-                    part.Effect = BumpShader;
-                    // Set the parameters of the shader.
-                    BumpShader.Parameters["World"].SetValue(world * mesh.ParentBone.Transform);
-                    BumpShader.Parameters["View"].SetValue(view);
-                    BumpShader.Parameters["Projection"].SetValue(projection);
-                    Matrix worldInverseTransposeMatrix = Matrix.Transpose(Matrix.Invert(mesh.ParentBone.Transform * world));
-                    BumpShader.Parameters["WorldInverseTranspose"].SetValue(worldInverseTransposeMatrix);
-                    BumpShader.Parameters["ViewVector"].SetValue(viewVector);
-                    BumpShader.Parameters["ModelTexture"].SetValue(shrineTexture);
-                    BumpShader.Parameters["NormalMap"].SetValue(shrineNormal);
-                }
-                mesh.Draw();
-            }
-        }
+        
     }
 }

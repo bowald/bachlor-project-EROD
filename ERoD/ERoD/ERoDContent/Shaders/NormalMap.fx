@@ -87,8 +87,6 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 
 	// light dir
 	float3 light = normalize(DiffuseLightDirection);
-	// normal dir
-	float3 normal = normalize(input.Normal);
 	// bling phong or smth
 	float3 r = normalize(2 * dot(light, bumpNormal) * bumpNormal - light);
 	float3 v = normalize(mul(normalize(ViewVector), World));
