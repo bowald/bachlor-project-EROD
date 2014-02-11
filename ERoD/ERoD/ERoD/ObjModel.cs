@@ -15,7 +15,8 @@ namespace ERoD
         public Model Model { get; private set; }
         private Matrix[] modelTransforms;
         private GraphicsDevice graphicsDevice;
-        
+        public Material Material { get; set; }
+
         public Boolean DiffuseExists { get; private set; }
         private Texture2D diffuseTexture;
         public Texture2D DiffuseTexture
