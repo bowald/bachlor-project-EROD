@@ -76,6 +76,7 @@
     <Compile Include="ChaseCamera.cs" />
     <Compile Include="LightingMaterial.cs" />
     <Compile Include="Material.cs" />
+    <Compile Include="MultiLightingMaterial.cs" />
     <Compile Include="ObjModel.cs" />
     <Compile Include="PointLightMaterial.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -117,10 +117,16 @@ namespace ERoD
             //mat.LightPosition = new Vector3(0, 100, 100);
             //mat.LightAttenuation = 300;
 
-            SpotLightMaterial mat = new SpotLightMaterial();
-            mat.LightDirection = new Vector3(-1, -1, -1);
-            mat.LightPosition = new Vector3(40, 40, 40);
-            mat.LightFalloff = 200;
+            MultiLightingMaterial mat = new MultiLightingMaterial();
+
+            mat.LightDirection[0] = new Vector3(1, -1, -1);
+            mat.LightDirection[1] = new Vector3(-1, -1, 0);
+            mat.LightDirection[2] = new Vector3(0, -1, 1);
+
+            mat.LightPosition[0] = new Vector3(-10, 10, 0);
+            mat.LightPosition[1] = new Vector3(10, 10, 0);
+            mat.LightPosition[2] = new Vector3(0, 10, -10);
+            
 
             models[0].Material = mat;
             models[1].Material = mat;
