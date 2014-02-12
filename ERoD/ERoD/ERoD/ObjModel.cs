@@ -7,7 +7,7 @@ using System.Text;
 
 namespace ERoD
 {
-    class ObjModel
+    public class ObjModel
     {
         public Vector3 Position { get; set; }
         public Vector3 Rotation { get; set; }
@@ -54,7 +54,7 @@ namespace ERoD
         }
 
         public ObjModel(Model Model, Vector3 Position, Vector3 Rotation,
-        Vector3 Scale, GraphicsDevice graphicsDevice)
+            Vector3 Scale, GraphicsDevice graphicsDevice)
         {
             this.Model = Model;
             modelTransforms = new Matrix[Model.Bones.Count];
@@ -65,6 +65,8 @@ namespace ERoD
             this.Rotation = Rotation;
             this.Scale = Scale;
             this.graphicsDevice = graphicsDevice;
+
+            generateTags();
 
         }
 
@@ -91,7 +93,7 @@ namespace ERoD
                         setEffectParameter(toSet, "TextureEnabled", false);
                     }
                     // Set our remaining parameters to the effect
-                    setEffectParameter(toSet, "DiffuseColor", new Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+                    setEffectParameter(toSet, "DiffuseColor", new Vector3(1.0f, 1.0f, 1.0f));
                     setEffectParameter(toSet, "SpecularPower", 1.0f);
                     part.Effect = toSet;
                 }
@@ -128,7 +130,7 @@ namespace ERoD
         }
 
 
-        public void Draw(Effect shader, Matrix view, Matrix projection, Vector3 cameraPosition)
+        public void Draw(Matrix view, Matrix projection, Vector3 cameraPosition)
         {
             Matrix baseWorld = Matrix.CreateScale(Scale)
             * Matrix.CreateFromYawPitchRoll(
@@ -155,6 +157,53 @@ namespace ERoD
 
                 }
                 mesh.Draw();
+            }
+        }
+
+        class MeshTag
+        {
+            // Mesh tag to save data for each 
+            // ModelMeshPart.
+            // Tag is an "object" so anything can be set
+            // as the value.
+            public Effect CachedEffect = null;
+        }
+
+        private void generateTags()
+        {
+            foreach (ModelMesh mesh in Model.Meshes)
+            {
+                foreach (ModelMeshPart part in mesh.MeshParts)
+                {
+                    part.Tag = new MeshTag();
+                }
+            }
+        }
+
+        // Store references to all of the model's current effects
+        public void CacheEffects()
+        {
+            foreach (ModelMesh mesh in Model.Meshes)
+            {
+                foreach (ModelMeshPart part in mesh.MeshParts)
+                {
+                    ((MeshTag)part.Tag).CachedEffect = part.Effect;
+                }
+            }
+        }
+
+        // Restore the effects referenced by the model's cache
+        public void RestoreEffects()
+        {
+            foreach (ModelMesh mesh in Model.Meshes)
+            {
+                foreach (ModelMeshPart part in mesh.MeshParts)
+                {
+                    if (((MeshTag)part.Tag).CachedEffect != null)
+                    {
+                        part.Effect = ((MeshTag)part.Tag).CachedEffect;
+                    }
+                }
             }
         }
     }

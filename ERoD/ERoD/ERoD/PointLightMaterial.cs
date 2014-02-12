@@ -7,11 +7,11 @@ using System.Text;
 
 namespace ERoD
 {
-    class PointLightMaterial : Material
+    public class PointLightMaterial : Material
     {
         public Vector4 AmbientLightColor { get; set; }
         public Vector3 LightPosition { get; set; }
-        public Vector4 LightColor { get; set; }
+        public Vector3 LightColor { get; set; }
         public float LightAttenuation { get; set; }
         public float LightFalloff { get; set; }
 
@@ -19,8 +19,17 @@ namespace ERoD
         {
             AmbientLightColor = new Vector4(.15f, .15f, .15f, 1.0f);
             LightPosition = new Vector3(0, 0, 0);
-            LightColor = new Vector4(.85f, .85f, .85f, 1.0f);
+            LightColor = new Vector3(.85f, .85f, .85f);
             LightAttenuation = 5000;
+            LightFalloff = 2;
+        }
+
+        public PointLightMaterial(Vector3 lightPos, Vector3 lightColor, float lightAttenuation)
+        {
+            AmbientLightColor = new Vector4(.15f, .15f, .15f, 1.0f);
+            LightPosition = lightPos;
+            LightColor = lightColor;
+            LightAttenuation = lightAttenuation;
             LightFalloff = 2;
         }
 

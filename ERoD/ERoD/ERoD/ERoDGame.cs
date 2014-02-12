@@ -16,8 +16,6 @@ namespace ERoD
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
 
-        RasterizerState StandardCull, CullClockwiseFace;
-
         // Game Variables //
         // Models //
         List<ObjModel> models = new List<ObjModel>();
@@ -64,12 +62,6 @@ namespace ERoD
                 aspectRatio,
                 1.0f, 10000.0f);
 
-            // Create custom rasterizerstates for the culling of the 
-            // vertices on the skybox, only show the inside triangles.
-            StandardCull = new RasterizerState();
-            CullClockwiseFace = new RasterizerState();
-            CullClockwiseFace.CullMode = CullMode.CullClockwiseFace;
-
             // Set up renderTarget for the shadowMap
             shadowRenderTarget = new RenderTarget2D(
                 GraphicsDevice,
@@ -81,24 +73,28 @@ namespace ERoD
 
             base.Initialize();
         }
-
+        PrelightingRenderer renderer;
         protected override void LoadContent()
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            
+            //new Vector3(-40.0f, 15.0f, 55.0f)
+
+            Vector3 newLight = new Vector3(-30, 15, -30);
             // Load Models
-            models.Add(new ObjModel(Content.Load<Model>("Models/shrine"), new Vector3(0, 0, 0),
+            models.Add(new ObjModel(Content.Load<Model>("Models/shrine"), new Vector3(-10, 50.0f, 0.8f),
             new Vector3(MathHelper.ToRadians(90), 0, 0), new Vector3(1.0f), GraphicsDevice));
-            models.Add(new ObjModel(Content.Load<Model>("Models/ship"), new Vector3(0, 0, 20.0f),
-            new Vector3(0, 0, 0), new Vector3(0.002f), GraphicsDevice));
-            models.Add(new ObjModel(Content.Load<Model>("Models/ground"), new Vector3(0, 0, 0),
-            new Vector3(MathHelper.ToRadians(90), 0, 0), new Vector3(0.1f), GraphicsDevice));
+            models.Add(new ObjModel(Content.Load<Model>("Models/ship"), new Vector3(-40.0f, 15.0f, 55.0f),
+            new Vector3(0, MathHelper.ToRadians(-90), 0), new Vector3(0.002f), GraphicsDevice));
+            models.Add(new ObjModel(Content.Load<Model>("Models/groundmax"), new Vector3(0, 0, 0),
+            new Vector3(MathHelper.ToRadians(90), 0, 0), new Vector3(1.0f), GraphicsDevice));
 
             // Load Textures
             models[0].DiffuseTexture = Content.Load<Texture2D>("Textures/shrine_diff");
             models[0].NormalTexture = Content.Load<Texture2D>("Textures/shrine_normal");
             models[1].DiffuseTexture = Content.Load<Texture2D>("Textures/ship_diff");
-            models[2].DiffuseTexture = Content.Load<Texture2D>("Textures/ground");
+            //models[2].DiffuseTexture = Content.Load<Texture2D>("Textures/ground");
+            models[2].DiffuseTexture = Content.Load<Texture2D>("Textures/Groundmax/diffuse");
+            models[2].NormalTexture = Content.Load<Texture2D>("Textures/Groundmax/normal");
 
             // Load Skybox
             skybox = new Skybox("Skyboxes/SkyBox", Content);
@@ -107,35 +103,50 @@ namespace ERoD
             BumpShader = Content.Load<Effect>("Shaders/NormalMap");
             TextureShader = Content.Load<Effect>("Shaders/Textured");
             ShadowMap = Content.Load<Effect>("Shaders/ShadowMap");
-
-            // Assign shaders to models
-            models[0].SetModelEffect(TextureShader, true);
-            models[1].SetModelEffect(TextureShader, true);
-            models[2].SetModelEffect(TextureShader, true);
-
-            //PointLightMaterial mat = new PointLightMaterial();
-            //mat.LightPosition = new Vector3(0, 100, 100);
-            //mat.LightAttenuation = 300;
-
-            MultiLightingMaterial mat = new MultiLightingMaterial();
-
-            mat.LightDirection[0] = new Vector3(1, -1, -1);
-            mat.LightDirection[1] = new Vector3(-1, -1, 0);
-            mat.LightDirection[2] = new Vector3(0, -1, 1);
-
-            mat.LightPosition[0] = new Vector3(-10, 10, 0);
-            mat.LightPosition[1] = new Vector3(10, 10, 0);
-            mat.LightPosition[2] = new Vector3(0, 10, -10);
-            
-
-            models[0].Material = mat;
-            models[1].Material = mat;
-            models[2].Material = mat;
+            Effect effect = Content.Load<Effect>("Shaders/PPModel");
 
             // Load Camera
             camera = new ChaseCamera(new Vector3(0, 0.5f, 20.0f),
             new Vector3(0, 0, 0),
             new Vector3(0, 0, 0), GraphicsDevice);
+
+            // Assign shaders to models
+            models[0].SetModelEffect(effect, true);
+            models[1].SetModelEffect(effect, true);
+            models[2].SetModelEffect(effect, true);
+
+            renderer = new PrelightingRenderer(GraphicsDevice, Content);
+            renderer.Models = models;
+            renderer.Camera = camera;
+            renderer.Lights = new List<PointLightMaterial>()
+            {
+                new PointLightMaterial(new Vector3(10, 10, 55), Color.White.ToVector3() * .85f, 40.0f),
+                new PointLightMaterial(new Vector3(-40, 15, 55), Color.White.ToVector3() * .85f, 40.0f),
+                new PointLightMaterial(new Vector3(43.0f, 7.0f, 40.0f), Color.Red.ToVector3() * .85f, 20.0f),
+                new PointLightMaterial(new Vector3(40, 20, 0), Color.LightGreen.ToVector3() * .85f, 40.0f),
+                new PointLightMaterial(new Vector3(-30, 15, -30), Color.Navy.ToVector3() * .85f, 75.0f),
+                new PointLightMaterial(new Vector3(-10, 15, -50), Color.Pink.ToVector3() * .85f, 25.0f)
+            };
+
+            //PointLightMaterial mat = new PointLightMaterial();
+            //mat.LightPosition = new Vector3(0, 100, 100);
+            //mat.LightAttenuation = 300;
+
+            //MultiLightingMaterial mat = new MultiLightingMaterial();
+
+            //mat.LightDirection[0] = new Vector3(1, -1, -1);
+            //mat.LightDirection[1] = new Vector3(-1, -1, 0);
+            //mat.LightDirection[2] = new Vector3(0, -1, 1);
+
+            //mat.LightPosition[0] = new Vector3(-10, 10, 0);
+            //mat.LightPosition[1] = new Vector3(10, 10, 0);
+            //mat.LightPosition[2] = new Vector3(0, 10, -10);
+            
+
+            //models[0].Material = mat;
+            //models[1].Material = mat;
+            //models[2].Material = mat;
+
 
             // Load Sounds
 
@@ -149,11 +160,6 @@ namespace ERoD
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
                 this.Exit();
-
-            // Update camera and view vector
-            //CameraRotation += 0.01f;
-            //CameraLocation = new Vector3((float)Math.Sin(CameraRotation) * 20.0f,
-            //    5.0f, (float)Math.Cos(CameraRotation) * 20.0f);
 
             updateModel(gameTime);
             updateCamera(gameTime);
@@ -234,82 +240,22 @@ namespace ERoD
 
         protected override void Draw(GameTime gameTime)
         {
+            renderer.Draw();
+
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
-            //DrawSceneToTexture(shadowRenderTarget);
-
-            // Commented code will draw the shadow depth texture to screen
-            //spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque,
-            //    SamplerState.LinearClamp, DepthStencilState.Default,
-            //    RasterizerState.CullNone);
-
-            //spriteBatch.Draw(shadowRenderTarget, new Rectangle(0, 0, 800, 480), Color.White);
-
-            //spriteBatch.End();
-
-            // Comment the following 4 lines to draw depth texture instead
-
             // Invert the culling for the skybox cube and draw the skybox
-            graphics.GraphicsDevice.RasterizerState = CullClockwiseFace;
+            graphics.GraphicsDevice.RasterizerState = RasterizerState.CullClockwise;
             skybox.Draw(camera.View, Projection, camera.Position);
-            graphics.GraphicsDevice.RasterizerState = StandardCull;
+            graphics.GraphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
 
-            // draw the shrine
+            // Draw the Modes
             foreach (ObjModel model in models)
             {
-                if (model.DiffuseExists)
-                {
-                    if (model.NormalExists)
-                    {
-                        model.Draw(BumpShader, camera.View, Projection, camera.Position);
-                    }
-                    else
-                    {
-                        model.Draw(TextureShader, camera.View, Projection, camera.Position);
-                    }
-                }
+                model.Draw(camera.View, Projection, camera.Position); 
             }
-            //DrawModelWithEffect(shrine, World, View, Projection);
 
             base.Draw(gameTime);
         }
-
-        // Draw the depth from the lights perspective to a texture.
-        protected void DrawSceneToTexture(RenderTarget2D renderTarget)
-        {
-            // Set the render target
-            GraphicsDevice.SetRenderTarget(renderTarget);
-
-            GraphicsDevice.DepthStencilState = new DepthStencilState() { DepthBufferEnable = true };
-
-            // Draw the scene
-            GraphicsDevice.Clear(Color.CornflowerBlue);
-            //DrawShadowCaster(shrine);
-            //DrawModelWithEffect(model, World, View, LightProjection);
-
-            GraphicsDevice.SetRenderTarget(null);
-        }
-
-        // Draw a shadowcaster object from the lights perspective, saving the depth value.
-        private void DrawShadowCaster(Model model)
-        {
-            foreach (ModelMesh mesh in model.Meshes)
-            {
-                foreach (ModelMeshPart part in mesh.MeshParts)
-                {
-                    // Set the part to use the shadowmap shader.
-                    part.Effect = ShadowMap;
-                    // Set parameters of the shadowmap shader.
-                    ShadowMap.Parameters["World"].SetValue(World * mesh.ParentBone.Transform);
-                    //ShadowMap.Parameters["LightView"].SetValue(LightView);
-                    //ShadowMap.Parameters["LightProjection"].SetValue(LightProjection);
-
-                }
-                mesh.Draw();
-            }
-        }
-
-        // Draw a model with a shader, now hardcoded to use the BumpShader with normalmaps
-        
     }
 }

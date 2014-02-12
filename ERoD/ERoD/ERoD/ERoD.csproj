@@ -79,6 +79,7 @@
     <Compile Include="MultiLightingMaterial.cs" />
     <Compile Include="ObjModel.cs" />
     <Compile Include="PointLightMaterial.cs" />
+    <Compile Include="PrelightningRenderer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="ERoDGame.cs" />
