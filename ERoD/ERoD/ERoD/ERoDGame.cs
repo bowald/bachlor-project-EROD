@@ -20,14 +20,6 @@ namespace ERoD
         // Models //
         List<ObjModel> models = new List<ObjModel>();
 
-        // Shaders //
-        Effect BumpShader;
-        Effect TextureShader;
-        Effect ShadowMap;
-
-        // ShadowMap //
-        RenderTarget2D shadowRenderTarget;
-
         // Skybox //
         Skybox skybox;
 
@@ -62,15 +54,6 @@ namespace ERoD
                 aspectRatio,
                 1.0f, 10000.0f);
 
-            // Set up renderTarget for the shadowMap
-            shadowRenderTarget = new RenderTarget2D(
-                GraphicsDevice,
-                GraphicsDevice.PresentationParameters.BackBufferWidth,
-                GraphicsDevice.PresentationParameters.BackBufferHeight,
-                false,
-                GraphicsDevice.PresentationParameters.BackBufferFormat,
-                DepthFormat.Depth16);
-
             base.Initialize();
         }
         PrelightingRenderer renderer;
@@ -98,9 +81,6 @@ namespace ERoD
             skybox = new Skybox("Skyboxes/SkyBox", Content);
 
             // Load Shaders
-            BumpShader = Content.Load<Effect>("Shaders/NormalMap");
-            TextureShader = Content.Load<Effect>("Shaders/Textured");
-            ShadowMap = Content.Load<Effect>("Shaders/ShadowMap");
             Effect effect = Content.Load<Effect>("Shaders/PPModel");
 
             // Load Camera
@@ -178,7 +158,7 @@ namespace ERoD
                     models[1].Rotation.Z);
                     // Move in the direction dictated by our rotation matrix
                     models[1].Position += Vector3.Transform(Vector3.Forward,
-                    rotation) * (float)gameTime.ElapsedGameTime.TotalMilliseconds * 0.01f;
+                    rotation) * (float)gameTime.ElapsedGameTime.TotalMilliseconds * 0.03f;
                 }
                 if (currentState.Triggers.Left > 0)
                 {
@@ -188,7 +168,7 @@ namespace ERoD
                     models[1].Rotation.Z);
                     // Move in the direction dictated by our rotation matrix
                     models[1].Position += Vector3.Transform(Vector3.Forward,
-                    rotation) * (float)gameTime.ElapsedGameTime.TotalMilliseconds * -0.01f;
+                    rotation) * (float)gameTime.ElapsedGameTime.TotalMilliseconds * -0.03f;
                 }
 
             }
