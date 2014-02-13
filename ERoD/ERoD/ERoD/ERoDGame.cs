@@ -78,7 +78,7 @@ namespace ERoD
             models[2].NormalTexture = Content.Load<Texture2D>("Textures/Groundmax/normal");
 
             // Load Skybox
-            skybox = new Skybox("Skyboxes/SkyBox", Content);
+            skybox = new Skybox("Skyboxes/Islands", Content);
 
             // Load Shaders
             Effect effect = Content.Load<Effect>("Shaders/PPModel");
