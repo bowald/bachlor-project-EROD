@@ -45,20 +45,16 @@ namespace ERoD
             // Sum the rotations of the model and the camera to ensure it
             // is rotated to the correct position relative to the model's
             // rotation
-            Vector3 combinedRotation = FollowTargetRotation +
-            RelativeCameraRotation;
+            Vector3 combinedRotation = FollowTargetRotation + RelativeCameraRotation;
             // Calculate the rotation matrix for the camera
-            Matrix rotation = Matrix.CreateFromYawPitchRoll(
-            combinedRotation.Y, combinedRotation.X, combinedRotation.Z);
+            Matrix rotation = Matrix.CreateFromYawPitchRoll(combinedRotation.Y, combinedRotation.X, combinedRotation.Z);
             // Calculate the position the camera would be without the spring
             // value, using the rotation matrix and target position
-            Vector3 desiredPosition = FollowTargetPosition +
-            Vector3.Transform(PositionOffset, rotation);
+            Vector3 desiredPosition = FollowTargetPosition + Vector3.Transform(PositionOffset, rotation);
             // Interpolate between the current position and desired position
             Position = Vector3.Lerp(Position, desiredPosition, Springiness);
             // Calculate the new target using the rotation matrix
-            Target = FollowTargetPosition + Vector3.Transform(TargetOffset,
-            rotation);
+            Target = FollowTargetPosition + Vector3.Transform(TargetOffset, rotation);
             // Obtain the up vector from the matrix
             Vector3 up = Vector3.Transform(Vector3.Up, rotation);
             // Recalculate the view matrix

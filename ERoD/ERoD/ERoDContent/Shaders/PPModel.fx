@@ -23,6 +23,15 @@ sampler2D lightSampler = sampler_state
 	mipfilter = point;
 };
 
+float4x4 ProjectorViewProjection;
+
+texture2D ProjectedTexture;
+sampler2D projectorSampler = sampler_state
+{
+	texture = <ProjectedTexture>;
+};
+bool ProjectorEnabled = false;
+
 float3 AmbientColor = float3(0.15, 0.15, 0.15);
 float3 DiffuseColor;
 
@@ -39,7 +48,17 @@ struct VertexShaderOutput
 	float4 Position : POSITION0;
 	float2 TexCoord : TEXCOORD0;
 	float4 PositionCopy : TEXCOORD1;
+	float4 ProjectorScreenPosition : TEXCOORD2;
 };
+
+float3 sampleProjector(float2 UV)
+{
+	if (UV.x < 0 || UV.x > 1 || UV.y < 0 || UV.y > 1)
+	{
+		return float3(0, 0, 0);
+	}
+	return tex2D(projectorSampler, UV);
+}
 
 VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 {
@@ -52,6 +71,9 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 	
 	output.TexCoord = input.TexCoord;
 	
+	output.ProjectorScreenPosition = mul(mul(input.Position, World),
+		ProjectorViewProjection);
+
 	return output;
 }
 
@@ -69,8 +91,14 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 	float2 texCoord = postProjToScreen(input.PositionCopy) + halfPixel();
 	float3 light = tex2D(lightSampler, texCoord);
 	light += AmbientColor;
-	
-	return float4(basicTexture * DiffuseColor * light, 1);
+
+	float3 projection = float3(0, 0, 0);
+	if (ProjectorEnabled)
+	{
+		projection = sampleProjector(postProjToScreen(
+			input.ProjectorScreenPosition) + halfPixel());
+	}
+	return float4(basicTexture * DiffuseColor * light + projection, 1);
 }
 
 
