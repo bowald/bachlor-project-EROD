@@ -5,6 +5,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
+using Jitter;
+using Jitter.Dynamics;
+using Jitter.Collision.Shapes;
+
 namespace ERoD
 {
     public class ObjModel
@@ -16,6 +20,8 @@ namespace ERoD
         private Matrix[] modelTransforms;
         private GraphicsDevice graphicsDevice;
         public Material Material { get; set; }
+
+        public RigidBody body;
 
         public Boolean DiffuseExists { get; private set; }
         private Texture2D diffuseTexture;
@@ -54,7 +60,7 @@ namespace ERoD
         }
 
         public ObjModel(Model Model, Vector3 Position, Vector3 Rotation,
-            Vector3 Scale, GraphicsDevice graphicsDevice)
+            Vector3 Scale, GraphicsDevice graphicsDevice, Shape shape)
         {
             this.Model = Model;
             modelTransforms = new Matrix[Model.Bones.Count];
@@ -65,6 +71,9 @@ namespace ERoD
             this.Rotation = Rotation;
             this.Scale = Scale;
             this.graphicsDevice = graphicsDevice;
+
+            this.body = new RigidBody(shape);
+            this.body.Position = Conversion.ToJitterVector(Position);
 
             generateTags();
 
@@ -135,7 +144,7 @@ namespace ERoD
             Matrix baseWorld = Matrix.CreateScale(Scale)
             * Matrix.CreateFromYawPitchRoll(
             Rotation.Y, Rotation.X, Rotation.Z)
-            * Matrix.CreateTranslation(Position);
+            * Matrix.CreateTranslation(Conversion.ToXNAVector(body.Position));
 
             foreach (ModelMesh mesh in Model.Meshes)
             {

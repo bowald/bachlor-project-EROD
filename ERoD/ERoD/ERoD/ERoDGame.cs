@@ -8,6 +8,15 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
 
+using Jitter;
+using Jitter.Dynamics;
+using Jitter.Collision;
+using Jitter.LinearMath;
+using Jitter.Collision.Shapes;
+using Jitter.Dynamics.Constraints;
+using Jitter.Dynamics.Joints;
+using Jitter.DataStructures;
+
 namespace ERoD
 {
     public class ERoDGame : Microsoft.Xna.Framework.Game
@@ -29,22 +38,24 @@ namespace ERoD
         // Cameras //
         ChaseCamera camera;
 
+        // Physics //
+        World World;
+
         // Lights //
 
         // Render Matrices (Put inside Light/Camera class?)
-        Matrix World; // Inside model?
         Matrix Projection;
 
         public ERoDGame()
         {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
+            CollisionSystem collision = new CollisionSystemPersistentSAP();
+            World = new World(collision);
         }
 
         protected override void Initialize()
         {
-            World = Matrix.Identity;
-            
             float aspectRatio = graphics.GraphicsDevice.Viewport.AspectRatio;
 
             // Camera view and projection matrices
@@ -60,38 +71,50 @@ namespace ERoD
         protected override void LoadContent()
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
-       
-            // Load Models
-            models.Add(new ObjModel(Content.Load<Model>("Models/shrine"), new Vector3(-10, 50.0f, 0.8f),
-            new Vector3(MathHelper.ToRadians(90), 0, 0), new Vector3(1.0f), GraphicsDevice));
-            models.Add(new ObjModel(Content.Load<Model>("Models/ship"), new Vector3(-40.0f, 15.0f, 55.0f),
-            new Vector3(0, MathHelper.ToRadians(-90), 0), new Vector3(0.002f), GraphicsDevice));
-            models.Add(new ObjModel(Content.Load<Model>("Models/groundmax"), new Vector3(0, 0, 0),
-            new Vector3(MathHelper.ToRadians(90), 0, 0), new Vector3(1.0f), GraphicsDevice));
 
-            // Load Textures
-            models[0].DiffuseTexture = Content.Load<Texture2D>("Textures/shrine_diff");
-            models[0].NormalTexture = Content.Load<Texture2D>("Textures/shrine_normal");
-            models[1].DiffuseTexture = Content.Load<Texture2D>("Textures/ship_diff");
-            //models[2].DiffuseTexture = Content.Load<Texture2D>("Textures/ground");
-            models[2].DiffuseTexture = Content.Load<Texture2D>("Textures/Groundmax/diffuse");
-            models[2].NormalTexture = Content.Load<Texture2D>("Textures/Groundmax/normal");
-
-            // Load Skybox
-            skybox = new Skybox("Skyboxes/Islands", Content);
 
             // Load Shaders
             Effect effect = Content.Load<Effect>("Shaders/PPModel");
+
+            // Load Models
+            ObjModel newModel = new ObjModel(Content.Load<Model>("Models/shrine"), new Vector3(-10, 50.0f, 0.8f),
+                new Vector3(MathHelper.ToRadians(90), 0, 0), new Vector3(1.0f), GraphicsDevice, new BoxShape(new JVector(10.0f, 10.0f, 10.0f)));
+            newModel.DiffuseTexture = Content.Load<Texture2D>("Textures/shrine_diff");
+            newModel.NormalTexture = Content.Load<Texture2D>("Textures/shrine_normal");
+            newModel.SetModelEffect(effect, true);
+            World.AddBody(newModel.body);
+            models.Add(newModel);
+
+
+            newModel = new ObjModel(Content.Load<Model>("Models/ship"), new Vector3(-40.0f, 15.0f, 55.0f),
+                new Vector3(0, MathHelper.ToRadians(-90), 0), new Vector3(0.002f), GraphicsDevice, new BoxShape(JVector.One));
+            newModel.DiffuseTexture = Content.Load<Texture2D>("Textures/ship_diff");
+            newModel.SetModelEffect(effect, true);
+            World.AddBody(newModel.body);
+            newModel.body.Mass = 100.0f;
+            models.Add(newModel);
+
+            newModel = new ObjModel(Content.Load<Model>("Models/ground"), new Vector3(0, 0, 0),
+                new Vector3(MathHelper.ToRadians(90), 0, 0), new Vector3(1.0f), GraphicsDevice, new BoxShape(new JVector(400.0f, 1.0f, 400.0f)));
+            newModel.DiffuseTexture = Content.Load<Texture2D>("Textures/ground");//max/diffuse");
+            //newModel.NormalTexture = Content.Load<Texture2D>("Textures/Groundmax/normal");
+            newModel.SetModelEffect(effect, true);
+            newModel.body.IsStatic = true;
+            World.AddBody(newModel.body);
+            models.Add(newModel);
+            // Load Textures
+            
+            
+            //models[2].DiffuseTexture = Content.Load<Texture2D>("Textures/ground");
+
+
+            // Load Skybox
+            skybox = new Skybox("Skyboxes/Islands", Content);
 
             // Load Camera
             camera = new ChaseCamera(new Vector3(0, 0.5f, 20.0f),
             new Vector3(0, 0, 0),
             new Vector3(0, 0, 0), GraphicsDevice);
-
-            // Assign shaders to models
-            models[0].SetModelEffect(effect, true);
-            models[1].SetModelEffect(effect, true);
-            models[2].SetModelEffect(effect, true);
 
             ProjectedTextureMaterial mat = new ProjectedTextureMaterial(
                 Content.Load<Texture2D>("Textures/horde"), GraphicsDevice);
@@ -133,6 +156,8 @@ namespace ERoD
             updateModel(gameTime);
             updateCamera(gameTime);
 
+            World.Step(1.0f/100.0f, true);
+
             base.Update(gameTime);
         }
 
@@ -143,6 +168,7 @@ namespace ERoD
 
             if (currentState.IsConnected)
             {
+
                 Vector3 rotChange = new Vector3(0, 0, 0);
 
                 rotChange.X = -currentState.ThumbSticks.Left.Y * 0.05f;
@@ -156,9 +182,11 @@ namespace ERoD
                     Matrix rotation = Matrix.CreateFromYawPitchRoll(
                     models[1].Rotation.Y, models[1].Rotation.X,
                     models[1].Rotation.Z);
+
                     // Move in the direction dictated by our rotation matrix
-                    models[1].Position += Vector3.Transform(Vector3.Forward,
-                    rotation) * (float)gameTime.ElapsedGameTime.TotalMilliseconds * 0.03f;
+                   models[1].body.LinearVelocity = Conversion.ToJitterVector((((ChaseCamera)camera).Target - ((ChaseCamera)camera).Position) * new Vector3(3.0f, 0, 3.0f));
+                   //models[1].body.AddForce(new JVector(100.0f, 100.0f, 100.0f), models[1].body.Position);
+
                 }
                 if (currentState.Triggers.Left > 0)
                 {
@@ -167,8 +195,8 @@ namespace ERoD
                     models[1].Rotation.Y, models[1].Rotation.X,
                     models[1].Rotation.Z);
                     // Move in the direction dictated by our rotation matrix
-                    models[1].Position += Vector3.Transform(Vector3.Forward,
-                    rotation) * (float)gameTime.ElapsedGameTime.TotalMilliseconds * -0.03f;
+                    models[1].body.Position += Conversion.ToJitterVector(Vector3.Transform(Vector3.Forward,
+                    rotation) * (float)gameTime.ElapsedGameTime.TotalMilliseconds * -0.03f);
                 }
 
             }
@@ -195,13 +223,15 @@ namespace ERoD
                 // Move in the direction dictated by our rotation matrix
                 models[1].Position += Vector3.Transform(Vector3.Forward,
                 rotation) * (float)gameTime.ElapsedGameTime.TotalMilliseconds * 0.01f;
+                models[1].body.Position += Conversion.ToJitterVector(Vector3.Transform(Vector3.Forward,
+                rotation) * (float)gameTime.ElapsedGameTime.TotalMilliseconds * 0.01f);
             }
         }
 
         void updateCamera(GameTime gameTime)
         {
             // Move the camera to the new model's position and orientation
-            ((ChaseCamera)camera).Move(models[1].Position,
+            ((ChaseCamera)camera).Move(Conversion.ToXNAVector(models[1].body.Position),
             models[1].Rotation);
             // Update the camera
             camera.Update();
