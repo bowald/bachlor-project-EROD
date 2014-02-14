@@ -32,8 +32,12 @@ namespace ERoD
         // Lights //
 
         // Render Matrices (Put inside Light/Camera class?)
-        Matrix World; // Inside model?
         Matrix Projection;
+
+        RenderCapture renderCapture;
+        PostProcessor postprocessor;
+
+        PrelightingRenderer renderer;
 
         public ERoDGame()
         {
@@ -43,8 +47,7 @@ namespace ERoD
 
         protected override void Initialize()
         {
-            World = Matrix.Identity;
-            
+                        
             float aspectRatio = graphics.GraphicsDevice.Viewport.AspectRatio;
 
             // Camera view and projection matrices
@@ -56,7 +59,7 @@ namespace ERoD
 
             base.Initialize();
         }
-        PrelightingRenderer renderer;
+        
         protected override void LoadContent()
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
@@ -79,6 +82,10 @@ namespace ERoD
 
             // Load Skybox
             skybox = new Skybox("Skyboxes/Islands", Content);
+
+            // PostProcessing
+            renderCapture = new RenderCapture(GraphicsDevice);
+            postprocessor = new GaussianBlur(GraphicsDevice, Content, 2.0f);
 
             // Load Shaders
             Effect effect = Content.Load<Effect>("Shaders/PPModel");
@@ -211,6 +218,8 @@ namespace ERoD
         {
             renderer.Draw();
 
+            renderCapture.Begin();
+
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
             // Invert the culling for the skybox cube and draw the skybox
@@ -223,6 +232,12 @@ namespace ERoD
             {
                 model.Draw(camera.View, Projection, camera.Position); 
             }
+
+            renderCapture.End();
+
+            // Perform postprocessing with the render of the scene
+            postprocessor.Input = renderCapture.GetTexture();
+            postprocessor.Draw();
 
             base.Draw(gameTime);
         }

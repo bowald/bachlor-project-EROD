@@ -11,7 +11,7 @@ namespace ERoD
     public class PrelightingRenderer
     {
         // Normal, depth, and light map render targets
-        RenderTarget2D depthTarg;
+        public RenderTarget2D depthTarg;
         RenderTarget2D normalTarg;
         RenderTarget2D lightTarg;
         
@@ -57,6 +57,7 @@ namespace ERoD
         public void Draw()
         {
             drawDepthNormalMap();
+            // TODO: Awesome stuff making motion blurrr
             drawLightMap();
             prepareMainPass();
         }
