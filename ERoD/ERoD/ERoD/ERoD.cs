@@ -11,13 +11,15 @@ using Microsoft.Xna.Framework.Media;
 using BEPUphysics;
 using BEPUphysics.BroadPhaseEntries;
 using BEPUutilities;
-using BVector3 = BEPUutilities.Vector3;
-using BQuaternion = BEPUutilities.Quaternion;
-using BMatrix = BEPUutilities.Matrix;
-using Matrix = Microsoft.Xna.Framework.Matrix;
 using ConversionHelper;
 using BEPUphysics.Entities;
 using BEPUphysics.Entities.Prefabs;
+
+using BVector3 = BEPUutilities.Vector3;
+using BQuaternion = BEPUutilities.Quaternion;
+using BMatrix = BEPUutilities.Matrix;
+using Vector3 = Microsoft.Xna.Framework.Vector3;
+using Matrix = Microsoft.Xna.Framework.Matrix;
 
 namespace ERoD
 {
@@ -29,6 +31,8 @@ namespace ERoD
         GraphicsDeviceManager graphics;
         private Space space;
         public BaseCamera Camera;
+
+        public GamePadState GamePadState { get; set; }
 
         public ERoD()
         {
@@ -44,7 +48,7 @@ namespace ERoD
         /// </summary>
         protected override void Initialize()
         {
-            Camera = new BaseCamera(this, 0.1f, 20000);
+            Camera = new FreeCamera(this, 0.1f, 2000, new Vector3(0, 30, 50), 25.0f);
             base.Initialize();
         }
 
@@ -126,6 +130,8 @@ namespace ERoD
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
+            GamePadState = GamePad.GetState(PlayerIndex.One);
+
             // Allows the game to exit
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
             {

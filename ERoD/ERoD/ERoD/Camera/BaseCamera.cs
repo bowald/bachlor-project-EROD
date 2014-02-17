@@ -52,11 +52,12 @@ namespace ERoD
             set { viewport = value; }
         }
 
-        public BaseCamera(Game game, float nearPlane, float farPlane) : base(game)
+        protected BaseCamera(Game game, float nearPlane, float farPlane, Vector3 position) : base(game)
         {
-            position = new Vector3(0, 50, 50);
             this.nearPlane = nearPlane;
             this.farPlane = farPlane;
+
+            this.Position = position;
 
             game.Components.Add(this);
         }
@@ -66,16 +67,19 @@ namespace ERoD
             viewport = Game.GraphicsDevice.Viewport;
             viewport.MinDepth = nearPlane;
             viewport.MaxDepth = farPlane;
+
+            projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4
+                , viewport.AspectRatio, viewport.MinDepth, viewport.MaxDepth);
         }
+
         public override void Update(GameTime gameTime)
         {
             world = Matrix.CreateFromQuaternion(rotation) * Matrix.CreateTranslation(position);
-            view = Matrix.CreateLookAt(position, Vector3.Zero, Vector3.Up);
-
-            projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, viewport.AspectRatio, viewport.MinDepth, viewport.MaxDepth);
+            view = Matrix.Invert(World);//Matrix.CreateLookAt(position, Vector3.Zero, Vector3.Up);
 
             base.Update(gameTime);
         }
+
         //public override void Dispose()
         //{
         //    base.Dispose();
