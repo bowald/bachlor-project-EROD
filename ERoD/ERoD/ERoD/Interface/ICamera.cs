@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,5 +14,7 @@ namespace ERoD
         Vector3 Position { get; set; }
         Quaternion Rotation { get; set; }
         Matrix World { get; }
+        Viewport Viewport { get; set; }
+        void Dispose();
     }
 }
