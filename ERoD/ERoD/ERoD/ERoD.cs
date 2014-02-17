@@ -12,6 +12,12 @@ using BEPUphysics;
 using BEPUphysics.BroadPhaseEntries;
 using BEPUutilities;
 using BVector3 = BEPUutilities.Vector3;
+using BQuaternion = BEPUutilities.Quaternion;
+using BMatrix = BEPUutilities.Matrix;
+using Matrix = Microsoft.Xna.Framework.Matrix;
+using ConversionHelper;
+using BEPUphysics.Entities;
+using BEPUphysics.Entities.Prefabs;
 
 namespace ERoD
 {
@@ -21,10 +27,8 @@ namespace ERoD
     public class ERoD : Microsoft.Xna.Framework.Game
     {
         GraphicsDeviceManager graphics;
-        Space space;
+        private Space space;
         public BaseCamera Camera;
-        Model groundModel;
-        Model shipModel;
 
         public ERoD()
         {
@@ -50,19 +54,60 @@ namespace ERoD
         /// </summary>
         protected override void LoadContent()
         {
-            shipModel = Content.Load<Model>("Models/ship");
-            groundModel = Content.Load<Model>("Models/ground");
+            Model shipModel = Content.Load<Model>("Models/ship");
+            AffineTransform shipTransform = new AffineTransform(new BVector3(0.002f, 0.002f, 0.002f), new BQuaternion(0, 0, 0, 0), new BVector3(0, 5, 0));
+            
+            Model groundModel = Content.Load<Model>("Models/ground");
+            AffineTransform groundTransform = new AffineTransform(new BVector3(0, 0, 0));
+
+            Model CubeModel = Content.Load<Model>("Models/cube");
 
             space = new Space();
 
+            space.Add(new Box(new BVector3(0, 4, 0), 1, 1, 1, 1));
+            space.Add(new Box(new BVector3(0, 8, 0), 1, 1, 1, 1));
+            space.Add(new Box(new BVector3(0, 12, 0), 1, 1, 1, 1));
+
+            foreach (Entity e in space.Entities)
+            {
+                Box box = e as Box;
+                if (box != null) //This won't create any graphics for an entity that isn't a box since the model being used is a box.
+                {
+
+                    Matrix scaling = Matrix.CreateScale(box.Width, box.Height, box.Length); //Since the cube model is 1x1x1, it needs to be scaled to match the size of each individual box.
+                    EntityObject model = new EntityObject(e, CubeModel, scaling, this);
+                    //Add the drawable game component for this entity to the game.
+                    Components.Add(model);
+                    e.Tag = model; //set the object tag of this entity to the model so that it's easy to delete the graphics component later if the entity is removed.
+                }
+            }
+
             space.ForceUpdater.Gravity = new BVector3(0, -9.82f, 0);
 
+            AddEntityObject(shipModel, shipTransform);
+            AddStaticObject(groundModel, groundTransform);
+        }
+
+        private void AddEntityObject(Model model, AffineTransform transform)
+        {
+        //    BVector3[] vertices;
+        //    int[] indices;
+        //    ModelDataExtractor.GetVerticesAndIndicesFromModel(model, out vertices, out indices);
+        //    //var mesh = new StaticMesh(vertices, indices, transform);
+        //    Entity entity = new ConvexHull(vertices);
+        //    entity.CollisionInformation.LocalPosition = entity.Position;
+        //    space.Add(entity);
+        //    Components.Add(new EntityObject(entity, model, MathConverter.Convert(entity.WorldTransform), this));
+        }
+
+        private void AddStaticObject(Model model, AffineTransform transform) 
+        {
             BVector3[] vertices;
             int[] indices;
-            ModelDataExtractor.GetVerticesAndIndicesFromModel(groundModel, out vertices, out indices);
-            var mesh = new StaticMesh(vertices, indices, new AffineTransform(new BVector3(0, 0, 0)));
+            ModelDataExtractor.GetVerticesAndIndicesFromModel(model, out vertices, out indices);
+            var mesh = new StaticMesh(vertices, indices, transform);
             space.Add(mesh);
-            Components.Add(new BaseObject(groundModel, ConversionHelper.MathConverter.Convert(mesh.WorldTransform.Matrix), this));
+            Components.Add(new StaticObject(model, MathConverter.Convert(mesh.WorldTransform.Matrix), this));
         }
 
         /// <summary>

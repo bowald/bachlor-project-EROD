@@ -35,7 +35,7 @@ namespace ERoD
             set { texture = value; }
         }
 
-        public BaseObject(Model model, Matrix world, Game game) : base(game)
+        protected BaseObject(Model model, Matrix world, Game game) : base(game)
         {
             this.model = model;
             this.world = world;
@@ -52,6 +52,7 @@ namespace ERoD
         public override void Draw(GameTime gameTime)
         {
             model.CopyAbsoluteBoneTransformsTo(boneTransforms);
+
             foreach (ModelMesh mesh in model.Meshes)
             {
                 foreach (BasicEffect effect in mesh.Effects)

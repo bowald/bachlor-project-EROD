@@ -90,6 +90,8 @@
     <Compile Include="Helper\ModelDataExtractor.cs" />
     <Compile Include="Light\PointLight.cs" />
     <Compile Include="Object\BaseObject.cs" />
+    <Compile Include="Object\EntityObject.cs" />
+    <Compile Include="Object\StaticObject.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="ERoD.cs" />
