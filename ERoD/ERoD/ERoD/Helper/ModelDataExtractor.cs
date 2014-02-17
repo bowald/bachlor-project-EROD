@@ -6,7 +6,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
 using ConversionHelper;
 
-namespace GettingStartedDemo
+namespace ERoD
 {
     /// <summary>
     /// Contains helper methods for extracting vertices and indices from XNA models.

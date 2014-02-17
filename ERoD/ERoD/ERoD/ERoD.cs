@@ -8,6 +8,10 @@ using Microsoft.Xna.Framework.GamerServices;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
+using BEPUphysics;
+using BEPUphysics.BroadPhaseEntries;
+using BEPUutilities;
+using BVector3 = BEPUutilities.Vector3;
 
 namespace ERoD
 {
@@ -17,6 +21,10 @@ namespace ERoD
     public class ERoD : Microsoft.Xna.Framework.Game
     {
         GraphicsDeviceManager graphics;
+        Space space;
+        public BaseCamera Camera;
+        Model groundModel;
+        Model shipModel;
 
         public ERoD()
         {
@@ -32,6 +40,7 @@ namespace ERoD
         /// </summary>
         protected override void Initialize()
         {
+            Camera = new BaseCamera(this, 0.1f, 20000);
             base.Initialize();
         }
 
@@ -41,7 +50,19 @@ namespace ERoD
         /// </summary>
         protected override void LoadContent()
         {
-            ;
+            shipModel = Content.Load<Model>("Models/ship");
+            groundModel = Content.Load<Model>("Models/ground");
+
+            space = new Space();
+
+            space.ForceUpdater.Gravity = new BVector3(0, -9.82f, 0);
+
+            BVector3[] vertices;
+            int[] indices;
+            ModelDataExtractor.GetVerticesAndIndicesFromModel(groundModel, out vertices, out indices);
+            var mesh = new StaticMesh(vertices, indices, new AffineTransform(new BVector3(0, 0, 0)));
+            space.Add(mesh);
+            Components.Add(new BaseObject(groundModel, ConversionHelper.MathConverter.Convert(mesh.WorldTransform.Matrix), this));
         }
 
         /// <summary>
@@ -66,6 +87,7 @@ namespace ERoD
                 this.Exit();
             }
 
+            space.Update();
 
             base.Update(gameTime);
         }

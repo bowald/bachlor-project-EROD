@@ -7,7 +7,7 @@ using System.Text;
 
 namespace ERoD
 {
-    interface ICamera
+    public interface ICamera
     {
         Matrix View { get; set; }
         Matrix Projection { get; }
@@ -15,6 +15,5 @@ namespace ERoD
         Quaternion Rotation { get; set; }
         Matrix World { get; }
         Viewport Viewport { get; set; }
-        void Dispose();
     }
 }

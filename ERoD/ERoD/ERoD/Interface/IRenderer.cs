@@ -6,8 +6,8 @@ using System.Text;
 
 namespace ERoD
 {
-    class IRenderer
+    public interface IRenderer
     {
-        void Draw(GameTime gameTime);
+       // void Draw(GameTime gameTime);
     }
 }

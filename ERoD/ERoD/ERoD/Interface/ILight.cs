@@ -7,7 +7,7 @@ using System.Text;
 
 namespace ERoD
 {
-    interface ILight
+    public interface ILight
     {
         Vector3 Position { get; set; }
         Color Color { get; set; }
@@ -16,7 +16,7 @@ namespace ERoD
         Matrix Projection { get; }
     }
 
-    interface IPointLight : ILight
+    public interface IPointLight : ILight
     {
         float Radius { get; set; }
     }

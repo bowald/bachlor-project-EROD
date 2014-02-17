@@ -7,7 +7,7 @@ using System.Text;
 
 namespace ERoD
 {
-    interface IObject
+    public interface IObject
     {
         Matrix World { get; set; }
         Model Model { get; set; }

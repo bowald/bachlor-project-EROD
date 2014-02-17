@@ -5,8 +5,11 @@ using System.Text;
 
 namespace ERoD
 {
-    class BasicRenderer : IRenderer
+    public class BasicRenderer : IRenderer
     {
-
+        //public override void Draw()
+        //{
+        //    ;
+        //}
     }
 }

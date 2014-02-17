@@ -7,7 +7,7 @@ using System.Text;
 
 namespace ERoD
 {
-    class BaseCamera : GameComponent, ICamera
+    public class BaseCamera : GameComponent, ICamera
     {
         protected Matrix view;
         protected Vector3 position;
@@ -18,35 +18,35 @@ namespace ERoD
         protected float nearPlane;
         protected float farPlane;
 
-        Matrix ICamera.View
+        public Matrix View
         {
             get{ return view; }
             set{ view = value; }
         }
 
-        Matrix ICamera.Projection
+        public Matrix Projection
         {
             get { return projection; }
         }
 
-        Vector3 ICamera.Position
+        public Vector3 Position
         {
             get { return position; }
             set { position = value; }
         }
 
-        Quaternion ICamera.Rotation
+        public Quaternion Rotation
         {
             get{ return rotation; }
             set{ rotation = value; }
         }
 
-        Matrix ICamera.World
+        public Matrix World
         {
             get { return world; }
         }
 
-        Viewport ICamera.Viewport
+        public Viewport Viewport
         {
             get { return viewport; }
             set { viewport = value; }
@@ -54,7 +54,7 @@ namespace ERoD
 
         public BaseCamera(Game game, float nearPlane, float farPlane) : base(game)
         {
-            position = Vector3.Zero;
+            position = new Vector3(0, 50, 50);
             this.nearPlane = nearPlane;
             this.farPlane = farPlane;
 
@@ -70,16 +70,16 @@ namespace ERoD
         public override void Update(GameTime gameTime)
         {
             world = Matrix.CreateFromQuaternion(rotation) * Matrix.CreateTranslation(position);
-            view = Matrix.Invert(world);
+            view = Matrix.CreateLookAt(position, Vector3.Zero, Vector3.Up);
 
             projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, viewport.AspectRatio, viewport.MinDepth, viewport.MaxDepth);
 
             base.Update(gameTime);
         }
-        public virtual void Dispose()
-        {
-            base.Dispose();
-            Game.Components.Remove(this);
-        }
+        //public override void Dispose()
+        //{
+        //    base.Dispose();
+        //    Game.Components.Remove(this);
+        //}
     }
 }
