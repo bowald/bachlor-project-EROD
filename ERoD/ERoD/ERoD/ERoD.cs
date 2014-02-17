@@ -33,6 +33,7 @@ namespace ERoD
         public BaseCamera Camera;
 
         public GamePadState GamePadState { get; set; }
+        Model CubeModel;
 
         public ERoD()
         {
@@ -64,7 +65,7 @@ namespace ERoD
             Model groundModel = Content.Load<Model>("Models/ground");
             AffineTransform groundTransform = new AffineTransform(new BVector3(0, 0, 0));
 
-            Model CubeModel = Content.Load<Model>("Models/cube");
+            CubeModel = Content.Load<Model>("Models/cube");
 
             space = new Space();
 
@@ -136,6 +137,24 @@ namespace ERoD
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
             {
                 this.Exit();
+            }
+
+            if (GamePadState.Triggers.Right > 0)
+            {
+                //If the user is holding down the trigger, start firing some boxes.
+                //First, create a new dynamic box at the camera's location.
+                Box toAdd = new Box(ConversionHelper.MathConverter.Convert(Camera.Position), 1, 1, 1, 1);
+                //Set the velocity of the new box to fly in the direction the camera is pointing.
+                //Entities have a whole bunch of properties that can be read from and written to.
+                //Try looking around in the entity's available properties to get an idea of what is available.
+                toAdd.LinearVelocity = ConversionHelper.MathConverter.Convert(Camera.World.Forward * 10);
+                //Add the new box to the simulation.
+                space.Add(toAdd);
+
+                //Add a graphical representation of the box to the drawable game components.
+                EntityObject obj = new EntityObject(toAdd, CubeModel, Matrix.Identity, this);
+                Components.Add(obj);
+                toAdd.Tag = obj;  //set the object tag of this entity to the model so that it's easy to delete the graphics component later if the entity is removed.
             }
 
             space.Update();
