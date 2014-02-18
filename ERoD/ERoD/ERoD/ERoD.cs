@@ -20,6 +20,8 @@ using BQuaternion = BEPUutilities.Quaternion;
 using BMatrix = BEPUutilities.Matrix;
 using Vector3 = Microsoft.Xna.Framework.Vector3;
 using Matrix = Microsoft.Xna.Framework.Matrix;
+using BEPUphysics.DataStructures;
+using BEPUphysics.CollisionShapes.ConvexShapes;
 
 namespace ERoD
 {
@@ -34,6 +36,7 @@ namespace ERoD
 
         public GamePadState GamePadState { get; set; }
         Model CubeModel;
+        Model horse;
 
         public ERoD()
         {
@@ -65,6 +68,10 @@ namespace ERoD
             Model groundModel = Content.Load<Model>("Models/ground");
             AffineTransform groundTransform = new AffineTransform(new BVector3(0, 0, 0));
 
+            Model horse = Content.Load<Model>("Models/horse");
+            AffineTransform horseTransform = new AffineTransform(new BVector3(0.001f, 0.001f, 0.001f), new BQuaternion(0, 0, 0, 0), new BVector3(0, 5, 0));
+            Matrix3x3 scalingHorse = new Matrix3x3(0.1f,0,0,0,0.1f,0,0,0,0.1f);
+
             CubeModel = Content.Load<Model>("Models/cube");
 
             space = new Space();
@@ -89,20 +96,22 @@ namespace ERoD
 
             space.ForceUpdater.Gravity = new BVector3(0, -9.82f, 0);
 
-            AddEntityObject(shipModel, shipTransform);
+            AddEntityObject(horse, scalingHorse);
             AddStaticObject(groundModel, groundTransform);
         }
 
-        private void AddEntityObject(Model model, AffineTransform transform)
+        private void AddEntityObject(Model model, Matrix3x3 scaling)
         {
-        //    BVector3[] vertices;
-        //    int[] indices;
-        //    ModelDataExtractor.GetVerticesAndIndicesFromModel(model, out vertices, out indices);
-        //    //var mesh = new StaticMesh(vertices, indices, transform);
-        //    Entity entity = new ConvexHull(vertices);
-        //    entity.CollisionInformation.LocalPosition = entity.Position;
-        //    space.Add(entity);
-        //    Components.Add(new EntityObject(entity, model, MathConverter.Convert(entity.WorldTransform), this));
+            BVector3[] vertices;
+            int[] indices;
+            ModelDataExtractor.GetVerticesAndIndicesFromModel(model, out vertices, out indices);
+            //var mesh = new StaticMesh(vertices, indices, transform);
+            ConvexHullShape CHS = new ConvexHullShape(vertices);
+            TransformableShape TS = new TransformableShape(CHS, scaling);
+            Entity entity = new Entity(TS, 10);
+            entity.CollisionInformation.LocalPosition = entity.Position;
+            space.Add(entity);
+            Components.Add(new EntityObject(entity, model, MathConverter.Convert(entity.WorldTransform), this));
         }
 
         private void AddStaticObject(Model model, AffineTransform transform) 
