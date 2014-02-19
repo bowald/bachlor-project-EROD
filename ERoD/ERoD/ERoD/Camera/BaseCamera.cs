@@ -52,12 +52,10 @@ namespace ERoD
             set { viewport = value; }
         }
 
-        protected BaseCamera(Game game, float nearPlane, float farPlane, Vector3 position) : base(game)
+        protected BaseCamera(Game game, float nearPlane, float farPlane) : base(game)
         {
             this.nearPlane = nearPlane;
             this.farPlane = farPlane;
-
-            this.Position = position;
 
             game.Components.Add(this);
         }
@@ -74,9 +72,6 @@ namespace ERoD
 
         public override void Update(GameTime gameTime)
         {
-            world = Matrix.CreateFromQuaternion(rotation) * Matrix.CreateTranslation(position);
-            view = Matrix.Invert(World);//Matrix.CreateLookAt(position, Vector3.Zero, Vector3.Up);
-
             base.Update(gameTime);
         }
 
