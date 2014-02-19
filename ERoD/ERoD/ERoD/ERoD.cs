@@ -42,7 +42,6 @@ namespace ERoD
 
         public GamePadState GamePadState { get; set; }
         Model CubeModel;
-        Model horse;
 
         public ERoD()
         {
@@ -69,18 +68,15 @@ namespace ERoD
         protected override void LoadContent()
         {
             Model shipModel = Content.Load<Model>("Models/ship");
-            AffineTransform shipTransform = new AffineTransform(new BVector3(0.002f, 0.002f, 0.002f), new BQuaternion(0, 0, 0, 0), BVector3.Zero);
-            
+            Vector3 shipScale = new Vector3(0.002f, 0.002f, 0.002f);
+            Vector3 shipPosition = new Vector3(0, 15, 0);
+
             Model groundModel = Content.Load<Model>("Models/ground");
             AffineTransform groundTransform = new AffineTransform(new BVector3(0, 0, 0));
 
             CubeModel = Content.Load<Model>("Models/cube");
             modelDrawer = new InstancedModelDrawer(this); // For debug
             space = new Space();
-
-            space.Add(new Box(new BVector3(0, 4, 0), 1, 1, 1, 1));
-            space.Add(new Box(new BVector3(0, 8, 0), 1, 1, 1, 1));
-            space.Add(new Box(new BVector3(0, 12, 0), 1, 1, 1, 1));
 
             foreach (Entity e in space.Entities)
             {
@@ -97,23 +93,25 @@ namespace ERoD
             }
 
             space.ForceUpdater.Gravity = new BVector3(0, -9.82f, 0);
-            AddEntityObject(shipModel, shipTransform);
+            AddEntityObject(shipModel, shipPosition, shipScale);
             AddStaticObject(groundModel, groundTransform);
         }
 
-        private void AddEntityObject(Model model, AffineTransform scaling)
+        private void AddEntityObject(Model model, Vector3 position, Vector3 scaling)
         {
+            
             BVector3[] vertices;
             int[] indices;
             ModelDataExtractor.GetVerticesAndIndicesFromModel(model, out vertices, out indices);
             ConvexHullShape CHS = new ConvexHullShape(OurHelper.scaleVertices(vertices, scaling));
             Entity entity = new Entity(CHS, 10);
+            entity.Position = ConversionHelper.MathConverter.Convert(position);
             space.Add(entity);
             if (DebugEnabled) 
             {
                 modelDrawer.Add(entity);
             }
-            Components.Add(new EntityObject(entity, model, ConversionHelper.MathConverter.Convert(scaling.Matrix), this));            
+            Components.Add(new EntityObject(entity, model, Matrix.CreateScale(scaling), this));            
         }
 
         private void AddStaticObject(Model model, AffineTransform transform) 
