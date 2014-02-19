@@ -23,7 +23,7 @@ namespace ERoD
 
         public override void Draw(GameTime gameTime)
         {
-            World = MathConverter.Convert(entity.WorldTransform);
+            World = Transform * MathConverter.Convert(entity.WorldTransform);
 
             base.Draw(gameTime);
         }

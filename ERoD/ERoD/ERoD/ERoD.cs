@@ -18,10 +18,13 @@ using BEPUphysics.Entities.Prefabs;
 using BVector3 = BEPUutilities.Vector3;
 using BQuaternion = BEPUutilities.Quaternion;
 using BMatrix = BEPUutilities.Matrix;
+using BMatrix3x3 = BEPUutilities.Matrix3x3;
 using Vector3 = Microsoft.Xna.Framework.Vector3;
 using Matrix = Microsoft.Xna.Framework.Matrix;
 using BEPUphysics.DataStructures;
 using BEPUphysics.CollisionShapes.ConvexShapes;
+using BEPUphysicsDrawer.Models;
+using ERoD.Helper;
 
 namespace ERoD
 {
@@ -33,6 +36,9 @@ namespace ERoD
         GraphicsDeviceManager graphics;
         private Space space;
         public BaseCamera Camera;
+        public Boolean DebugEnabled;
+
+        public ModelDrawer modelDrawer;  //Used to draw entitis for debug.
 
         public GamePadState GamePadState { get; set; }
         Model CubeModel;
@@ -63,17 +69,13 @@ namespace ERoD
         protected override void LoadContent()
         {
             Model shipModel = Content.Load<Model>("Models/ship");
-            AffineTransform shipTransform = new AffineTransform(new BVector3(0.002f, 0.002f, 0.002f), new BQuaternion(0, 0, 0, 0), new BVector3(0, 5, 0));
+            AffineTransform shipTransform = new AffineTransform(new BVector3(0.002f, 0.002f, 0.002f), new BQuaternion(0, 0, 0, 0), BVector3.Zero);
             
             Model groundModel = Content.Load<Model>("Models/ground");
             AffineTransform groundTransform = new AffineTransform(new BVector3(0, 0, 0));
 
-            Model horse = Content.Load<Model>("Models/horse");
-            AffineTransform horseTransform = new AffineTransform(new BVector3(0.001f, 0.001f, 0.001f), new BQuaternion(0, 0, 0, 0), new BVector3(0, 5, 0));
-            Matrix3x3 scalingHorse = new Matrix3x3(0.1f,0,0,0,0.1f,0,0,0,0.1f);
-
             CubeModel = Content.Load<Model>("Models/cube");
-
+            modelDrawer = new InstancedModelDrawer(this); // For debug
             space = new Space();
 
             space.Add(new Box(new BVector3(0, 4, 0), 1, 1, 1, 1));
@@ -95,23 +97,23 @@ namespace ERoD
             }
 
             space.ForceUpdater.Gravity = new BVector3(0, -9.82f, 0);
-
-            AddEntityObject(horse, scalingHorse);
+            AddEntityObject(shipModel, shipTransform);
             AddStaticObject(groundModel, groundTransform);
         }
 
-        private void AddEntityObject(Model model, Matrix3x3 scaling)
+        private void AddEntityObject(Model model, AffineTransform scaling)
         {
             BVector3[] vertices;
             int[] indices;
             ModelDataExtractor.GetVerticesAndIndicesFromModel(model, out vertices, out indices);
-            //var mesh = new StaticMesh(vertices, indices, transform);
-            ConvexHullShape CHS = new ConvexHullShape(vertices);
-            TransformableShape TS = new TransformableShape(CHS, scaling);
-            Entity entity = new Entity(TS, 10);
-            entity.CollisionInformation.LocalPosition = entity.Position;
+            ConvexHullShape CHS = new ConvexHullShape(OurHelper.scaleVertices(vertices, scaling));
+            Entity entity = new Entity(CHS, 10);
             space.Add(entity);
-            Components.Add(new EntityObject(entity, model, MathConverter.Convert(entity.WorldTransform), this));
+            if (DebugEnabled) 
+            {
+                modelDrawer.Add(entity);
+            }
+            Components.Add(new EntityObject(entity, model, ConversionHelper.MathConverter.Convert(scaling.Matrix), this));            
         }
 
         private void AddStaticObject(Model model, AffineTransform transform) 
@@ -140,6 +142,10 @@ namespace ERoD
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
+            if (DebugEnabled)
+            {
+                modelDrawer.Update(); // For debug
+            }
             GamePadState = GamePad.GetState(PlayerIndex.One);
 
             // Allows the game to exit
@@ -178,7 +184,10 @@ namespace ERoD
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
-
+            if (DebugEnabled)
+            {
+                modelDrawer.Draw(ConversionHelper.MathConverter.Convert(Camera.View), ConversionHelper.MathConverter.Convert(Camera.Projection));
+            }
             base.Draw(gameTime);
         }
     }

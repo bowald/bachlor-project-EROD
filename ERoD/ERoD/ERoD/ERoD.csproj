@@ -63,6 +63,9 @@
     <Reference Include="BEPUphysics">
       <HintPath>lib\BEPUphysics.dll</HintPath>
     </Reference>
+    <Reference Include="BEPUphysicsDrawer">
+      <HintPath>lib\BEPUphysicsDrawer.dll</HintPath>
+    </Reference>
     <Reference Include="BEPUutilities">
       <HintPath>lib\BEPUutilities.dll</HintPath>
     </Reference>
@@ -83,6 +86,7 @@
   <ItemGroup>
     <Compile Include="Camera\BaseCamera.cs" />
     <Compile Include="Camera\FreeCamera.cs" />
+    <Compile Include="Helper\OurHelper.cs" />
     <Compile Include="Interface\ICamera.cs" />
     <Compile Include="Interface\ILight.cs" />
     <Compile Include="Interface\IObject.cs" />

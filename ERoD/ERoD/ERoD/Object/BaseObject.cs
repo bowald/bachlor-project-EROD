@@ -13,9 +13,16 @@ namespace ERoD
         
         //Entity entity;
         protected Matrix world;
+        protected Matrix transform;
         protected Model model;
         protected Texture2D texture;
         Matrix[] boneTransforms;
+
+        public Matrix Transform
+        {
+            get { return transform;  }
+            set { transform = value;  }
+        }
 
         public Matrix World
         {
@@ -35,10 +42,10 @@ namespace ERoD
             set { texture = value; }
         }
 
-        protected BaseObject(Model model, Matrix world, Game game) : base(game)
+        protected BaseObject(Model model, Matrix transform, Game game) : base(game)
         {
             this.model = model;
-            this.world = world;
+            this.transform = transform;
             boneTransforms = new Matrix[model.Bones.Count];
             foreach (ModelMesh mesh in model.Meshes)
             {

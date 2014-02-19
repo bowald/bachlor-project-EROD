@@ -9,9 +9,10 @@ namespace ERoD
 {
     class StaticObject : BaseObject
     {
-        public StaticObject(Model model, Matrix world, Game game) 
-            : base(model, world, game)
+        public StaticObject(Model model, Matrix transform, Game game) 
+            : base(model, transform, game)
         {
+            World = Transform;
         }
 
         public override void Draw(GameTime gameTime)
