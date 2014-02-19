@@ -56,6 +56,7 @@ namespace ERoD
             }
            
         }
+
         public override void Draw(GameTime gameTime)
         {
             model.CopyAbsoluteBoneTransformsTo(boneTransforms);

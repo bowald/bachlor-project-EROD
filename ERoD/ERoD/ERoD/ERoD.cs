@@ -20,6 +20,7 @@ using BQuaternion = BEPUutilities.Quaternion;
 using BMatrix = BEPUutilities.Matrix;
 using BMatrix3x3 = BEPUutilities.Matrix3x3;
 using Vector3 = Microsoft.Xna.Framework.Vector3;
+using Quaternion = Microsoft.Xna.Framework.Quaternion;
 using Matrix = Microsoft.Xna.Framework.Matrix;
 using BEPUphysics.DataStructures;
 using BEPUphysics.CollisionShapes.ConvexShapes;
@@ -69,7 +70,8 @@ namespace ERoD
         {
             Model shipModel = Content.Load<Model>("Models/ship");
             Vector3 shipScale = new Vector3(0.002f, 0.002f, 0.002f);
-            Vector3 shipPosition = new Vector3(0, 15, 0);
+            Vector3 shipPosition = new Vector3(-24, 15, 22);
+            Quaternion shipRotation = Quaternion.CreateFromAxisAngle(Vector3.Up, Microsoft.Xna.Framework.MathHelper.ToRadians(-90));
 
             Model groundModel = Content.Load<Model>("Models/ground");
             AffineTransform groundTransform = new AffineTransform(new BVector3(0, 0, 0));
@@ -93,13 +95,12 @@ namespace ERoD
             }
 
             space.ForceUpdater.Gravity = new BVector3(0, -9.82f, 0);
-            AddEntityObject(shipModel, shipPosition, shipScale);
+            AddShip(shipModel, shipPosition, shipRotation, shipScale);
             AddStaticObject(groundModel, groundTransform);
         }
 
         private void AddEntityObject(Model model, Vector3 position, Vector3 scaling)
-        {
-            
+        {            
             BVector3[] vertices;
             int[] indices;
             ModelDataExtractor.GetVerticesAndIndicesFromModel(model, out vertices, out indices);
@@ -111,7 +112,24 @@ namespace ERoD
             {
                 modelDrawer.Add(entity);
             }
-            Components.Add(new EntityObject(entity, model, Matrix.CreateScale(scaling), this));            
+            Components.Add(new EntityObject(entity, model, Matrix.CreateScale(scaling), this));        
+        }
+
+        private void AddShip(Model model, Vector3 position, Quaternion shipRotation, Vector3 scaling)
+        {
+            BVector3[] vertices;
+            int[] indices;
+            ModelDataExtractor.GetVerticesAndIndicesFromModel(model, out vertices, out indices);
+            ConvexHullShape CHS = new ConvexHullShape(OurHelper.scaleVertices(vertices, scaling));
+            Entity entity = new Entity(CHS, 10);
+            entity.Orientation = ConversionHelper.MathConverter.Convert(shipRotation);
+            entity.Position = ConversionHelper.MathConverter.Convert(position);
+            space.Add(entity);
+            if (DebugEnabled)
+            {
+                modelDrawer.Add(entity);
+            }
+            Components.Add(new Ship(entity, model, Matrix.CreateScale(scaling), this));
         }
 
         private void AddStaticObject(Model model, AffineTransform transform) 
@@ -123,6 +141,7 @@ namespace ERoD
             space.Add(mesh);
             Components.Add(new StaticObject(model, MathConverter.Convert(mesh.WorldTransform.Matrix), this));
         }
+
 
         /// <summary>
         /// UnloadContent will be called once per game and is the place to unload
