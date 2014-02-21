@@ -8,15 +8,21 @@ using System.Text;
 
 namespace ERoD
 {
-    public class BaseObject : DrawableGameComponent, IObject
+    public class BaseObject : DrawableGameComponent, IObject, IDeferredRender
     {
         
-        //Entity entity;
+        public ICamera Camera
+        {
+            get { return ((ICamera)Game.Services.GetService(typeof(ICamera))); }
+        }
+
         protected Matrix world;
         protected Matrix transform;
         protected Model model;
-        protected Texture2D texture;
+        protected Texture2D diffuseTexture;
         Matrix[] boneTransforms;
+
+        public Effect Effect;
 
         public Matrix Transform
         {
@@ -38,8 +44,8 @@ namespace ERoD
 
         public Texture2D Texture
         {
-            get { return texture; }
-            set { texture = value; }
+            get { return diffuseTexture; }
+            set { diffuseTexture = value; }
         }
 
         protected BaseObject(Model model, Matrix transform, Game game) : base(game)
@@ -47,30 +53,32 @@ namespace ERoD
             this.model = model;
             this.transform = transform;
             boneTransforms = new Matrix[model.Bones.Count];
-            foreach (ModelMesh mesh in model.Meshes)
-            {
-                foreach (BasicEffect effect in mesh.Effects)
-                {
-                    effect.EnableDefaultLighting();
-                }
-            }
-           
         }
-        public override void Draw(GameTime gameTime)
+
+        public virtual void Draw(GameTime gameTime, Effect effect)
         {
             model.CopyAbsoluteBoneTransformsTo(boneTransforms);
 
             foreach (ModelMesh mesh in model.Meshes)
             {
-                foreach (BasicEffect effect in mesh.Effects)
+                Matrix meshWorld = boneTransforms[mesh.ParentBone.Index] * World;
+                Matrix wvp = meshWorld * Camera.View * Camera.Projection;
+
+                foreach (ModelMeshPart part in mesh.MeshParts)
                 {
-                    effect.World = boneTransforms[mesh.ParentBone.Index] * world;
-                    effect.View = (Game as ERoD).Camera.View;
-                    effect.Projection = (Game as ERoD).Camera.Projection;
+                    part.Effect = effect;
+                    effect.Parameters["World"].SetValue(meshWorld);
+                    effect.Parameters["wvp"].SetValue(wvp);
+                    effect.Parameters["color"].SetValue(Color.White.ToVector3());
+                    effect.Parameters["diffuseTexture"].SetValue(diffuseTexture);
                 }
                 mesh.Draw();
             }
-            base.Draw(gameTime);
+        }
+
+        public override void Draw(GameTime gameTime)
+        {
+            Draw(gameTime, Effect);
         }
     }
 }

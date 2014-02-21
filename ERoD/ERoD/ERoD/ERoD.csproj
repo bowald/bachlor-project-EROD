@@ -13,7 +13,7 @@
     <TargetFrameworkProfile>Client</TargetFrameworkProfile>
     <XnaFrameworkVersion>v4.0</XnaFrameworkVersion>
     <XnaPlatform>Windows</XnaPlatform>
-    <XnaProfile>Reach</XnaProfile>
+    <XnaProfile>HiDef</XnaProfile>
     <XnaCrossPlatformGroupID>0028d44c-9f09-4e7e-9c4e-1d20e4db4664</XnaCrossPlatformGroupID>
     <XnaOutputType>Game</XnaOutputType>
     <ApplicationIcon>Game.ico</ApplicationIcon>
@@ -90,7 +90,7 @@
     <Compile Include="Interface\ICamera.cs" />
     <Compile Include="Interface\ILight.cs" />
     <Compile Include="Interface\IObject.cs" />
-    <Compile Include="Interface\IRenderer.cs" />
+    <Compile Include="Interface\IDeferredRender.cs" />
     <Compile Include="Light\BaseLight.cs" />
     <Compile Include="Helper\ModelDataExtractor.cs" />
     <Compile Include="Light\PointLight.cs" />

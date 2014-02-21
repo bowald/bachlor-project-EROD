@@ -34,9 +34,13 @@ namespace ERoD
     public class ERoD : Microsoft.Xna.Framework.Game
     {
         GraphicsDeviceManager graphics;
+        SpriteBatch spriteBatch;
+
         private Space space;
-        public BaseCamera Camera;
+        public ICamera Camera;
         public Boolean DebugEnabled;
+
+        private BasicRenderer renderer;
 
         public ModelDrawer modelDrawer;  //Used to draw entitis for debug.
 
@@ -47,6 +51,8 @@ namespace ERoD
         {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
+
+            renderer = new BasicRenderer(this);
         }
 
         /// <summary>
@@ -57,7 +63,8 @@ namespace ERoD
         /// </summary>
         protected override void Initialize()
         {
-            Camera = new FreeCamera(this, 0.1f, 2000, new Vector3(0, 30, 50), 25.0f);
+            Camera = new FreeCamera(this, 0.1f, 200, new Vector3(0, 10, 50), 25.0f);
+            this.Services.AddService(typeof(ICamera), Camera);
             base.Initialize();
         }
 
@@ -67,6 +74,8 @@ namespace ERoD
         /// </summary>
         protected override void LoadContent()
         {
+            spriteBatch = new SpriteBatch(GraphicsDevice);
+
             Model shipModel = Content.Load<Model>("Models/ship");
             Vector3 shipScale = new Vector3(0.002f, 0.002f, 0.002f);
             Vector3 shipPosition = new Vector3(0, 15, 0);
@@ -92,12 +101,20 @@ namespace ERoD
                 }
             }
 
+            Effect objEffect = Content.Load<Effect>("Shaders/DeferredObjectRender");
+
             space.ForceUpdater.Gravity = new BVector3(0, -9.82f, 0);
-            AddEntityObject(shipModel, shipPosition, shipScale);
-            AddStaticObject(groundModel, groundTransform);
+            EntityObject eobj = LoadEntityObject(shipModel, shipPosition, shipScale);
+            eobj.Texture = Content.Load<Texture2D>("Textures/Ship/diffuse");
+            eobj.Effect = objEffect;
+            Components.Add(eobj);
+            StaticObject sobj = LoadStaticObject(groundModel, groundTransform);
+            sobj.Texture = Content.Load<Texture2D>("Textures/Ground/diffuse");
+            sobj.Effect = objEffect;
+            Components.Add(sobj);
         }
 
-        private void AddEntityObject(Model model, Vector3 position, Vector3 scaling)
+        private EntityObject LoadEntityObject(Model model, Vector3 position, Vector3 scaling)
         {
             
             BVector3[] vertices;
@@ -111,17 +128,17 @@ namespace ERoD
             {
                 modelDrawer.Add(entity);
             }
-            Components.Add(new EntityObject(entity, model, Matrix.CreateScale(scaling), this));            
+            return new EntityObject(entity, model, Matrix.CreateScale(scaling), this);
         }
 
-        private void AddStaticObject(Model model, AffineTransform transform) 
+        private StaticObject LoadStaticObject(Model model, AffineTransform transform) 
         {
             BVector3[] vertices;
             int[] indices;
             ModelDataExtractor.GetVerticesAndIndicesFromModel(model, out vertices, out indices);
             var mesh = new StaticMesh(vertices, indices, transform);
             space.Add(mesh);
-            Components.Add(new StaticObject(model, MathConverter.Convert(mesh.WorldTransform.Matrix), this));
+            return new StaticObject(model, MathConverter.Convert(mesh.WorldTransform.Matrix), this);
         }
 
         /// <summary>
@@ -181,12 +198,20 @@ namespace ERoD
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
+            renderer.Draw(gameTime);
             GraphicsDevice.Clear(Color.CornflowerBlue);
-            if (DebugEnabled)
-            {
-                modelDrawer.Draw(ConversionHelper.MathConverter.Convert(Camera.View), ConversionHelper.MathConverter.Convert(Camera.Projection));
-            }
-            base.Draw(gameTime);
+
+            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque,
+                SamplerState.PointWrap, DepthStencilState.Default,
+                RasterizerState.CullCounterClockwise);
+            spriteBatch.Draw(renderer.depthMap, new Rectangle(0, 0, GraphicsDevice.Viewport.Width,
+                GraphicsDevice.Viewport.Height), Color.White);
+            spriteBatch.End();
+            
+            //if (DebugEnabled)
+            //{
+            //    modelDrawer.Draw(ConversionHelper.MathConverter.Convert(Camera.View), ConversionHelper.MathConverter.Convert(Camera.Projection));
+            //}
         }
     }
 }
