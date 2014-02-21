@@ -43,6 +43,8 @@ namespace ERoD
         public GamePadState GamePadState { get; set; }
         Model CubeModel;
 
+        CollisionHandler CollisionHandler;
+
         public ERoD()
         {
             graphics = new GraphicsDeviceManager(this);
@@ -67,6 +69,8 @@ namespace ERoD
         /// </summary>
         protected override void LoadContent()
         {
+            CollisionHandler = new CollisionHandler();
+
             Model shipModel = Content.Load<Model>("Models/ship");
             Vector3 shipScale = new Vector3(0.002f, 0.002f, 0.002f);
             Vector3 shipPosition = new Vector3(0, 15, 0);
@@ -106,6 +110,7 @@ namespace ERoD
             ConvexHullShape CHS = new ConvexHullShape(OurHelper.scaleVertices(vertices, scaling));
             Entity entity = new Entity(CHS, 10);
             entity.Position = ConversionHelper.MathConverter.Convert(position);
+            CollisionHandler.addShipGroup(entity);
             space.Add(entity);
             if (DebugEnabled) 
             {
@@ -113,6 +118,7 @@ namespace ERoD
             }
             Components.Add(new EntityObject(entity, model, Matrix.CreateScale(scaling), this));            
         }
+
 
         private void AddStaticObject(Model model, AffineTransform transform) 
         {
@@ -162,6 +168,8 @@ namespace ERoD
                 //Try looking around in the entity's available properties to get an idea of what is available.
                 toAdd.LinearVelocity = ConversionHelper.MathConverter.Convert(Camera.World.Forward * 10);
                 //Add the new box to the simulation.
+
+                CollisionHandler.addBoxGroup(toAdd);
                 space.Add(toAdd);
 
                 //Add a graphical representation of the box to the drawable game components.
