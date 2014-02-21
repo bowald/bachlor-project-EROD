@@ -12,8 +12,9 @@ namespace ERoD
         public float Speed { set; get; }
 
         public FreeCamera(ERoD game, float nearPlane, float farPlane, Vector3 position, float speed) 
-            : base(game, nearPlane, farPlane, position)
+            : base(game, nearPlane, farPlane)
         {
+            Position = position;
             Speed = speed;
         }
 
@@ -85,6 +86,8 @@ namespace ERoD
             {
                 MoveUpR(-deltaTime);
             }
+            world = Matrix.CreateFromQuaternion(rotation) * Matrix.CreateTranslation(position);
+            view = Matrix.Invert(World);
 
             base.Update(gameTime);
         }

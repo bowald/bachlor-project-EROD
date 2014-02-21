@@ -57,7 +57,7 @@ namespace ERoD
         /// </summary>
         protected override void Initialize()
         {
-            Camera = new FreeCamera(this, 0.1f, 2000, new Vector3(0, 30, 50), 25.0f);
+            //Camera = new FreeCamera(this, 0.1f, 2000, new Vector3(0, 30, 50), 25.0f);
             base.Initialize();
         }
 
@@ -107,6 +107,11 @@ namespace ERoD
             Entity entity = new Entity(CHS, 10);
             entity.Position = ConversionHelper.MathConverter.Convert(position);
             space.Add(entity);
+
+            // Should not be done here, need to move
+            Camera = new ChaseCamera(entity, new BEPUutilities.Vector3(0.0f, 5.0f, 0.0f), true, 20.0f, 0.1f, 2000.0f, this);
+            Camera.Initialize();
+
             if (DebugEnabled) 
             {
                 modelDrawer.Add(entity);
@@ -169,8 +174,10 @@ namespace ERoD
                 Components.Add(obj);
                 toAdd.Tag = obj;  //set the object tag of this entity to the model so that it's easy to delete the graphics component later if the entity is removed.
             }
-
+            
             space.Update();
+
+            Camera.Update(gameTime);
 
             base.Update(gameTime);
         }
