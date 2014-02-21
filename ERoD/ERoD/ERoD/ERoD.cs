@@ -38,8 +38,14 @@ namespace ERoD
         private Space space;
         public BaseCamera Camera;
         public Boolean DebugEnabled;
+        public StaticMesh testVarGround;
 
         public ModelDrawer modelDrawer;  //Used to draw entitis for debug.
+
+        public Space Space
+        {
+            get { return space; }
+        }
 
         public GamePadState GamePadState { get; set; }
         Model CubeModel;
@@ -74,7 +80,7 @@ namespace ERoD
             Quaternion shipRotation = Quaternion.CreateFromAxisAngle(Vector3.Up, Microsoft.Xna.Framework.MathHelper.ToRadians(-90));
 
             Model groundModel = Content.Load<Model>("Models/ground");
-            AffineTransform groundTransform = new AffineTransform(new BVector3(0, 0, 0));
+            AffineTransform groundTransform = new AffineTransform(new BVector3(10, 10, 10), new BEPUutilities.Quaternion(0,0,0,0), BVector3.Zero);
 
             CubeModel = Content.Load<Model>("Models/cube");
             modelDrawer = new InstancedModelDrawer(this); // For debug
@@ -95,8 +101,8 @@ namespace ERoD
             }
 
             space.ForceUpdater.Gravity = new BVector3(0, -9.82f, 0);
-            AddShip(shipModel, shipPosition, shipRotation, shipScale);
             AddStaticObject(groundModel, groundTransform);
+            AddShip(shipModel, shipPosition, shipRotation, shipScale);
         }
 
         private void AddEntityObject(Model model, Vector3 position, Vector3 scaling)
@@ -121,7 +127,7 @@ namespace ERoD
             int[] indices;
             ModelDataExtractor.GetVerticesAndIndicesFromModel(model, out vertices, out indices);
             ConvexHullShape CHS = new ConvexHullShape(OurHelper.scaleVertices(vertices, scaling));
-            Entity entity = new Entity(CHS, 10);
+            Entity entity = new Entity(CHS, 250);
             entity.Orientation = ConversionHelper.MathConverter.Convert(shipRotation);
             entity.Position = ConversionHelper.MathConverter.Convert(position);
             space.Add(entity);
@@ -131,17 +137,16 @@ namespace ERoD
             }
             Components.Add(new Ship(entity, model, Matrix.CreateScale(scaling), this));
         }
-
         private void AddStaticObject(Model model, AffineTransform transform) 
         {
             BVector3[] vertices;
             int[] indices;
             ModelDataExtractor.GetVerticesAndIndicesFromModel(model, out vertices, out indices);
             var mesh = new StaticMesh(vertices, indices, transform);
+            testVarGround = mesh;
             space.Add(mesh);
             Components.Add(new StaticObject(model, MathConverter.Convert(mesh.WorldTransform.Matrix), this));
         }
-
 
         /// <summary>
         /// UnloadContent will be called once per game and is the place to unload
