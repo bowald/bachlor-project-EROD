@@ -5,54 +5,9 @@ using ConversionHelper;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-
-//namespace ERoD
-//{
-//    class ChaseCamera : BaseCamera
-//    {
-
-//        protected Vector3 TargetPosition { get; set; }
-//        protected Quaternion TargetRotation { get; set; }
-//        protected Vector3 CameraUp { get; set; }
-//        protected Entity Entity { get; set; }
-//        protected Vector3 CameraOffset { get; set; }
-
-//        public ChaseCamera(ERoD game, float nearPlane, float farPlane, Vector3 cameraOffset) 
-//            : base(game, nearPlane, farPlane)
-//        {
-//            CameraOffset = cameraOffset;
-//        }
-
-//        public void assignEntity(Entity entity)
-//        {
-//            Entity = entity;
-//        }
-
-//        public void followTarget(Vector3 targetPos, Quaternion targetRot)
-//        {
-//            Vector3 offset = Vector3.Transform(CameraOffset, Matrix.CreateFromQuaternion(targetRot));
-//            Position = targetPos + offset;
-
-//            Vector3 camup = Vector3.Up;
-//            CameraUp = Vector3.Transform(camup, Matrix.CreateFromQuaternion(targetRot));
-//        }
-
-//        public override void Update(GameTime gameTime)
-//        {
-
-//            followTarget(ConversionHelper.MathConverter.Convert(Entity.Position),
-//                ConversionHelper.MathConverter.Convert(Entity.Orientation));
-//            view = Matrix.CreateLookAt(Position, TargetPosition, CameraUp);
-//            base.Update(gameTime);
-//        }
-//    }
-//}
-
-﻿using System;
 using BEPUphysics;
 using BEPUphysics.BroadPhaseEntries;
 using BEPUphysics.CollisionRuleManagement;
-using BEPUphysics.Entities;
 using BEPUphysics.Vehicle;
 using BEPUutilities;
 
@@ -150,7 +105,8 @@ namespace ERoD
         /// <param name="offsetFromChaseTarget">Offset from the center of the entity target to point at.</param>
         /// <param name="transformOffset">Whether or not to transform the offset with the target entity's rotation.</param>
         /// <param name="distanceToTarget">Distance from the target position to try to maintain.</param>
-        /// <param name="camera">Camera controlled by the scheme.</param>
+        /// <param name="nearPlane">NearPlane for the projection.</param>
+        /// <param name="farPlane">FarPlane for the projection.</param>
         /// <param name="game">Running game.</param>
         public ChaseCamera(Entity chasedEntity, BEPUutilities.Vector3 offsetFromChaseTarget, bool transformOffset, float distanceToTarget, float nearPlane, float farPlane, ERoD game)
             : base(game, nearPlane, farPlane)
@@ -168,7 +124,6 @@ namespace ERoD
 
         public override void Update(GameTime gameTime)
         {
-            //base.Update(dt);
 
             BEPUutilities.Vector3 offset = TransformOffset ? Matrix3x3.Transform(OffsetFromChaseTarget, ChasedEntity.BufferedStates.InterpolatedStates.OrientationMatrix) : OffsetFromChaseTarget;
             BEPUutilities.Vector3 lookAt = ChasedEntity.BufferedStates.InterpolatedStates.Position + offset;
@@ -176,10 +131,11 @@ namespace ERoD
 
             //Find the earliest ray hit that isn't the chase target to position the camera appropriately.
             RayCastResult result;
-            float cameraDistance = DistanceToTarget; //ChasedEntity.Space.RayCast(new Ray(lookAt, backwards), DistanceToTarget, rayCastFilter, out result) ? result.HitData.T : DistanceToTarget;
+            float cameraDistance = ChasedEntity.Space.RayCast(new BEPUutilities.Ray(lookAt, backwards), DistanceToTarget, rayCastFilter, out result) ? result.HitData.T : DistanceToTarget;
 
             BEPUutilities.Vector3 pos = lookAt + (Math.Max(cameraDistance - ChaseCameraMargin, 0)) * backwards;
             Position = ConversionHelper.MathConverter.Convert(pos); //Put the camera just before any hit spot.
+            //Set the Up direction to be the same as the chased entity's
             LockedUp = ChasedEntity.OrientationMatrix.Up;
             View = ConversionHelper.MathConverter.Convert(BEPUutilities.Matrix.CreateViewRH(pos, viewDirection, lockedUp));
 
