@@ -20,9 +20,16 @@ namespace ERoD
         protected Matrix transform;
         protected Model model;
         protected Texture2D diffuseTexture;
+        protected Boolean textureEnabled;
         Matrix[] boneTransforms;
 
         public Effect Effect;
+
+        public bool TextureEnabled
+        {
+            get { return textureEnabled; }
+            set { textureEnabled = value; }
+        }
 
         public Matrix Transform
         {
@@ -80,5 +87,8 @@ namespace ERoD
         {
             Draw(gameTime, Effect);
         }
+
+
+        
     }
 }

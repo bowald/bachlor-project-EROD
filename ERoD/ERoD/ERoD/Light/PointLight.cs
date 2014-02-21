@@ -1,68 +1,25 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace ERoD.Light
+namespace ERoD
 {
     class PointLight : BaseLight, IPointLight
     {
-        float IPointLight.Radius
+        protected float radius;
+
+        public PointLight(Vector3 position, Color color, float radius, float intensity)
+            : base(position, color, intensity)
         {
-            get
-            {
-                throw new NotImplementedException();
-            }
-            set
-            {
-                throw new NotImplementedException();
-            }
+            this.radius = radius;
         }
 
-        Microsoft.Xna.Framework.Vector3 ILight.Position
+        public float Radius
         {
-            get
-            {
-                throw new NotImplementedException();
-            }
-            set
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        Microsoft.Xna.Framework.Color ILight.Color
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-            set
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        float ILight.Intensity
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-            set
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        Microsoft.Xna.Framework.Matrix ILight.View
-        {
-            get { throw new NotImplementedException(); }
-        }
-
-        Microsoft.Xna.Framework.Matrix ILight.Projection
-        {
-            get { throw new NotImplementedException(); }
+            get { return radius; }
+            set { radius = value; }
         }
     }
 }

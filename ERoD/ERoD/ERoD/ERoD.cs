@@ -40,7 +40,7 @@ namespace ERoD
         public ICamera Camera;
         public Boolean DebugEnabled;
 
-        private BasicRenderer renderer;
+        private DeferredRenderer renderer;
 
         public ModelDrawer modelDrawer;  //Used to draw entitis for debug.
 
@@ -52,7 +52,7 @@ namespace ERoD
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
 
-            renderer = new BasicRenderer(this);
+            renderer = new DeferredRenderer(this);
         }
 
         /// <summary>
@@ -63,7 +63,7 @@ namespace ERoD
         /// </summary>
         protected override void Initialize()
         {
-            Camera = new FreeCamera(this, 0.1f, 200, new Vector3(0, 10, 50), 25.0f);
+            Camera = new FreeCamera(this, 0.1f, 200, new Vector3(0, 15, 70), 25.0f);
             this.Services.AddService(typeof(ICamera), Camera);
             base.Initialize();
         }
@@ -106,12 +106,17 @@ namespace ERoD
             space.ForceUpdater.Gravity = new BVector3(0, -9.82f, 0);
             EntityObject eobj = LoadEntityObject(shipModel, shipPosition, shipScale);
             eobj.Texture = Content.Load<Texture2D>("Textures/Ship/diffuse");
+            eobj.TextureEnabled = false;
             eobj.Effect = objEffect;
             Components.Add(eobj);
             StaticObject sobj = LoadStaticObject(groundModel, groundTransform);
             sobj.Texture = Content.Load<Texture2D>("Textures/Ground/diffuse");
+            sobj.TextureEnabled = false;
             sobj.Effect = objEffect;
             Components.Add(sobj);
+
+            renderer.PointLights.Add(new PointLight(new Vector3( 10, 10,  10), Color.White, 50.0f, 1.0f));
+            renderer.PointLights.Add(new PointLight(new Vector3(-10, 10, -10), Color.Red, 50.0f, 1.0f));
         }
 
         private EntityObject LoadEntityObject(Model model, Vector3 position, Vector3 scaling)
@@ -183,6 +188,7 @@ namespace ERoD
 
                 //Add a graphical representation of the box to the drawable game components.
                 EntityObject obj = new EntityObject(toAdd, CubeModel, Matrix.Identity, this);
+                obj.TextureEnabled = false;
                 Components.Add(obj);
                 toAdd.Tag = obj;  //set the object tag of this entity to the model so that it's easy to delete the graphics component later if the entity is removed.
             }
@@ -204,7 +210,7 @@ namespace ERoD
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque,
                 SamplerState.PointWrap, DepthStencilState.Default,
                 RasterizerState.CullCounterClockwise);
-            spriteBatch.Draw(renderer.depthMap, new Rectangle(0, 0, GraphicsDevice.Viewport.Width,
+            spriteBatch.Draw(renderer.lightMap, new Rectangle(0, 0, GraphicsDevice.Viewport.Width,
                 GraphicsDevice.Viewport.Height), Color.White);
             spriteBatch.End();
             

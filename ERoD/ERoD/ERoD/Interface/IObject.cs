@@ -12,5 +12,6 @@ namespace ERoD
         Matrix World { get; set; }
         Model Model { get; set; }
         Texture2D Texture { get; set; }
+        Boolean TextureEnabled { get; set; }
     }
 }

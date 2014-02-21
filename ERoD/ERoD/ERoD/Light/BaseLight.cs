@@ -8,50 +8,59 @@ namespace ERoD
 {
     class BaseLight : ILight
     {
-        Vector3 ILight.Position
+
+        protected Vector3 position;
+        protected Color color;
+        protected float intensity;
+        protected string name;
+
+        protected Game Game;
+
+        protected ICamera camera
         {
-            get
-            {
-                throw new NotImplementedException();
-            }
-            set
-            {
-                throw new NotImplementedException();
-            }
+            get { return ((ICamera)Game.Services.GetService(typeof(ICamera))); }
         }
 
-        Color ILight.Color
+        public Vector3 Position
         {
-            get
-            {
-                throw new NotImplementedException();
-            }
-            set
-            {
-                throw new NotImplementedException();
-            }
+            get { return position; }
+            set { position = value; }
         }
 
-        float ILight.Intensity
+        public Color Color
         {
-            get
-            {
-                throw new NotImplementedException();
-            }
-            set
-            {
-                throw new NotImplementedException();
-            }
+            get { return color; }
+            set { color = value; }
         }
 
-        Matrix ILight.View
+        public float Intensity
         {
-            get { throw new NotImplementedException(); }
+            get { return intensity; }
+            set { intensity = value; }
         }
 
-        Matrix ILight.Projection
+        public Matrix View
         {
-            get { throw new NotImplementedException(); }
+            get { return Matrix.Identity; }
+        }
+
+        public Matrix Projection
+        {
+            get { return Matrix.Identity; }
+        }
+
+        public BaseLight(Vector3 position, Color color, float intensity)
+        {
+            this.Position = position;
+            this.Color = color;
+            this.Intensity = intensity;
+        }
+
+        // Use this?? do we need Game here?
+        public BaseLight(Game game, Vector3 position, Color color, float intensity)
+            : this(position, color, intensity)
+        {
+            Game = game;
         }
     }
 }
