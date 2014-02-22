@@ -20,4 +20,10 @@ namespace ERoD
     {
         float Radius { get; set; }
     }
+
+    public interface IDirectionalLight : ILight
+    {
+        Vector3 Target { get; set; }
+        Vector3 Direction { get; }
+    }
 }

@@ -29,9 +29,11 @@ namespace ERoD
         Matrix[] boneTransforms;
 
         Effect pointLightShader;
+        Effect directionalLightShader;
         Effect deferredShader;
 
         public List<IPointLight> PointLights = new List<IPointLight>();
+        public List<IDirectionalLight> DirectionalLights = new List<IDirectionalLight>();
 
         Vector2 halfPixel;
 
@@ -68,6 +70,8 @@ namespace ERoD
 
             blendedDepthBuffer = new RenderTarget2D(GraphicsDevice, width, height, false,
                 SurfaceFormat.Rg32, DepthFormat.None);
+
+            directionalLightShader = Game.Content.Load<Effect>("Shaders/DirectionalLightShader");
 
             pointLightShader = Game.Content.Load<Effect>("Shaders/pointLightShader");
             deferredShader = Game.Content.Load<Effect>("Shaders/DeferredRender");
@@ -128,6 +132,11 @@ namespace ERoD
             GraphicsDevice.DepthStencilState = DepthStencilState.None;
             GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
 
+            foreach (IDirectionalLight dirLight in DirectionalLights)
+            {
+                RenderDirectionalLight(dirLight);
+            }
+
             // for all lights, render lights
             foreach (IPointLight pointLight in PointLights) 
             {
@@ -135,6 +144,25 @@ namespace ERoD
             }
 
             GraphicsDevice.SetRenderTarget(null);
+        }
+
+        private void RenderDirectionalLight(IDirectionalLight directionalLight)
+        {
+            // Load Light Params
+            directionalLightShader.Parameters["halfPixel"].SetValue(halfPixel);
+            directionalLightShader.Parameters["lightDirection"].SetValue(directionalLight.Direction);
+            directionalLightShader.Parameters["color"].SetValue(directionalLight.Color.ToVector3());
+
+            directionalLightShader.Parameters["normalMap"].SetValue(normalMap);
+            directionalLightShader.Parameters["depthMap"].SetValue(depthMap);
+            directionalLightShader.Parameters["power"].SetValue(directionalLight.Intensity);
+
+            directionalLightShader.Parameters["cameraPosition"].SetValue(Camera.Position);
+            directionalLightShader.Parameters["viewProjectionInv"].SetValue(Matrix.Invert(Camera.View * Camera.Projection));
+
+            directionalLightShader.Techniques[0].Passes[0].Apply();
+
+            sceneQuad.Draw(-Vector2.One, Vector2.One);
         }
 
         private void RenderPointLight(IPointLight pointLight)
