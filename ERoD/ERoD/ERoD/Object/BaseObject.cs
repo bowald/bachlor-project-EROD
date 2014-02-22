@@ -26,7 +26,7 @@ namespace ERoD
         public Effect Effect;
 
         public bool TextureEnabled
-        {
+        {//TODO add to shader code
             get { return textureEnabled; }
             set { textureEnabled = value; }
         }

@@ -23,10 +23,10 @@ struct VertexShaderInput
 
 struct VertexShaderOutput
 {
-    float4 Position : POSITION0;
+	float4 Position : POSITION0;
+	float3 Normal : NORMAL0;
 	float2 TexCoord : TEXCOORD0;
 	float2 Depth : TEXCOORD1;
-	float3 Normal : NORMAL0;
 };
 
 VertexShaderOutput VertexShaderFunction(VertexShaderInput input)

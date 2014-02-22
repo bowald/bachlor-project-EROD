@@ -63,8 +63,8 @@ namespace ERoD
         /// </summary>
         protected override void Initialize()
         {
-            //Camera = new FreeCamera(this, 0.1f, 200, new Vector3(0, 15, 70), 25.0f);
-            //this.Services.AddService(typeof(ICamera), Camera);
+            Camera = new FreeCamera(this, 0.1f, 200, new Vector3(0, 15, 70), 25.0f);
+            this.Services.AddService(typeof(ICamera), Camera);
             base.Initialize();
         }
 
@@ -76,8 +76,8 @@ namespace ERoD
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            Model shipModel = Content.Load<Model>("Models/ship");
-            Vector3 shipScale = new Vector3(0.002f, 0.002f, 0.002f);
+            Model shipModel = Content.Load<Model>("Models/space_frigate");
+            Vector3 shipScale = new Vector3(0.05f, 0.05f, 0.05f);
             Vector3 shipPosition = new Vector3(0, 15, 0);
 
             Model groundModel = Content.Load<Model>("Models/ground");
@@ -105,13 +105,13 @@ namespace ERoD
 
             space.ForceUpdater.Gravity = new BVector3(0, -9.82f, 0);
             EntityObject eobj = LoadEntityObject(shipModel, shipPosition, shipScale);
-            eobj.Texture = Content.Load<Texture2D>("Textures/Ship/diffuse");
+            eobj.Texture = Content.Load<Texture2D>("Textures/Ship2/diffuse");
             eobj.TextureEnabled = false;
             eobj.Effect = objEffect;
 
-            Camera = new ChaseCamera(eobj.entity, new BEPUutilities.Vector3(0.0f, 5.0f, 0.0f), true, 20.0f, 0.1f, 2000.0f, this);
-            this.Services.AddService(typeof(ICamera), Camera);
-            ((ChaseCamera)Camera).Initialize();
+            //Camera = new ChaseCamera(eobj.entity, new BEPUutilities.Vector3(0.0f, 5.0f, 0.0f), true, 20.0f, 0.1f, 2000.0f, this);
+            //this.Services.AddService(typeof(ICamera), Camera);
+            //((ChaseCamera)Camera).Initialize();
 
             Components.Add(eobj);
             StaticObject sobj = LoadStaticObject(groundModel, groundTransform);
@@ -130,6 +130,13 @@ namespace ERoD
             BVector3[] vertices;
             int[] indices;
             ModelDataExtractor.GetVerticesAndIndicesFromModel(model, out vertices, out indices);
+            
+            // Convert to list since array is read only.
+            IList<BVector3> verts = new List<BVector3>(vertices);
+            // Remove redundant vertices that causes the convexhullshape to crash.
+            ConvexHullHelper.RemoveRedundantPoints(verts);
+            vertices = verts.ToArray<BVector3>();
+
             ConvexHullShape CHS = new ConvexHullShape(OurHelper.scaleVertices(vertices, scaling));
             Entity entity = new Entity(CHS, 10);
             entity.Position = ConversionHelper.MathConverter.Convert(position);
@@ -214,12 +221,12 @@ namespace ERoD
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque,
-                SamplerState.PointWrap, DepthStencilState.Default,
+                SamplerState.AnisotropicWrap, DepthStencilState.Default,
                 RasterizerState.CullCounterClockwise);
-            spriteBatch.Draw(renderer.finalBackBuffer, new Rectangle(0, 0, GraphicsDevice.Viewport.Width,
+            spriteBatch.Draw(renderer.colorMap, new Rectangle(0, 0, GraphicsDevice.Viewport.Width,
                 GraphicsDevice.Viewport.Height), Color.White);
             spriteBatch.End();
-            
+
             //if (DebugEnabled)
             //{
             //    modelDrawer.Draw(ConversionHelper.MathConverter.Convert(Camera.View), ConversionHelper.MathConverter.Convert(Camera.Projection));
