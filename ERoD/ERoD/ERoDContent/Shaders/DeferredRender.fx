@@ -35,14 +35,12 @@ struct VertexShaderInput
 struct VertexShaderOutput
 {
     float4 Position : POSITION0;
-	float4 Color : COLOR0;
 	float2 TexCoord : TEXCOORD0;
-	float4 ScreenPosition : TEXCOORD1;
 };
 
 VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 {
-    VertexShaderOutput output = (VertexShaderOutput)0;
+    VertexShaderOutput output;
 
 	output.Position = float4(input.Position, 1);
 	output.TexCoord = input.TexCoord - halfPixel;

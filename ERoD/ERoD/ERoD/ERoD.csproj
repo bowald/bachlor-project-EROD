@@ -101,6 +101,7 @@
     <Compile Include="Rendering\DeferredRenderer.cs" />
     <Compile Include="Light\BaseLight.cs" />
     <Compile Include="Light\PointLight.cs" />
+    <Compile Include="Rendering\ScreenQuad.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Game.ico" />

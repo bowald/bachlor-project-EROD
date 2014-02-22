@@ -23,6 +23,8 @@ namespace ERoD
         public RenderTarget2D finalBackBuffer;
         public RenderTarget2D blendedDepthBuffer;
 
+        SpriteBatch spriteBatch;
+
         Model pointLightMesh;
         Matrix[] boneTransforms;
 
@@ -33,9 +35,12 @@ namespace ERoD
 
         Vector2 halfPixel;
 
+        ScreenQuad sceneQuad;
+
         public DeferredRenderer(Game game) : base(game)
         {
             game.Components.Add(this);
+            sceneQuad = new ScreenQuad(game);
         }
 
         protected override void LoadContent()
@@ -72,10 +77,13 @@ namespace ERoD
 
             boneTransforms = new Matrix[pointLightMesh.Bones.Count];
             pointLightMesh.CopyAbsoluteBoneTransformsTo(boneTransforms);
+
+            spriteBatch = new SpriteBatch(Game.GraphicsDevice);
         }
 
         public override void Initialize()
         {
+            sceneQuad.Initialize();
             base.Initialize();
         }
 
@@ -193,6 +201,14 @@ namespace ERoD
             deferredShader.Parameters["lightMap"].SetValue(lightMap);
 
             deferredShader.CurrentTechnique.Passes[0].Apply();
+
+            GraphicsDevice.BlendState = BlendState.Opaque;
+            GraphicsDevice.DepthStencilState = DepthStencilState.Default;
+            GraphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+            GraphicsDevice.SamplerStates[0] = SamplerState.LinearWrap;
+
+            sceneQuad.Draw(-Vector2.One, Vector2.One); 
+
         }
     }
 }

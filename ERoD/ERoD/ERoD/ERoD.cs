@@ -210,7 +210,7 @@ namespace ERoD
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque,
                 SamplerState.PointWrap, DepthStencilState.Default,
                 RasterizerState.CullCounterClockwise);
-            spriteBatch.Draw(renderer.lightMap, new Rectangle(0, 0, GraphicsDevice.Viewport.Width,
+            spriteBatch.Draw(renderer.finalBackBuffer, new Rectangle(0, 0, GraphicsDevice.Viewport.Width,
                 GraphicsDevice.Viewport.Height), Color.White);
             spriteBatch.End();
             
