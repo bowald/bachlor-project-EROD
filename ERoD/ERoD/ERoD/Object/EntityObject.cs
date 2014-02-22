@@ -13,7 +13,7 @@ namespace ERoD
 {
     class EntityObject : BaseObject
     {
-        private Entity entity;
+        public Entity entity;
 
         public EntityObject(Entity entity, Model model, Matrix world, Game game) 
             : base(model, world, game)

@@ -108,6 +108,11 @@ namespace ERoD
             eobj.Texture = Content.Load<Texture2D>("Textures/Ship/diffuse");
             eobj.TextureEnabled = false;
             eobj.Effect = objEffect;
+
+            Camera = new ChaseCamera(eobj.entity, new BEPUutilities.Vector3(0.0f, 5.0f, 0.0f), true, 20.0f, 0.1f, 2000.0f, this);
+            this.Services.AddService(typeof(ICamera), Camera);
+            ((ChaseCamera)Camera).Initialize();
+
             Components.Add(eobj);
             StaticObject sobj = LoadStaticObject(groundModel, groundTransform);
             sobj.Texture = Content.Load<Texture2D>("Textures/Ground/diffuse");
@@ -129,10 +134,6 @@ namespace ERoD
             Entity entity = new Entity(CHS, 10);
             entity.Position = ConversionHelper.MathConverter.Convert(position);
             space.Add(entity);
-
-            // Should not be done here, need to move
-            Camera = new ChaseCamera(entity, new BEPUutilities.Vector3(0.0f, 5.0f, 0.0f), true, 20.0f, 0.1f, 2000.0f, this);
-            Camera.Initialize();
 
             if (DebugEnabled) 
             {
@@ -199,8 +200,6 @@ namespace ERoD
             }
             
             space.Update();
-
-            Camera.Update(gameTime);
 
             base.Update(gameTime);
         }
