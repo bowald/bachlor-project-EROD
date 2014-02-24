@@ -21,7 +21,7 @@ namespace ERoD
         public RenderTarget2D normalMap;
         public RenderTarget2D lightMap;
         public RenderTarget2D finalBackBuffer;
-        public RenderTarget2D blendedDepthBuffer;
+        //public RenderTarget2D blendedDepthBuffer;
 
         SpriteBatch spriteBatch;
 
@@ -70,8 +70,8 @@ namespace ERoD
             finalBackBuffer = new RenderTarget2D(GraphicsDevice, width, height, false,
                 SurfaceFormat.Color, DepthFormat.None);
 
-            blendedDepthBuffer = new RenderTarget2D(GraphicsDevice, width, height, false,
-                SurfaceFormat.Rg32, DepthFormat.None);
+            //blendedDepthBuffer = new RenderTarget2D(GraphicsDevice, width, height, false,
+            //    SurfaceFormat.Rg32, DepthFormat.None);
 
             directionalLightShader = Game.Content.Load<Effect>("Shaders/DirectionalLightShader");
 
