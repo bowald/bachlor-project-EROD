@@ -77,7 +77,11 @@ namespace ERoD
                     effect.Parameters["World"].SetValue(meshWorld);
                     effect.Parameters["wvp"].SetValue(wvp);
                     effect.Parameters["color"].SetValue(Color.White.ToVector3());
-                    effect.Parameters["diffuseTexture"].SetValue(diffuseTexture);
+                    if (effect.Parameters["diffuseTexture"] != null) 
+                    {
+                        effect.Parameters["diffuseTexture"].SetValue(diffuseTexture);
+                    }
+                    
                 }
                 mesh.Draw();
             }

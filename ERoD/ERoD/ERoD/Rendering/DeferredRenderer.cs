@@ -77,7 +77,7 @@ namespace ERoD
 
             pointLightShader = Game.Content.Load<Effect>("Shaders/PointLightShader");
             deferredShader = Game.Content.Load<Effect>("Shaders/DeferredRender");
-            //deferredShadowShader = Game.Content.Load<Effect>("Shaders/DeferredShadowShader");
+            deferredShadowShader = Game.Content.Load<Effect>("Shaders/DeferredShadowShader");
 
             pointLightMesh = Game.Content.Load<Model>("Models/lightmesh");
             pointLightMesh.Meshes[0].MeshParts[0].Effect = pointLightShader;
@@ -117,7 +117,7 @@ namespace ERoD
 
             GraphicsDevice.SetRenderTarget(null);
 
-            //DeferredShadows(gameTime);
+            DeferredShadows(gameTime);
             DeferredLightning(gameTime);
 
             GraphicsDevice.SetRenderTargets(finalBackBuffer);//, blendedDepthBuffer);
@@ -141,23 +141,30 @@ namespace ERoD
             {
                 light.ShadowMap = new RenderTarget2D(GraphicsDevice, width * shadowMapSize, height * shadowMapSize,
                     false, SurfaceFormat.Single, DepthFormat.None);
-                //lights[l].SoftShadowMap = new RenderTarget2D(GraphicsDevice, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height, false, SurfaceFormat.Color, DepthFormat.None);
+                //light.SoftShadowMap = new RenderTarget2D(GraphicsDevice, width, height, false, SurfaceFormat.Color, DepthFormat.None);
             }
 
             foreach (ILight light in lights)
             {
-                RenderlightShadows(light);
+                RenderlightShadows(light, gameTime);
             }
         }
 
-        private void RenderlightShadows(ILight light)
+        private void RenderlightShadows(ILight light, GameTime gameTime)
         {
             // Clear shadow map..
             GraphicsDevice.SetRenderTarget(light.ShadowMap);
             GraphicsDevice.Clear(Color.Transparent);
 
             deferredShadowShader.Parameters["viewProjection"].SetValue(light.View * light.Projection);
-
+            foreach (GameComponent component in Game.Components)
+            {
+                if (component is IDeferredRender) 
+                {
+                    ((IDeferredRender)component).Draw(gameTime, deferredShadowShader);
+                    continue; // Don't test more, go to next component
+                }
+            }
         }
 
               
