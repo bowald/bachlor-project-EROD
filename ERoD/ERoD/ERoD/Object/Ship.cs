@@ -16,11 +16,8 @@ namespace ERoD
     class Ship : EntityObject
     {
         private Space space;
-        private Model model = null;
         private ERoD erod;
-        private float f_max;
-        private float max_speed;
-        private Boolean debugEnable = true;
+
 
         public Ship(Entity entity, Model model, Matrix world, Game game) 
             : base(entity, model, world, game)
@@ -32,41 +29,25 @@ namespace ERoD
 
         private void build()
         {
-            Debug.WriteLine(entity.Mass);
-            entity.Mass = 250.0f;
-            Debug.WriteLine(entity.Mass);
-            f_max = 2 * (entity.Mass * 9.8f); // change to space.gravity
-            max_speed = 20.0f; //max velocity
         }
 
-        //public BVector3 move()
-        //{
-        //    float h = distancefromG();
-        //    entity.LinearVelocity = new BVector3(forward().X, vY(10.0f), forward().Z);
-        //}
-        //private void hover()
-        //{
-        //    if(distancefromG() < 3.0f)
-        //        entity.LinearVelocity = new BVector3(0.0f, vY(2.0f), 0.0f);
-        //}
-
         private BVector3 movment(float scale){
+            BVector3 currentVelocity;
             BEPUutilities.Vector2 constrain = new BEPUutilities.Vector2(entity.LinearVelocity.X,entity.LinearVelocity.Z);
-            Debug.WriteLine("constran.lenght = " + constrain.Length());
             if(constrain.Length() >= 30.0f){
-                BVector3 currentVelocity = entity.LinearVelocity;
                 currentVelocity = entity.OrientationMatrix.Forward * 30.0f;
-                return new BVector3(entity.LinearVelocity.X, 0, entity.LinearVelocity.Z);
+                return new BVector3(currentVelocity.X, 0, currentVelocity.Z);
             }
             else
             {
-                BVector3 currentVelocity = entity.OrientationMatrix.Forward * scale * entity.LinearVelocity.Length();
+                currentVelocity = entity.OrientationMatrix.Forward * scale * entity.LinearVelocity.Length();
                 return new BVector3(currentVelocity.X, 0, currentVelocity.Z);
             }
         }
 
         private BVector3 strafe(Boolean Right)
         {
+            BVector3 velocity;
             BVector3 turn;
             if (Right)
             {
@@ -76,7 +57,7 @@ namespace ERoD
             {
                 turn = entity.OrientationMatrix.Left;
             }
-            BVector3 velocity = turn * 8.0f;
+            velocity = turn * 8.0f;
             return new BVector3(velocity.X, 0, velocity.Z);
         }
         
@@ -107,22 +88,23 @@ namespace ERoD
             }
             else
             {
-                forward = entity.LinearVelocity * 0.95f;
+                entity.LinearVelocity *= 0.95f;
                 height = 4.0f;
             }
             if(gamePadState.IsButtonDown(Buttons.DPadRight))
             {
-                //shipStrafe = strafe(true);
+                shipStrafe = strafe(true);
                 entity.AngularVelocity = new BVector3(0, -0.7f, 0);
 
             }
             else if (gamePadState.IsButtonDown(Buttons.DPadLeft))
             {
-                //shipStrafe = strafe(false);
+                shipStrafe = strafe(false);
                 entity.AngularVelocity = new BVector3(0,0.7f,0);
             }
             else if (gamePadState.IsButtonUp(Buttons.DPadLeft) && gamePadState.IsButtonUp(Buttons.DPadRight))
             {
+                shipStrafe = BVector3.Zero;
                 entity.AngularVelocity = BVector3.Zero;
             }
             fly(height);
