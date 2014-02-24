@@ -11,7 +11,7 @@ namespace ERoD
         protected float radius;
 
         public PointLight(Vector3 position, Color color, float radius, float intensity)
-            : base(position, color, intensity)
+            : base(position, color, intensity, false)
         {
             this.radius = radius;
         }

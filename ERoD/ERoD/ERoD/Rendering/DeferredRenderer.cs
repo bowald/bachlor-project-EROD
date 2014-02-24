@@ -31,11 +31,13 @@ namespace ERoD
         Effect pointLightShader;
         Effect directionalLightShader;
         Effect deferredShader;
+        Effect deferredShadowShader;
 
         public List<IPointLight> PointLights = new List<IPointLight>();
         public List<IDirectionalLight> DirectionalLights = new List<IDirectionalLight>();
 
         Vector2 halfPixel;
+        private int shadowMapSize = 3;
 
         ScreenQuad sceneQuad;
 
@@ -73,8 +75,9 @@ namespace ERoD
 
             directionalLightShader = Game.Content.Load<Effect>("Shaders/DirectionalLightShader");
 
-            pointLightShader = Game.Content.Load<Effect>("Shaders/pointLightShader");
+            pointLightShader = Game.Content.Load<Effect>("Shaders/PointLightShader");
             deferredShader = Game.Content.Load<Effect>("Shaders/DeferredRender");
+            //deferredShadowShader = Game.Content.Load<Effect>("Shaders/DeferredShadowShader");
 
             pointLightMesh = Game.Content.Load<Model>("Models/lightmesh");
             pointLightMesh.Meshes[0].MeshParts[0].Effect = pointLightShader;
@@ -114,6 +117,7 @@ namespace ERoD
 
             GraphicsDevice.SetRenderTarget(null);
 
+            //DeferredShadows(gameTime);
             DeferredLightning(gameTime);
 
             GraphicsDevice.SetRenderTargets(finalBackBuffer);//, blendedDepthBuffer);
@@ -124,6 +128,39 @@ namespace ERoD
             GraphicsDevice.SetRenderTarget(null);
         }
 
+        private void DeferredShadows(GameTime gameTime)
+        {
+            List<ILight> lights = new List<ILight>(DirectionalLights.Where(entity => entity.Intensity > 0 && entity.Color != Color.Black && entity.CastShadow));
+
+            List<ILight> needShadowMaps = new List<ILight>(lights.Where(entity => entity.ShadowMap == null));
+
+            int width = GraphicsDevice.Viewport.Width;
+            int height = GraphicsDevice.Viewport.Height;
+
+            foreach (ILight light in needShadowMaps)
+            {
+                light.ShadowMap = new RenderTarget2D(GraphicsDevice, width * shadowMapSize, height * shadowMapSize,
+                    false, SurfaceFormat.Single, DepthFormat.None);
+                //lights[l].SoftShadowMap = new RenderTarget2D(GraphicsDevice, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height, false, SurfaceFormat.Color, DepthFormat.None);
+            }
+
+            foreach (ILight light in lights)
+            {
+                RenderlightShadows(light);
+            }
+        }
+
+        private void RenderlightShadows(ILight light)
+        {
+            // Clear shadow map..
+            GraphicsDevice.SetRenderTarget(light.ShadowMap);
+            GraphicsDevice.Clear(Color.Transparent);
+
+            deferredShadowShader.Parameters["viewProjection"].SetValue(light.View * light.Projection);
+
+        }
+
+              
         private void DeferredLightning(GameTime gameTime)
         {
             GraphicsDevice.SetRenderTarget(lightMap);

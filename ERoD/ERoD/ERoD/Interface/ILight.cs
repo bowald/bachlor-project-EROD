@@ -14,6 +14,8 @@ namespace ERoD
         float Intensity { get; set; }
         Matrix View { get; }
         Matrix Projection { get; }
+        bool CastShadow { get; set; }
+        RenderTarget2D ShadowMap { get; set; }
     }
 
     public interface IPointLight : ILight

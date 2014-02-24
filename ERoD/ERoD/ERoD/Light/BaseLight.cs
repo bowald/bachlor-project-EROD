@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,8 +13,8 @@ namespace ERoD
         protected Vector3 position;
         protected Color color;
         protected float intensity;
-        protected string name;
-
+        protected bool castShadow;
+        protected RenderTarget2D shadowMap;
         protected Game Game;
 
         protected ICamera camera
@@ -49,16 +50,29 @@ namespace ERoD
             get { return Matrix.Identity; }
         }
 
-        public BaseLight(Vector3 position, Color color, float intensity)
+        public bool CastShadow
+        {
+            get { return castShadow; }
+            set { castShadow = value; }
+        }
+
+        public RenderTarget2D ShadowMap
+        {
+            get { return shadowMap; }
+            set { shadowMap = value; }
+        }
+
+        public BaseLight(Vector3 position, Color color, float intensity, bool castShadow)
         {
             this.Position = position;
             this.Color = color;
             this.Intensity = intensity;
+            this.CastShadow = castShadow;
         }
 
         // Use this?? do we need Game here?
-        public BaseLight(Game game, Vector3 position, Color color, float intensity)
-            : this(position, color, intensity)
+        public BaseLight(Game game, Vector3 position, Color color, float intensity, bool castShadow)
+            : this(position, color, intensity, castShadow)
         {
             Game = game;
         }
