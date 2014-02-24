@@ -36,11 +36,17 @@ namespace ERoD
     {
         GraphicsDeviceManager graphics;
         private Space space;
-        public BaseCamera Camera;
+        
+        // Camera Variables
+        public BaseCamera ChaseCamera;
+        public BaseCamera FreeCamera;
+        Boolean FreeCameraActive;
+        Entity ShipEntity;
+
         public Boolean DebugEnabled;
         public StaticMesh testVarGround;
 
-        public ModelDrawer modelDrawer;  //Used to draw entitis for debug.
+        public ModelDrawer modelDrawer;  //Used to draw entities for debug.
 
         public Space Space
         {
@@ -48,6 +54,7 @@ namespace ERoD
         }
 
         public GamePadState GamePadState { get; set; }
+        public GamePadState LastGamePadState { get; set; }
         Model CubeModel;
 
         public ERoD()
@@ -64,7 +71,9 @@ namespace ERoD
         /// </summary>
         protected override void Initialize()
         {
-            //Camera = new FreeCamera(this, 0.1f, 2000, new Vector3(0, 30, 50), 25.0f);
+            FreeCamera = new FreeCamera(this, 0.01f, 10000.0f, new Vector3(0, 20.0f, 0), 50.0f);
+            this.Services.AddService(typeof(ICamera), FreeCamera);
+            FreeCameraActive = true;
             base.Initialize();
         }
 
@@ -115,10 +124,6 @@ namespace ERoD
             entity.Position = ConversionHelper.MathConverter.Convert(position);
             space.Add(entity);
 
-            // Should not be done here, need to move
-            Camera = new ChaseCamera(entity, new BEPUutilities.Vector3(0.0f, 5.0f, 0.0f), true, 20.0f, 0.1f, 2000.0f, this);
-            Camera.Initialize();
-
             if (DebugEnabled) 
             {
                 modelDrawer.Add(entity);
@@ -141,7 +146,14 @@ namespace ERoD
                 modelDrawer.Add(entity);
             }
             Components.Add(new Ship(entity, model, Matrix.CreateScale(scaling), this));
+
+            ShipEntity = entity;
+
+            // Should not be done here, need to move
+            ChaseCamera = new ChaseCamera(entity, new BEPUutilities.Vector3(0.0f, 5.0f, 0.0f), true, 20.0f, 0.1f, 2000.0f, this);
+            ChaseCamera.Initialize();
         }
+
         private void AddStaticObject(Model model, AffineTransform transform) 
         {
             BVector3[] vertices;
@@ -185,11 +197,11 @@ namespace ERoD
             {
                 //If the user is holding down the trigger, start firing some boxes.
                 //First, create a new dynamic box at the camera's location.
-                Box toAdd = new Box(ConversionHelper.MathConverter.Convert(Camera.Position), 1, 1, 1, 1);
+                Box toAdd = new Box(ConversionHelper.MathConverter.Convert(FreeCamera.Position), 1, 1, 1, 1);
                 //Set the velocity of the new box to fly in the direction the camera is pointing.
                 //Entities have a whole bunch of properties that can be read from and written to.
                 //Try looking around in the entity's available properties to get an idea of what is available.
-                toAdd.LinearVelocity = ConversionHelper.MathConverter.Convert(Camera.World.Forward * 10);
+                toAdd.LinearVelocity = ConversionHelper.MathConverter.Convert(FreeCamera.World.Forward * 10);
                 //Add the new box to the simulation.
                 space.Add(toAdd);
 
@@ -198,12 +210,30 @@ namespace ERoD
                 Components.Add(obj);
                 toAdd.Tag = obj;  //set the object tag of this entity to the model so that it's easy to delete the graphics component later if the entity is removed.
             }
-            
+
+            if ((GamePadState.Buttons.B == ButtonState.Pressed) && (LastGamePadState.Buttons.B == ButtonState.Released ))
+            {
+                Services.RemoveService(typeof(ICamera));
+                if (FreeCameraActive)
+                {
+                    FreeCameraActive = false;
+                    Console.WriteLine("Freecameractive = false");
+                    Services.AddService(typeof(ICamera), ChaseCamera);
+                }
+                else
+                {
+                    FreeCameraActive = true;
+                    Services.AddService(typeof(ICamera), FreeCamera);
+                }
+            }
+
             space.Update();
 
-            Camera.Update(gameTime);
+            //FreeCamera.Update(gameTime);
+            //ChaseCamera.Update(gameTime);
 
             base.Update(gameTime);
+            LastGamePadState = GamePadState;
         }
 
         /// <summary>
@@ -215,7 +245,14 @@ namespace ERoD
             GraphicsDevice.Clear(Color.CornflowerBlue);
             if (DebugEnabled)
             {
-                modelDrawer.Draw(ConversionHelper.MathConverter.Convert(Camera.View), ConversionHelper.MathConverter.Convert(Camera.Projection));
+                if (FreeCameraActive)
+                {
+                    modelDrawer.Draw(ConversionHelper.MathConverter.Convert(FreeCamera.View), ConversionHelper.MathConverter.Convert(FreeCamera.Projection));
+                }
+                else
+                {                 
+                    modelDrawer.Draw(ConversionHelper.MathConverter.Convert(ChaseCamera.View), ConversionHelper.MathConverter.Convert(ChaseCamera.Projection));
+                }
             }
             base.Draw(gameTime);
         }

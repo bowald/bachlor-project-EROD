@@ -57,6 +57,11 @@ namespace ERoD
            
         }
 
+        public ICamera Camera
+        {
+            get { return ((ICamera)Game.Services.GetService(typeof(ICamera))); }
+        }
+
         public override void Draw(GameTime gameTime)
         {
             model.CopyAbsoluteBoneTransformsTo(boneTransforms);
@@ -66,8 +71,8 @@ namespace ERoD
                 foreach (BasicEffect effect in mesh.Effects)
                 {
                     effect.World = boneTransforms[mesh.ParentBone.Index] * world;
-                    effect.View = (Game as ERoD).Camera.View;
-                    effect.Projection = (Game as ERoD).Camera.Projection;
+                    effect.View = Camera.View;
+                    effect.Projection = Camera.Projection;
                 }
                 mesh.Draw();
             }
