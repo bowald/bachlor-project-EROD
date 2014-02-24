@@ -47,11 +47,11 @@ namespace ERoD
            // float FY = ((entity.LinearMomentum.Y / entity.Mass) + acc);
             if (debugEnable)
             {
-              //  Debug.WriteLine("Lmomentum: " + entity.LinearMomentum.Y);
-             //   Debug.WriteLine("vY(7.0f): " + vY(7.0f));
-             //   Debug.WriteLine("acc: " + acc);
-             //   Debug.WriteLine("current linear:" + (entity.LinearMomentum.Y / entity.Mass));
-                Debug.WriteLine("VX: " + vX());
+                Debug.WriteLine("entity.posistion: " + entity.Position);
+                Debug.WriteLine("down: " + entity.OrientationMatrix.Down);
+                Debug.WriteLine("forward: " + world.Down);
+                Debug.WriteLine("right:" + entity.OrientationMatrix.Right);
+                Debug.WriteLine("left: " + entity.OrientationMatrix.Left);
             }
             entity.LinearVelocity = new BEPUutilities.Vector3(vX(), vY(10.0f), 0.0f);
         }
@@ -116,10 +116,29 @@ namespace ERoD
             {
                 hover();
             }
-            //if(gamePadState.ThumbSticks.Right.X != 0)
-            //{
-            //    strafe(gamePadState.ThumbSticks.Right.X);
-            //}
+            if(gamePadState.IsButtonDown(Buttons.DPadRight))
+            {
+                if (entity.LinearVelocity.Z < 10.0f)
+                {
+                    entity.LinearVelocity = new BEPUutilities.Vector3(entity.LinearVelocity.X, entity.LinearVelocity.Y, 10.0f);
+                    entity.AngularVelocity = new BEPUutilities.Vector3(0, -1.0f, 0);
+                }
+                else if (entity.LinearVelocity.Z > 40.0f)
+                {
+                    entity.LinearVelocity = new BEPUutilities.Vector3(entity.LinearVelocity.X, entity.LinearVelocity.Y, 40.0f);
+                    entity.AngularVelocity = new BEPUutilities.Vector3(0, -1.0f, 0);
+                }
+                else
+                {
+                    entity.LinearVelocity = new BEPUutilities.Vector3(entity.LinearVelocity.X, entity.LinearVelocity.Y, entity.LinearVelocity.Z * 1.1f);
+                    entity.AngularVelocity = new BEPUutilities.Vector3(0, -1.0f, 0);
+                }
+            }
+            else if (gamePadState.IsButtonDown(Buttons.DPadLeft))
+            {
+                entity.LinearVelocity = new BEPUutilities.Vector3(entity.LinearVelocity.X, entity.LinearVelocity.Y, -10.0f);
+                entity.AngularVelocity = new BEPUutilities.Vector3(0,1.0f,0);
+            }
             base.Update(gameTime);
         }
     }
