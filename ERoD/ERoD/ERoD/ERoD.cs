@@ -120,7 +120,7 @@ namespace ERoD
             sobj.Effect = objEffect;
             Components.Add(sobj);
 
-            renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(80, 60, 80), Vector3.Zero, Color.LightYellow, 1.0f));
+            renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(80, 60, 80), Vector3.Zero, Color.LightYellow, 1.0f, true));
             renderer.PointLights.Add(new PointLight(new Vector3( 10, 10,  10), Color.White, 50.0f, 1.0f));
             renderer.PointLights.Add(new PointLight(new Vector3(-10, 10, -10), Color.Red, 50.0f, 1.0f));
             renderer.PointLights.Add(new PointLight(new Vector3(95, 17, 70), Color.Blue, 20.0f, 1.0f));
