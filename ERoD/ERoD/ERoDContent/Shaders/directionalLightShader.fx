@@ -16,7 +16,7 @@ float3 color;
 texture normalMap;
 sampler normalSampler = sampler_state
 {
-	Texture = (normalMap);
+	Texture = <normalMap>;
 	AddressU = CLAMP;
 	AddressV = CLAMP;
 	MagFilter = POINT;
@@ -27,7 +27,20 @@ sampler normalSampler = sampler_state
 texture depthMap;
 sampler depthSampler = sampler_state
 {
-	Texture = (depthMap);
+	Texture = <depthMap>;
+	AddressU = CLAMP;
+	AddressV = CLAMP;
+	MagFilter = POINT;
+	MinFilter = POINT;
+	Mipfilter = POINT;
+};
+
+float shadowBias = 0.00005f;
+bool castShadow;
+texture shadowMap;
+sampler shadowSampler = sampler_state
+{
+	Texture = <shadowMap>;
 	AddressU = CLAMP;
 	AddressV = CLAMP;
 	MagFilter = POINT;
@@ -74,12 +87,36 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 	float4 worldPos = mul(screenPos, viewProjectionInv);
 	worldPos /= worldPos.w;
 
+	float4 lightScreenPos = mul(worldPos, lightViewProjection);
+	lightScreenPos /= lightScreenPos.w;
+
+	//find sample position in shadow map
+	float2 lightSamplePos;
+	lightSamplePos.x = lightScreenPos.x / 2.0f + 0.5f;
+	lightSamplePos.y = (-lightScreenPos.y / 2.0f + 0.5f);
+
+	//determine shadowing criteria
+	float realDistanceToLight = lightScreenPos.z;
+	float distanceStoredInDepthMap = tex2D(shadowSampler, lightSamplePos).r;
+
+	// add bias
+	realDistanceToLight -= shadowBias;
+
+	bool shadowCondition = distanceStoredInDepthMap <= realDistanceToLight;
+
+	float shading = 0.5;
+	if (!castShadow || !shadowCondition)
+	{
+		shading = 1;
+	}
+
 	//surface-to-light vector
 	float3 lightVector = normalize(-lightDirection);
 
 	//compute diffuse light
 	float NdL = saturate(dot(normal, lightVector));
 	float3 diffuseLight = (NdL * color.rgb) * power;
+
 
 	////reflection vector
 	//float3 r = normalize(reflect(-lightVector, normal));
@@ -93,7 +130,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 	//diffuseLight += (specular * power);
 
 	//output the two lights
-	return float4(diffuseLight.rgb, 1);
+	return float4(diffuseLight.rgb, 1) * shading;
 
 }
 

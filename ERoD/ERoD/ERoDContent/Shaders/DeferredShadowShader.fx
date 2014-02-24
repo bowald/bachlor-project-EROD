@@ -1,4 +1,6 @@
-float4x4 vp;
+// Global Variables
+float4x4 World;
+float4x4 vp : ViewProjection;
 
 struct VertexShaderInput
 {
@@ -16,7 +18,8 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 {
 	VertexShaderOutput output;
 
-	output.Position = mul(input.Position, vp);
+	float4 worldPos = mul(input.Position, World);
+	output.Position = mul(worldPos, vp);
 	output.ScreenPosition = output.Position;
 
 	return output;
@@ -24,7 +27,7 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 
 float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 {
-	float4 output = 1 - (input.ScreenPosition.z / input.ScreenPosition.w);
+	float4 output = input.ScreenPosition.z / input.ScreenPosition.w;
 
 	output.a = 1;
 
@@ -35,6 +38,7 @@ technique ShadowMap
 {
 	pass Pass1
 	{
+		CULLMODE = NONE;
 		VertexShader = compile vs_3_0 VertexShaderFunction();
 		PixelShader = compile ps_3_0 PixelShaderFunction();
 	}

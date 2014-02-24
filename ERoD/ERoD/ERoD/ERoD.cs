@@ -63,7 +63,7 @@ namespace ERoD
         /// </summary>
         protected override void Initialize()
         {
-            Camera = new FreeCamera(this, 0.01f, 200, new Vector3(0, 15, 70), 25.0f);
+            Camera = new FreeCamera(this, 1f, 400, new Vector3(0, 30, 50), 40.0f);
             this.Services.AddService(typeof(ICamera), Camera);
             base.Initialize();
         }
@@ -77,8 +77,8 @@ namespace ERoD
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
             Model shipModel = Content.Load<Model>("Models/space_frigate");
-            Vector3 shipScale = new Vector3(0.05f, 0.05f, 0.05f);
-            Vector3 shipPosition = new Vector3(0, 10, 0);
+            Vector3 shipScale = new Vector3(0.07f, 0.07f, 0.07f);
+            Vector3 shipPosition = new Vector3(0, 3, 0);
 
             Model groundModel = Content.Load<Model>("Models/Z3B0_Arena_alphaVersion");
             AffineTransform groundTransform = new AffineTransform(new BVector3(0.1f, 0.1f, 0.1f), new BQuaternion(0, 0, 0, 0), new BVector3(0, 0, 0));
@@ -120,12 +120,13 @@ namespace ERoD
             sobj.Effect = objEffect;
             Components.Add(sobj);
 
-            renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(80, 60, 80), Vector3.Zero, Color.LightYellow, 1.0f, true));
-            renderer.PointLights.Add(new PointLight(new Vector3( 10, 10,  10), Color.White, 50.0f, 1.0f));
-            renderer.PointLights.Add(new PointLight(new Vector3(-10, 10, -10), Color.Red, 50.0f, 1.0f));
-            renderer.PointLights.Add(new PointLight(new Vector3(95, 17, 70), Color.Blue, 20.0f, 1.0f));
-            renderer.PointLights.Add(new PointLight(new Vector3(110, 17, 55), Color.Cyan, 20.0f, 1.0f));
-            renderer.PointLights.Add(new PointLight(new Vector3(115, 17, 45), Color.Red, 20.0f, 1.0f));
+            renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(250, 120, 0), Vector3.Zero, Color.LightYellow, 1.0f, true));
+            
+            //renderer.PointLights.Add(new PointLight(new Vector3( 10, 10,  10), Color.White, 50.0f, 1.0f));
+            //renderer.PointLights.Add(new PointLight(new Vector3(-10, 10, -10), Color.Red, 50.0f, 1.0f));
+            //renderer.PointLights.Add(new PointLight(new Vector3(95, 17, 70), Color.Blue, 20.0f, 1.0f));
+            //renderer.PointLights.Add(new PointLight(new Vector3(110, 17, 55), Color.Cyan, 20.0f, 1.0f));
+            //renderer.PointLights.Add(new PointLight(new Vector3(115, 17, 45), Color.Red, 20.0f, 1.0f));
         }
 
         private EntityObject LoadEntityObject(Model model, Vector3 position, Vector3 scaling)
@@ -224,12 +225,15 @@ namespace ERoD
             renderer.Draw(gameTime);
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
+
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque,
-                SamplerState.AnisotropicWrap, DepthStencilState.Default,
+                SamplerState.PointClamp, DepthStencilState.Default,
                 RasterizerState.CullCounterClockwise);
             spriteBatch.Draw(renderer.finalBackBuffer, new Rectangle(0, 0, GraphicsDevice.Viewport.Width,
                 GraphicsDevice.Viewport.Height), Color.White);
             spriteBatch.End();
+
+            renderer.RenderDebug();
 
             //if (DebugEnabled)
             //{

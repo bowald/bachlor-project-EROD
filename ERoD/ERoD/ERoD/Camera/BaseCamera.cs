@@ -62,7 +62,6 @@ namespace ERoD
 
         public override void Initialize()
         {
-            Console.WriteLine("bajs");
             viewport = Game.GraphicsDevice.Viewport;
             viewport.MinDepth = nearPlane;
             viewport.MaxDepth = farPlane;

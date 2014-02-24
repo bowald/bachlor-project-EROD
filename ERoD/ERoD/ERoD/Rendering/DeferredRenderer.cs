@@ -52,8 +52,7 @@ namespace ERoD
             int width = GraphicsDevice.Viewport.Width;
             int height = GraphicsDevice.Viewport.Height;
 
-            halfPixel = -new Vector2(.5f / (float)GraphicsDevice.Viewport.Width,
-                                     .5f / (float)GraphicsDevice.Viewport.Height);
+            halfPixel = -new Vector2(0.5f / (float)width, 0.5f / (float)height);
 
             depthMap = new RenderTarget2D(GraphicsDevice, width, height, false,
                 SurfaceFormat.Single, DepthFormat.Depth24Stencil8);
@@ -78,6 +77,11 @@ namespace ERoD
             pointLightShader = Game.Content.Load<Effect>("Shaders/PointLightShader");
             deferredShader = Game.Content.Load<Effect>("Shaders/DeferredRender");
             deferredShadowShader = Game.Content.Load<Effect>("Shaders/DeferredShadowShader");
+
+            // Debug depth renderer
+            DepthRender = Game.Content.Load<Effect>("Shaders/depthRender");
+            w = GraphicsDevice.Viewport.Width / 5;
+            h = (int) (GraphicsDevice.Viewport.Height / 3.5f);
 
             pointLightMesh = Game.Content.Load<Model>("Models/lightmesh");
             pointLightMesh.Meshes[0].MeshParts[0].Effect = pointLightShader;
@@ -120,10 +124,9 @@ namespace ERoD
             DeferredShadows(gameTime);
             DeferredLightning(gameTime);
 
-            GraphicsDevice.SetRenderTargets(finalBackBuffer);//, blendedDepthBuffer);
+            GraphicsDevice.SetRenderTargets(finalBackBuffer);
 
             DrawDeferred();
-            //draw non deferred.. transparent objs??
 
             GraphicsDevice.SetRenderTarget(null);
         }
@@ -146,23 +149,18 @@ namespace ERoD
 
             foreach (ILight light in lights)
             {
-                RenderlightShadows(light, gameTime);
-            }
-        }
+                // Clear shadow map..
+                GraphicsDevice.SetRenderTarget(light.ShadowMap);
+                GraphicsDevice.Clear(Color.Transparent);
 
-        private void RenderlightShadows(ILight light, GameTime gameTime)
-        {
-            // Clear shadow map..
-            GraphicsDevice.SetRenderTarget(light.ShadowMap);
-            GraphicsDevice.Clear(Color.Transparent);
+                deferredShadowShader.Parameters["vp"].SetValue(light.View * light.Projection);
 
-            deferredShadowShader.Parameters["vp"].SetValue(light.View * light.Projection);
-            foreach (GameComponent component in Game.Components)
-            {
-                if (component is IDeferredRender) 
+                foreach (GameComponent component in Game.Components)
                 {
-                    ((IDeferredRender)component).Draw(gameTime, deferredShadowShader);
-                    continue; // Don't test more, go to next component
+                    if (component is IDeferredRender)
+                    {
+                        ((IDeferredRender)component).Draw(gameTime, deferredShadowShader);
+                    }
                 }
             }
         }
@@ -171,6 +169,7 @@ namespace ERoD
         private void DeferredLightning(GameTime gameTime)
         {
             GraphicsDevice.SetRenderTarget(lightMap);
+
             GraphicsDevice.Clear(Color.Transparent);
             GraphicsDevice.BlendState = BlendState.Additive;
             GraphicsDevice.DepthStencilState = DepthStencilState.None;
@@ -202,7 +201,16 @@ namespace ERoD
             directionalLightShader.Parameters["power"].SetValue(directionalLight.Intensity);
 
             directionalLightShader.Parameters["cameraPosition"].SetValue(Camera.Position);
-            directionalLightShader.Parameters["viewProjectionInv"].SetValue(Matrix.Invert(Camera.View * Camera.Projection));
+            directionalLightShader.Parameters["viewProjectionInv"].SetValue(Matrix.Invert(Camera.View 
+                * Camera.Projection));
+            directionalLightShader.Parameters["lightViewProjection"].SetValue(directionalLight.View
+                * directionalLight.Projection);
+
+            directionalLightShader.Parameters["castShadow"].SetValue(directionalLight.CastShadow);
+            if (directionalLight.CastShadow)
+            {
+                directionalLightShader.Parameters["shadowMap"].SetValue(directionalLight.ShadowMap);
+            }
 
             directionalLightShader.Techniques[0].Passes[0].Apply();
 
@@ -281,6 +289,28 @@ namespace ERoD
 
             sceneQuad.Draw(-Vector2.One, Vector2.One); 
 
+        }
+
+        int w, h;
+        Effect DepthRender;
+        public void RenderDebug()
+        {
+            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
+
+            spriteBatch.Draw(finalBackBuffer, new Rectangle(1, 1, w, h), Color.White);
+            spriteBatch.Draw(normalMap, new Rectangle(w + 2, 1, w, h), Color.White);
+
+            GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
+
+            spriteBatch.Draw(lightMap, new Rectangle((w * 3) + 4, 1, w, h), Color.White);
+            
+            spriteBatch.End();
+            
+            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
+            DepthRender.CurrentTechnique.Passes[0].Apply();
+            GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
+            spriteBatch.Draw(depthMap, new Rectangle((w * 2) + 3, 1, w, h), Color.White);
+            spriteBatch.End();
         }
     }
 }
