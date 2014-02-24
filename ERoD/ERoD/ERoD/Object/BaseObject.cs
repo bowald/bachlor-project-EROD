@@ -74,9 +74,18 @@ namespace ERoD
                 foreach (ModelMeshPart part in mesh.MeshParts)
                 {
                     part.Effect = effect;
-                    effect.Parameters["World"].SetValue(meshWorld);
-                    effect.Parameters["wvp"].SetValue(wvp);
-                    effect.Parameters["color"].SetValue(Color.White.ToVector3());
+                    if (effect.Parameters["World"] != null)
+                    {
+                        effect.Parameters["World"].SetValue(meshWorld);
+                    }
+                    if (effect.Parameters["wvp"] != null)
+                    {
+                        effect.Parameters["wvp"].SetValue(wvp);
+                    }
+                    if (effect.Parameters["color"] != null)
+                    {
+                        effect.Parameters["color"].SetValue(Color.White.ToVector3());
+                    }
                     if (effect.Parameters["diffuseTexture"] != null) 
                     {
                         effect.Parameters["diffuseTexture"].SetValue(diffuseTexture);

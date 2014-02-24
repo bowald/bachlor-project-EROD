@@ -1,4 +1,4 @@
-float4x4 vp : ViewProjection;
+float4x4 vp;
 
 struct VertexShaderInput
 {

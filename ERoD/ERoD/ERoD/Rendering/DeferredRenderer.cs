@@ -156,7 +156,7 @@ namespace ERoD
             GraphicsDevice.SetRenderTarget(light.ShadowMap);
             GraphicsDevice.Clear(Color.Transparent);
 
-            deferredShadowShader.Parameters["viewProjection"].SetValue(light.View * light.Projection);
+            deferredShadowShader.Parameters["vp"].SetValue(light.View * light.Projection);
             foreach (GameComponent component in Game.Components)
             {
                 if (component is IDeferredRender) 
