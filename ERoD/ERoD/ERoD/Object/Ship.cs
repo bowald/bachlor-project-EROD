@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Diagnostics;
 using BRay = BEPUutilities.Ray;
+using BVector3 = BEPUutilities.Vector3;
 
 namespace ERoD
 {
@@ -18,7 +19,6 @@ namespace ERoD
         private Model model = null;
         private ERoD erod;
         private float f_max;
-        private float IDEAL_HEIGHT;
         private float max_speed;
         private Boolean debugEnable = true;
 
@@ -36,109 +36,98 @@ namespace ERoD
             entity.Mass = 250.0f;
             Debug.WriteLine(entity.Mass);
             f_max = 2 * (entity.Mass * 9.8f); // change to space.gravity
-            IDEAL_HEIGHT = 7.0f;
             max_speed = 20.0f; //max velocity
         }
 
-        public void move()
-        {
-            float h = distancefromG();
-            //float acc = accelarationY(h);
-           // float FY = ((entity.LinearMomentum.Y / entity.Mass) + acc);
-            if (debugEnable)
+        //public BVector3 move()
+        //{
+        //    float h = distancefromG();
+        //    entity.LinearVelocity = new BVector3(forward().X, vY(10.0f), forward().Z);
+        //}
+        //private void hover()
+        //{
+        //    if(distancefromG() < 3.0f)
+        //        entity.LinearVelocity = new BVector3(0.0f, vY(2.0f), 0.0f);
+        //}
+
+        private BVector3 movment(float scale){
+            BEPUutilities.Vector2 constrain = new BEPUutilities.Vector2(entity.LinearVelocity.X,entity.LinearVelocity.Z);
+            Debug.WriteLine("constran.lenght = " + constrain.Length());
+            if(constrain.Length() >= 30.0f){
+                BVector3 currentVelocity = entity.LinearVelocity;
+                currentVelocity = entity.OrientationMatrix.Forward * 30.0f;
+                return new BVector3(entity.LinearVelocity.X, 0, entity.LinearVelocity.Z);
+            }
+            else
             {
-                Debug.WriteLine("entity.posistion: " + entity.Position);
-                Debug.WriteLine("down: " + entity.OrientationMatrix.Down);
-                Debug.WriteLine("forward: " + world.Down);
-                Debug.WriteLine("right:" + entity.OrientationMatrix.Right);
-                Debug.WriteLine("left: " + entity.OrientationMatrix.Left);
+                BVector3 currentVelocity = entity.OrientationMatrix.Forward * scale * entity.LinearVelocity.Length();
+                return new BVector3(currentVelocity.X, 0, currentVelocity.Z);
             }
-            entity.LinearVelocity = new BEPUutilities.Vector3(vX(), vY(10.0f), 0.0f);
         }
-        private void hover()
+
+        private BVector3 strafe(Boolean Right)
         {
-            if(distancefromG() < 3.0f)
-                entity.LinearVelocity = new BEPUutilities.Vector3(0.0f, vY(2.0f), 0.0f);
-        }
-        private float vX(){
-            if (entity.LinearVelocity.X < 2.0f)
-                return 3.0f;
-            else if (entity.LinearVelocity.X >= 15.0f)
+            BVector3 turn;
+            if (Right)
             {
-                return 15.0f;
+                turn = entity.OrientationMatrix.Right;
             }
-            else {
-                return entity.LinearVelocity.X + 1.0001f;
+            else
+            {
+                turn = entity.OrientationMatrix.Left;
             }
-            
+            BVector3 velocity = turn * 8.0f;
+            return new BVector3(velocity.X, 0, velocity.Z);
         }
         
         private float distancefromG()
         {
             BEPUutilities.RayHit hit;
-            BRay ray = new BRay(entity.Position, BEPUutilities.Vector3.Down);
+            BRay ray = new BRay(entity.Position,BVector3.Down);
             erod.testVarGround.RayCast(ray, 100.0f, out hit);
             return hit.T;
         }
-        private float vY(float IDEAL_HEIGHT){
+        private void fly(float idealHeight){
             float h = distancefromG();
-            if (h < IDEAL_HEIGHT)
-            {
-                return 9.82f;
-            }
-            else if (h < IDEAL_HEIGHT + 4 && h > IDEAL_HEIGHT - 4)
-            {
-                return 0.0f;
-            }
-            else if (h == IDEAL_HEIGHT)
-            {
-                return 0;
-            }
-            else
-                return Math.Min(entity.LinearVelocity.Y * 1.01f, - 9.82f);
-        }
 
-        //private float strafe(float stick)
-        //{
-        //    if(stick != 0)
-        //    return stick * 3.0f;
-        //}
+            entity.Position = new BVector3(entity.Position.X, entity.Position.Y + (idealHeight - h), entity.Position.Z);
+        }
 
         public override void Update(GameTime gameTime)
         {
-            float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+            //float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+            BVector3 forward = BVector3.Zero;
+            float height;
+            BVector3 shipStrafe = BVector3.Zero;
             GamePadState gamePadState = ((ERoD)Game).GamePadState;
             if (gamePadState.IsButtonDown(Buttons.A))
             {
-                move();
+                forward = movment(1.1f);
+                height = 4.5f;
             }
             else
             {
-                hover();
+                forward = entity.LinearVelocity * 0.95f;
+                height = 4.0f;
             }
             if(gamePadState.IsButtonDown(Buttons.DPadRight))
             {
-                if (entity.LinearVelocity.Z < 10.0f)
-                {
-                    entity.LinearVelocity = new BEPUutilities.Vector3(entity.LinearVelocity.X, entity.LinearVelocity.Y, 10.0f);
-                    entity.AngularVelocity = new BEPUutilities.Vector3(0, -1.0f, 0);
-                }
-                else if (entity.LinearVelocity.Z > 40.0f)
-                {
-                    entity.LinearVelocity = new BEPUutilities.Vector3(entity.LinearVelocity.X, entity.LinearVelocity.Y, 40.0f);
-                    entity.AngularVelocity = new BEPUutilities.Vector3(0, -1.0f, 0);
-                }
-                else
-                {
-                    entity.LinearVelocity = new BEPUutilities.Vector3(entity.LinearVelocity.X, entity.LinearVelocity.Y, entity.LinearVelocity.Z * 1.1f);
-                    entity.AngularVelocity = new BEPUutilities.Vector3(0, -1.0f, 0);
-                }
+                //shipStrafe = strafe(true);
+                entity.AngularVelocity = new BVector3(0, -0.7f, 0);
+
             }
             else if (gamePadState.IsButtonDown(Buttons.DPadLeft))
             {
-                entity.LinearVelocity = new BEPUutilities.Vector3(entity.LinearVelocity.X, entity.LinearVelocity.Y, -10.0f);
-                entity.AngularVelocity = new BEPUutilities.Vector3(0,1.0f,0);
+                //shipStrafe = strafe(false);
+                entity.AngularVelocity = new BVector3(0,0.7f,0);
             }
+            else if (gamePadState.IsButtonUp(Buttons.DPadLeft) && gamePadState.IsButtonUp(Buttons.DPadRight))
+            {
+                entity.AngularVelocity = BVector3.Zero;
+            }
+            fly(height);
+            entity.LinearVelocity = shipStrafe + forward;
+
             base.Update(gameTime);
         }
     }
