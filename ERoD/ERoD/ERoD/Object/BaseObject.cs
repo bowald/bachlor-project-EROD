@@ -23,7 +23,7 @@ namespace ERoD
         protected Boolean textureEnabled;
         Matrix[] boneTransforms;
 
-        public Effect Effect;
+        public Effect standardEffect;
 
         public bool TextureEnabled
         {//TODO add to shader code
@@ -98,10 +98,7 @@ namespace ERoD
 
         public override void Draw(GameTime gameTime)
         {
-            Draw(gameTime, Effect);
+            Draw(gameTime, standardEffect);
         }
-
-
-        
     }
 }

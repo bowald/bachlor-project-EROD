@@ -50,6 +50,9 @@ namespace ERoD
         public ERoD()
         {
             graphics = new GraphicsDeviceManager(this);
+            graphics.PreferredBackBufferHeight = 720;
+            graphics.PreferredBackBufferWidth = 1280;
+
             Content.RootDirectory = "Content";
 
             renderer = new DeferredRenderer(this);
@@ -63,7 +66,7 @@ namespace ERoD
         /// </summary>
         protected override void Initialize()
         {
-            Camera = new FreeCamera(this, 1f, 400, new Vector3(0, 30, 50), 40.0f);
+            Camera = new FreeCamera(this, 1f, 1000, new Vector3(0, 50, 40), 40.0f);
             this.Services.AddService(typeof(ICamera), Camera);
             base.Initialize();
         }
@@ -78,7 +81,7 @@ namespace ERoD
 
             Model shipModel = Content.Load<Model>("Models/space_frigate");
             Vector3 shipScale = new Vector3(0.07f, 0.07f, 0.07f);
-            Vector3 shipPosition = new Vector3(0, 3, 0);
+            Vector3 shipPosition = new Vector3(0, 60, 0);
 
             Model groundModel = Content.Load<Model>("Models/Z3B0_Arena_alphaVersion");
             AffineTransform groundTransform = new AffineTransform(new BVector3(0.1f, 0.1f, 0.1f), new BQuaternion(0, 0, 0, 0), new BVector3(0, 0, 0));
@@ -103,24 +106,24 @@ namespace ERoD
 
             Effect objEffect = Content.Load<Effect>("Shaders/DeferredObjectRender");
 
-            space.ForceUpdater.Gravity = new BVector3(0, -9.82f, 0);
+            space.ForceUpdater.Gravity = new BVector3(0, -0.82f, 0);
             EntityObject eobj = LoadEntityObject(shipModel, shipPosition, shipScale);
             eobj.Texture = Content.Load<Texture2D>("Textures/Ship2/diffuse");
             eobj.TextureEnabled = false;
-            eobj.Effect = objEffect;
+            eobj.standardEffect = objEffect;
+            Components.Add(eobj);
 
             //Camera = new ChaseCamera(eobj.entity, new BEPUutilities.Vector3(0.0f, 5.0f, 0.0f), true, 20.0f, 0.1f, 2000.0f, this);
             //this.Services.AddService(typeof(ICamera), Camera);
             //((ChaseCamera)Camera).Initialize();
 
-            Components.Add(eobj);
             StaticObject sobj = LoadStaticObject(groundModel, groundTransform);
             sobj.Texture = Content.Load<Texture2D>("Textures/Ground/diffuse");
             sobj.TextureEnabled = false;
-            sobj.Effect = objEffect;
+            sobj.standardEffect = objEffect;
             Components.Add(sobj);
 
-            renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(250, 120, 0), Vector3.Zero, Color.LightYellow, 1.0f, true));
+            renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(50, 250, 250), Vector3.Zero, Color.LightYellow, 1.0f, true));
             
             //renderer.PointLights.Add(new PointLight(new Vector3( 10, 10,  10), Color.White, 50.0f, 1.0f));
             //renderer.PointLights.Add(new PointLight(new Vector3(-10, 10, -10), Color.Red, 50.0f, 1.0f));

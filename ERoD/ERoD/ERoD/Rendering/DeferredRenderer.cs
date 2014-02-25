@@ -37,7 +37,7 @@ namespace ERoD
         public List<IDirectionalLight> DirectionalLights = new List<IDirectionalLight>();
 
         Vector2 halfPixel;
-        private int shadowMapSize = 3;
+        private int shadowMapSize = 4096;
 
         ScreenQuad sceneQuad;
 
@@ -142,8 +142,8 @@ namespace ERoD
 
             foreach (ILight light in needShadowMaps)
             {
-                light.ShadowMap = new RenderTarget2D(GraphicsDevice, width * shadowMapSize, height * shadowMapSize,
-                    false, SurfaceFormat.Single, DepthFormat.None);
+                light.ShadowMap = new RenderTarget2D(GraphicsDevice, shadowMapSize, shadowMapSize,
+                    false, SurfaceFormat.Single, DepthFormat.Depth24Stencil8);
                 //light.SoftShadowMap = new RenderTarget2D(GraphicsDevice, width, height, false, SurfaceFormat.Color, DepthFormat.None);
             }
 
@@ -310,6 +310,7 @@ namespace ERoD
             DepthRender.CurrentTechnique.Passes[0].Apply();
             GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
             spriteBatch.Draw(depthMap, new Rectangle((w * 2) + 3, 1, w, h), Color.White);
+            spriteBatch.Draw(DirectionalLights[0].ShadowMap, new Rectangle((w * 4) + 5, 1, w, h), Color.White);
             spriteBatch.End();
         }
     }

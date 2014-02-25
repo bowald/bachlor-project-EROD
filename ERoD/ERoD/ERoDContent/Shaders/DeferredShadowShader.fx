@@ -11,7 +11,7 @@ struct VertexShaderInput
 struct VertexShaderOutput
 {
 	float4 Position : POSITION0;
-	float4 ScreenPosition : TEXCOORD0;
+	float Depth : TEXCOORD0;
 };
 
 VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
@@ -20,18 +20,14 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 
 	float4 worldPos = mul(input.Position, World);
 	output.Position = mul(worldPos, vp);
-	output.ScreenPosition = output.Position;
+	output.Depth.x = 1 - (output.Position.z / output.Position.w);
 
 	return output;
 }
 
 float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 {
-	float4 output = input.ScreenPosition.z / input.ScreenPosition.w;
-
-	output.a = 1;
-
-	return output;
+	return float4(input.Depth.x, 0, 0, 1);
 }
 
 technique ShadowMap

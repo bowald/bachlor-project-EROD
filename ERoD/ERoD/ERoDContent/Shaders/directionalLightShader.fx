@@ -35,7 +35,7 @@ sampler depthSampler = sampler_state
 	Mipfilter = POINT;
 };
 
-float shadowBias = 0.00005f;
+float shadowBias = 0.0000033f;
 bool castShadow;
 texture shadowMap;
 sampler shadowSampler = sampler_state
@@ -75,7 +75,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 	float4 normalData = tex2D(normalSampler, input.TexCoord);
 	float3 normal = 2.0f * normalData.xyz - 1.0f;
 
-	float depth = tex2D(depthSampler, input.TexCoord).r;
+	float depth = 1 - tex2D(depthSampler, input.TexCoord).r;
 
 	float4 screenPos;
 	screenPos.x = input.TexCoord.x * 2.0f - 1.0f;
@@ -97,7 +97,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 
 	//determine shadowing criteria
 	float realDistanceToLight = lightScreenPos.z;
-	float distanceStoredInDepthMap = tex2D(shadowSampler, lightSamplePos).r;
+	float distanceStoredInDepthMap = 1 - tex2D(shadowSampler, lightSamplePos).r;
 
 	// add bias
 	realDistanceToLight -= shadowBias;

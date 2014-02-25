@@ -26,7 +26,7 @@ struct VertexShaderOutput
 	float4 Position : POSITION0;
 	float3 Normal : NORMAL0;
 	float2 TexCoord : TEXCOORD0;
-	float4 ScreenPosition : TEXCOORD1;
+	float Depth : TEXCOORD1;
 };
 
 VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
@@ -37,7 +37,7 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 
 	output.TexCoord = input.TexCoord;
 
-	output.ScreenPosition = output.Position;
+	output.Depth = 1 - (output.Position.z / output.Position.w);
 
 	output.Normal = mul(input.Normal, World);
 
@@ -60,8 +60,7 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input) : COLOR0
 	output.Normal.xyz = (normalize(input.Normal).xyz / 2) + .5;
 	output.Normal.a = 1;
 
-	output.Depth = input.ScreenPosition.z / input.ScreenPosition.w;
-	output.Depth.a = 1;
+	output.Depth = float4(input.Depth.x, 0, 0, 1);
 
 	return output;
 }
