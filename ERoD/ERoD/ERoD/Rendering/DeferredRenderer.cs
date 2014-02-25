@@ -297,7 +297,7 @@ namespace ERoD
         {
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
 
-            spriteBatch.Draw(finalBackBuffer, new Rectangle(1, 1, w, h), Color.White);
+            spriteBatch.Draw(colorMap, new Rectangle(1, 1, w, h), Color.White);
             spriteBatch.Draw(normalMap, new Rectangle(w + 2, 1, w, h), Color.White);
 
             GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
