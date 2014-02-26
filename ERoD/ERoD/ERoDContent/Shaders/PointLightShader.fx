@@ -80,7 +80,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 	float2 texCoord = 0.5f * (float2(input.ScreenPosition.x, -input.ScreenPosition.y) + 1);
 	texCoord -= halfPixel;
 
-	float depthVal = tex2D(depthSampler, texCoord).r;
+	float depthVal = 1 - tex2D(depthSampler, texCoord).r;
 
 	float4 normalData = tex2D(normalSampler, texCoord);
 	float3 normal = 2.0f * normalData.xyz - 1.0f;
@@ -99,12 +99,9 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 
 	lightVector = normalize(lightVector);
 
-	float Ndl = saturate(dot(normal, lightVector));
-	float3 diffuseLight = Ndl * Color.rgb;
+	float NdotL = saturate(dot(normal, lightVector));
+	float3 diffuseLight = NdotL * Color.rgb;
 
-	float3 r = normalize(reflect(-lightVector, normal));
-	float3 v = normalize(CameraPosition - input.ScreenPosition);
-	
 	return (attenuation * lightIntensity * float4(diffuseLight.rgb, 1));// +specular * att *ligtI;
 }
 

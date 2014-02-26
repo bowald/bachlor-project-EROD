@@ -37,7 +37,7 @@ namespace ERoD
         public List<IDirectionalLight> DirectionalLights = new List<IDirectionalLight>();
 
         Vector2 halfPixel;
-        private int shadowMapSize = 4096;
+        private int shadowMapSize = 2048;
 
         ScreenQuad sceneQuad;
 
@@ -241,35 +241,19 @@ namespace ERoD
             pointLightShader.Parameters["InvertViewProjection"].SetValue(Matrix.Invert(Camera.View * 
                 Camera.Projection));
 
-            foreach (ModelMesh mesh in pointLightMesh.Meshes)
+            float dist = Vector3.Distance(Camera.Position, pointLight.Position);
+
+            if (dist < pointLight.Radius)
             {
-                Matrix meshWorld = boneTransforms[mesh.ParentBone.Index];
-                Matrix wvp = meshWorld * Camera.View * Camera.Projection;
-
-                if (pointLightShader.Parameters["world"] != null)
-                {
-                    pointLightShader.Parameters["world"].SetValue(meshWorld);
-                }
-                if (pointLightShader.Parameters["wvp"] != null)
-                {
-                    pointLightShader.Parameters["wvp"].SetValue(wvp);
-                }
-
-                float dist = Vector3.Distance(Camera.Position, pointLight.Position);
-
-
-                if (dist < pointLight.Radius)
-                {
-                    GraphicsDevice.RasterizerState = RasterizerState.CullClockwise;
-                }
-
-                // Draw the point-light-sphere
-                mesh.Draw();
-
-                // Revert the cull mode
-                GraphicsDevice.RasterizerState =
-                RasterizerState.CullCounterClockwise;
+                GraphicsDevice.RasterizerState = RasterizerState.CullClockwise;
             }
+
+            // Draw the point-light-sphere
+            pointLightMesh.Meshes[0].Draw();
+
+            // Revert the cull mode
+            GraphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+            
         }
 
         private void DrawDeferred()
