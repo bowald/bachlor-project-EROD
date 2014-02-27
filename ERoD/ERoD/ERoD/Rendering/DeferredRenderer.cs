@@ -19,6 +19,7 @@ namespace ERoD
         public RenderTarget2D depthMap;
         public RenderTarget2D colorMap;
         public RenderTarget2D normalMap;
+        public RenderTarget2D SGRMap;
         public RenderTarget2D lightMap;
         public RenderTarget2D finalBackBuffer;
         //public RenderTarget2D blendedDepthBuffer;
@@ -63,6 +64,9 @@ namespace ERoD
             normalMap = new RenderTarget2D(GraphicsDevice, width, height, false,
                 SurfaceFormat.Rgba1010102, DepthFormat.None);
 
+            SGRMap = new RenderTarget2D(GraphicsDevice, width, height, false,
+                SurfaceFormat.Rgba1010102, DepthFormat.None);
+
             lightMap = new RenderTarget2D(GraphicsDevice, width, height, false,
                 SurfaceFormat.Color, DepthFormat.None);
 
@@ -105,7 +109,7 @@ namespace ERoD
 
         private void RenderDeferred(GameTime gameTime)
         {
-            GraphicsDevice.SetRenderTargets(colorMap, normalMap, depthMap);
+            GraphicsDevice.SetRenderTargets(colorMap, normalMap, depthMap, SGRMap);
 
             GraphicsDevice.Clear(Color.Black);
             GraphicsDevice.DepthStencilState = DepthStencilState.Default;
@@ -286,6 +290,7 @@ namespace ERoD
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
 
             spriteBatch.Draw(colorMap, new Rectangle(1, 1, w, h), Color.White);
+            spriteBatch.Draw(SGRMap, new Rectangle((w * 4) + 4, 1, w, h), Color.White);
             spriteBatch.Draw(normalMap, new Rectangle(w + 2, 1, w, h), Color.White);
 
             GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
@@ -298,7 +303,6 @@ namespace ERoD
             DepthRender.CurrentTechnique.Passes[0].Apply();
             GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
             spriteBatch.Draw(depthMap, new Rectangle((w * 2) + 3, 1, w, h), Color.White);
-            spriteBatch.Draw(DirectionalLights[0].ShadowMap, new Rectangle((w * 4) + 5, 1, w, h), Color.White);
             spriteBatch.End();
         }
     }

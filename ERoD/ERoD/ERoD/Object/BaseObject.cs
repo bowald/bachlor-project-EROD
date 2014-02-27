@@ -20,13 +20,15 @@ namespace ERoD
         protected Matrix transform;
         protected Model model;
         protected Texture2D diffuseTexture;
+        protected Texture2D specularMap;
+        protected Texture2D bumpMap;
         protected Boolean textureEnabled;
         Matrix[] boneTransforms;
 
         public Effect standardEffect;
 
         public bool TextureEnabled
-        {//TODO add to shader code
+        {
             get { return textureEnabled; }
             set { textureEnabled = value; }
         }
@@ -53,6 +55,18 @@ namespace ERoD
         {
             get { return diffuseTexture; }
             set { diffuseTexture = value; }
+        }
+
+        public Texture2D SpecularMap
+        {
+            get { return specularMap; }
+            set { specularMap = value; }
+        }
+
+        public Texture2D BumpMap
+        {
+            get { return bumpMap; }
+            set { bumpMap = value; }
         }
 
         protected BaseObject(Model model, Matrix transform, Game game) : base(game)
@@ -94,7 +108,14 @@ namespace ERoD
                     {
                         effect.Parameters["diffuseTexture"].SetValue(diffuseTexture);
                     }
-                    
+                    if (effect.Parameters["specularMap"] != null)
+                    {
+                        effect.Parameters["specularMap"].SetValue(specularMap);
+                    }
+                    if (effect.Parameters["bumpMap"] != null)
+                    {
+                        effect.Parameters["bumpMap"].SetValue(bumpMap);
+                    }
                 }
                 mesh.Draw();
             }

@@ -35,7 +35,7 @@ sampler depthSampler = sampler_state
 	Mipfilter = POINT;
 };
 
-float shadowBias = 0.0000033f;
+float shadowBias = 0.00000045f;
 bool castShadow;
 texture shadowMap;
 sampler shadowSampler = sampler_state

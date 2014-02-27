@@ -12,6 +12,8 @@ namespace ERoD
         Matrix World { get; set; }
         Model Model { get; set; }
         Texture2D Texture { get; set; }
+        Texture2D BumpMap { get; set; }
+        Texture2D SpecularMap { get; set; }
         Boolean TextureEnabled { get; set; }
     }
 }

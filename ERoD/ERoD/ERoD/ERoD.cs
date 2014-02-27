@@ -80,6 +80,7 @@ namespace ERoD
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
             Model shipModel = Content.Load<Model>("Models/space_frigate");
+            Model shipModelT = Content.Load<Model>("Models/space_frigate_tangentOn");
             Vector3 shipScale = new Vector3(0.07f, 0.07f, 0.07f);
             Vector3 shipPosition = new Vector3(0, 60, 0);
 
@@ -107,8 +108,16 @@ namespace ERoD
             Effect objEffect = Content.Load<Effect>("Shaders/DeferredObjectRender");
 
             space.ForceUpdater.Gravity = new BVector3(0, -0.82f, 0);
-            EntityObject eobj = LoadEntityObject(shipModel, shipPosition, shipScale);
+            Entity entity = LoadEntityObject(shipModel, shipPosition, shipScale);
+            EntityObject eobj = new EntityObject(entity, shipModelT, Matrix.CreateScale(shipScale), this);
+            space.Add(entity);
+
+            if (DebugEnabled)
+            {
+                modelDrawer.Add(entity);
+            }
             eobj.Texture = Content.Load<Texture2D>("Textures/Ship2/diffuse");
+            eobj.SpecularMap = Content.Load<Texture2D>("Textures/Ship2/specular");
             eobj.TextureEnabled = true;
             eobj.standardEffect = objEffect;
             Components.Add(eobj);
@@ -119,6 +128,8 @@ namespace ERoD
 
             StaticObject sobj = LoadStaticObject(groundModel, groundTransform);
             sobj.Texture = Content.Load<Texture2D>("Textures/Ground/diffuse");
+            sobj.SpecularMap = Content.Load<Texture2D>("Textures/Ground/specular");
+            sobj.BumpMap = Content.Load<Texture2D>("Textures/Ground/normal");
             sobj.TextureEnabled = true;
             sobj.standardEffect = objEffect;
             Components.Add(sobj);
@@ -132,7 +143,7 @@ namespace ERoD
             renderer.PointLights.Add(new PointLight(new Vector3(115, 17, 45), Color.Red, 10.0f, 1.0f));
         }
 
-        private EntityObject LoadEntityObject(Model model, Vector3 position, Vector3 scaling)
+        private Entity LoadEntityObject(Model model, Vector3 position, Vector3 scaling)
         {
             
             BVector3[] vertices;
@@ -148,13 +159,8 @@ namespace ERoD
             ConvexHullShape CHS = new ConvexHullShape(OurHelper.scaleVertices(vertices, scaling));
             Entity entity = new Entity(CHS, 10);
             entity.Position = ConversionHelper.MathConverter.Convert(position);
-            space.Add(entity);
 
-            if (DebugEnabled) 
-            {
-                modelDrawer.Add(entity);
-            }
-            return new EntityObject(entity, model, Matrix.CreateScale(scaling), this);
+            return entity;
         }
 
         private StaticObject LoadStaticObject(Model model, AffineTransform transform) 
