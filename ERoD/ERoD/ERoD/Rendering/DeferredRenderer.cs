@@ -201,6 +201,7 @@ namespace ERoD
             directionalLightShader.Parameters["color"].SetValue(directionalLight.Color.ToVector3());
 
             directionalLightShader.Parameters["normalMap"].SetValue(normalMap);
+            directionalLightShader.Parameters["sgrMap"].SetValue(SGRMap);
             directionalLightShader.Parameters["depthMap"].SetValue(depthMap);
             directionalLightShader.Parameters["power"].SetValue(directionalLight.Intensity);
 

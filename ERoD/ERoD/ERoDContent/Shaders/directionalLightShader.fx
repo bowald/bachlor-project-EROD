@@ -7,6 +7,7 @@ float3 lightDirection;
 float3 cameraPosition;
 
 float power = 1;
+float specularModifier = 10;
 
 float2 halfPixel;
 
@@ -22,6 +23,17 @@ sampler normalSampler = sampler_state
 	MagFilter = POINT;
 	MinFilter = POINT;
 	Mipfilter = POINT;
+};
+
+texture sgrMap;
+sampler sgrSampler = sampler_state
+{
+	Texture = (sgrMap);
+	AddressU = CLAMP;
+	AddressV = CLAMP;
+	MagFilter = LINEAR;
+	MinFilter = LINEAR;
+	Mipfilter = LINEAR;
 };
 
 texture depthMap;
@@ -117,17 +129,19 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 	float NdL = saturate(dot(normal, lightVector));
 	float3 diffuseLight = (NdL * color.rgb) * power;
 
+	float4 SGR = tex2D(sgrSampler, input.TexCoord);
 
-	////reflection vector
-	//float3 r = normalize(reflect(-lightVector, normal));
+	//reflection vector
+	float3 r = normalize(2 * dot(lightVector, normal) * normal - lightVector);
 
-	////view vector
-	//float3 v = normalize(cameraPosition - screenPos);
+	//view vector
+	float3 v = normalize(cameraPosition - worldPos);
 
-	//float3 Half = normalize(r + v);
-	//float specular = pow(saturate(dot(normalData, Half)), 25);
+	float dotProduct = dot(r, v);
+	
+	float4 specular = SGR.r * float4(color, 1) * max(pow(dotProduct, 20), 0);
 
-	//diffuseLight += (specular * power);
+	diffuseLight += (specular * specularModifier);
 
 	//output the two lights
 	return float4(diffuseLight.rgb, 1) * shading;
