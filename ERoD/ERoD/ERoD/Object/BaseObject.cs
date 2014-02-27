@@ -86,6 +86,10 @@ namespace ERoD
                     {
                         effect.Parameters["color"].SetValue(Color.White.ToVector3());
                     }
+                    if (effect.Parameters["textureEnabled"] != null)
+                    {
+                        effect.Parameters["textureEnabled"].SetValue(textureEnabled);
+                    }
                     if (effect.Parameters["diffuseTexture"] != null) 
                     {
                         effect.Parameters["diffuseTexture"].SetValue(diffuseTexture);

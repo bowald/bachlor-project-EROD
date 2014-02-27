@@ -109,7 +109,7 @@ namespace ERoD
             space.ForceUpdater.Gravity = new BVector3(0, -0.82f, 0);
             EntityObject eobj = LoadEntityObject(shipModel, shipPosition, shipScale);
             eobj.Texture = Content.Load<Texture2D>("Textures/Ship2/diffuse");
-            eobj.TextureEnabled = false;
+            eobj.TextureEnabled = true;
             eobj.standardEffect = objEffect;
             Components.Add(eobj);
 

@@ -3,6 +3,7 @@ float4x4 wvp : WorldViewProjection;
 
 float3 color = 1;
 
+bool textureEnabled;
 texture diffuseTexture;
 sampler diffuseSampler = sampler_state
 {
@@ -55,7 +56,14 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input) : COLOR0
 {
 	PixelShaderOutput output = (PixelShaderOutput)0;
 
-	output.Color = tex2D(diffuseSampler, input.TexCoord) * float4(color, 1);
+	if (textureEnabled)
+	{
+		output.Color = tex2D(diffuseSampler, input.TexCoord) * float4(color, 1);
+	}
+	else
+	{
+		output.Color = float4(color, 1);
+	}
 
 	output.Normal.xyz = (normalize(input.Normal).xyz / 2) + .5;
 	output.Normal.a = 1;
