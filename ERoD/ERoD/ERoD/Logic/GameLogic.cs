@@ -9,9 +9,10 @@ using System.Text;
 
 namespace ERoD
 {
+    // Class for handling game logic based on Collision Events
     class GameLogic
     {
-        int CurrentLap = -1;
+        int CurrentLap = 0;
         ERoD Game;
 
         public GameLogic(ERoD Game)

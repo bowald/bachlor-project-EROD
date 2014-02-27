@@ -31,13 +31,16 @@ namespace ERoD
 
         public CollisionHandler(Game game)
         {
-
+            // The game.
+            // Used to access the GameLogic service
             this.Game = game;
 
-            // Setting up collisiongroups and the list of accepted collidables
+            // Maps all trigger-entities and all powerup-entities together with their respective entityobjects.
+            // Necessary when you want to remove an entityobject from the game
             Triggers = new Dictionary<Entity, EntityObject>();
             Powerups = new Dictionary<Entity, EntityObject>();
 
+            // Setting up collisiongroups
             shipGroup = new CollisionGroup();
             triggerGroup = new CollisionGroup();
             powerupGroup = new CollisionGroup();
@@ -52,6 +55,8 @@ namespace ERoD
             CollisionRules.CollisionGroupRules.Add(ShipTriggerPair, CollisionRule.NoSolver);
         }
 
+        // Add an entityobject to the "ship" collision group
+        // Also sets its tag to be equal to its entityobject
         public void addShipGroup(EntityObject ship)
         {
             ship.Entity.CollisionInformation.Tag = ship;
@@ -59,6 +64,8 @@ namespace ERoD
             ship.Entity.CollisionInformation.Events.PairCreated += Events_PairCreated;
         }
 
+        // Add an entityobject to the "trigger" collision group
+        // Also sets its tag to be equal to its entityobject
         public void addTriggerGroup(EntityObject trigger)
         {
             trigger.Entity.CollisionInformation.Tag = trigger;
@@ -66,6 +73,8 @@ namespace ERoD
             Triggers.Add(trigger.Entity, trigger);
         }
 
+        // Add an entityobject to the "powerup" collision group
+        // Also sets its tag to be equal to its entityobject.
         public void addPowerupGroup(EntityObject powerup)
         {
             powerup.Entity.CollisionInformation.Tag = powerup;
@@ -81,14 +90,18 @@ namespace ERoD
             EntityObject entityObject = (EntityObject)other.Tag;
             
             try{
+                // Checks the Tag of the collided object
                 Entity entity = entityObject.Entity;
                 Debug.WriteLine("Checking what the tag was!");
+
+                // If it is a trigger, increment the lap counter.
                 if (Triggers.ContainsKey(entity))
                 {
                     Debug.WriteLine("It was a trigger!");
                     gameLogic.IncrementLap();
                 }
 
+                // If it is a powerup, remove the entityobject and its entity from the game.
                 else if (Powerups.ContainsKey(entity))
                 {
                     Debug.WriteLine("It was a powerup!");
@@ -96,7 +109,10 @@ namespace ERoD
                     Powerups.Remove(entity);
                 }  
             }
-            catch (NullReferenceException e){}              
+            catch (NullReferenceException e)
+            {
+                Debug.WriteLine(e);
+            }              
         }
     }
 }
