@@ -19,8 +19,8 @@ namespace ERoD
         private ERoD erod;
 
 
-        public Ship(Entity entity, Model model, Matrix world, Game game) 
-            : base(entity, model, world, game)
+        public Ship(Entity Entity, Model model, Matrix world, Game game) 
+            : base(Entity, model, world, game)
         {
             erod = game as ERoD;
             space = erod.Space;
@@ -33,14 +33,14 @@ namespace ERoD
 
         private BVector3 movment(float scale){
             BVector3 currentVelocity;
-            BEPUutilities.Vector2 constrain = new BEPUutilities.Vector2(entity.LinearVelocity.X,entity.LinearVelocity.Z);
+            BEPUutilities.Vector2 constrain = new BEPUutilities.Vector2(Entity.LinearVelocity.X,Entity.LinearVelocity.Z);
             if(constrain.Length() >= 30.0f){
-                currentVelocity = entity.OrientationMatrix.Forward * 30.0f;
+                currentVelocity = Entity.OrientationMatrix.Forward * 30.0f;
                 return new BVector3(currentVelocity.X, 0, currentVelocity.Z);
             }
             else
             {
-                currentVelocity = entity.OrientationMatrix.Forward * scale * entity.LinearVelocity.Length();
+                currentVelocity = Entity.OrientationMatrix.Forward * scale * Entity.LinearVelocity.Length();
                 return new BVector3(currentVelocity.X, 0, currentVelocity.Z);
             }
         }
@@ -51,11 +51,11 @@ namespace ERoD
             BVector3 turn;
             if (Right)
             {
-                turn = entity.OrientationMatrix.Right;
+                turn = Entity.OrientationMatrix.Right;
             }
             else
             {
-                turn = entity.OrientationMatrix.Left;
+                turn = Entity.OrientationMatrix.Left;
             }
             velocity = turn * 8.0f;
             return new BVector3(velocity.X, 0, velocity.Z);
@@ -64,14 +64,14 @@ namespace ERoD
         private float distancefromG()
         {
             BEPUutilities.RayHit hit;
-            BRay ray = new BRay(entity.Position,BVector3.Down);
+            BRay ray = new BRay(Entity.Position,BVector3.Down);
             erod.testVarGround.RayCast(ray, 100.0f, out hit);
             return hit.T;
         }
         private void fly(float idealHeight){
             float h = distancefromG();
 
-            entity.Position = new BVector3(entity.Position.X, entity.Position.Y + (idealHeight - h), entity.Position.Z);
+            Entity.Position = new BVector3(Entity.Position.X, Entity.Position.Y + (idealHeight - h), Entity.Position.Z);
         }
 
         public override void Update(GameTime gameTime)
@@ -88,27 +88,27 @@ namespace ERoD
             }
             else
             {
-                entity.LinearVelocity *= 0.95f;
+                Entity.LinearVelocity *= 0.95f;
                 height = 4.0f;
             }
             if(gamePadState.IsButtonDown(Buttons.DPadRight))
             {
                 shipStrafe = strafe(true);
-                entity.AngularVelocity = new BVector3(0, -0.7f, 0);
+                Entity.AngularVelocity = new BVector3(0, -0.7f, 0);
 
             }
             else if (gamePadState.IsButtonDown(Buttons.DPadLeft))
             {
                 shipStrafe = strafe(false);
-                entity.AngularVelocity = new BVector3(0,0.7f,0);
+                Entity.AngularVelocity = new BVector3(0,0.7f,0);
             }
             else if (gamePadState.IsButtonUp(Buttons.DPadLeft) && gamePadState.IsButtonUp(Buttons.DPadRight))
             {
                 shipStrafe = BVector3.Zero;
-                entity.AngularVelocity = BVector3.Zero;
+                Entity.AngularVelocity = BVector3.Zero;
             }
             fly(height);
-            entity.LinearVelocity = shipStrafe + forward;
+            Entity.LinearVelocity = shipStrafe + forward;
 
             base.Update(gameTime);
         }
