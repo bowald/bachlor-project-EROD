@@ -66,7 +66,7 @@ namespace ERoD
         /// </summary>
         protected override void Initialize()
         {
-            Camera = new FreeCamera(this, 1f, 1000, new Vector3(0, 50, 40), 40.0f);
+            Camera = new FreeCamera(this, 0.1f, 1000, new Vector3(0, 50, 40), 40.0f);
             this.Services.AddService(typeof(ICamera), Camera);
             base.Initialize();
         }
@@ -119,17 +119,17 @@ namespace ERoD
 
             StaticObject sobj = LoadStaticObject(groundModel, groundTransform);
             sobj.Texture = Content.Load<Texture2D>("Textures/Ground/diffuse");
-            sobj.TextureEnabled = false;
+            sobj.TextureEnabled = true;
             sobj.standardEffect = objEffect;
             Components.Add(sobj);
 
             renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(50, 250, 250), Vector3.Zero, Color.LightYellow, 1.0f, true));
-            
-            //renderer.PointLights.Add(new PointLight(new Vector3( 10, 10,  10), Color.White, 50.0f, 1.0f));
-            //renderer.PointLights.Add(new PointLight(new Vector3(-10, 10, -10), Color.Red, 50.0f, 1.0f));
-            //renderer.PointLights.Add(new PointLight(new Vector3(95, 17, 70), Color.Blue, 20.0f, 1.0f));
-            //renderer.PointLights.Add(new PointLight(new Vector3(110, 17, 55), Color.Cyan, 20.0f, 1.0f));
-            //renderer.PointLights.Add(new PointLight(new Vector3(115, 17, 45), Color.Red, 20.0f, 1.0f));
+
+            renderer.PointLights.Add(new PointLight(new Vector3(10, 10, 10), Color.White, 25.0f, 1.0f));
+            renderer.PointLights.Add(new PointLight(new Vector3(-10, 10, -10), Color.Red, 25.0f, 1.0f));
+            renderer.PointLights.Add(new PointLight(new Vector3(95, 17, 70), Color.Blue, 10.0f, 1.0f));
+            renderer.PointLights.Add(new PointLight(new Vector3(110, 17, 55), Color.Cyan, 10.0f, 1.0f));
+            renderer.PointLights.Add(new PointLight(new Vector3(115, 17, 45), Color.Red, 10.0f, 1.0f));
         }
 
         private EntityObject LoadEntityObject(Model model, Vector3 position, Vector3 scaling)

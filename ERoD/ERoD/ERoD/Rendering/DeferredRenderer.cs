@@ -247,6 +247,10 @@ namespace ERoD
             {
                 GraphicsDevice.RasterizerState = RasterizerState.CullClockwise;
             }
+            else
+            {
+                GraphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+            }
 
             // Draw the point-light-sphere
             pointLightMesh.Meshes[0].Draw();
