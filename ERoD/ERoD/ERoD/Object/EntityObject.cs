@@ -13,12 +13,12 @@ namespace ERoD
 {
     class EntityObject : BaseObject
     {
-        protected Entity entity;
+        public Entity Entity;
 
         public EntityObject(Entity entity, Model model, Matrix world, Game game) 
             : base(model, world, game)
         {
-            this.entity = entity;
+            this.Entity = entity;
         }
 
         public override void Draw(GameTime gameTime)
@@ -28,7 +28,7 @@ namespace ERoD
 
         public override void Update(GameTime gameTime)
         {
-            World = Transform * MathConverter.Convert(entity.WorldTransform);
+            World = Transform * MathConverter.Convert(Entity.WorldTransform);
 
             base.Update(gameTime);
         }

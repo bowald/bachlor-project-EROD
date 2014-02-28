@@ -87,6 +87,7 @@
     <Compile Include="Camera\BaseCamera.cs" />
     <Compile Include="Camera\ChaseCamera.cs" />
     <Compile Include="Camera\FreeCamera.cs" />
+    <Compile Include="Collision\CollisionHandler.cs" />
     <Compile Include="Helper\OurHelper.cs" />
     <Compile Include="Interface\ICamera.cs" />
     <Compile Include="Interface\ILight.cs" />
@@ -95,6 +96,7 @@
     <Compile Include="Light\BaseLight.cs" />
     <Compile Include="Helper\ModelDataExtractor.cs" />
     <Compile Include="Light\PointLight.cs" />
+    <Compile Include="Logic\GameLogic.cs" />
     <Compile Include="Object\BaseObject.cs" />
     <Compile Include="Object\EntityObject.cs" />
     <Compile Include="Object\Ground.cs" />
@@ -139,6 +141,7 @@
       <Install>true</Install>
     </BootstrapperPackage>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\XNA Game Studio\Microsoft.Xna.GameStudio.targets" />
   <!--

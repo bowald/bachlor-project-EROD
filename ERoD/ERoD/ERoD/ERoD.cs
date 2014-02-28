@@ -41,7 +41,11 @@ namespace ERoD
         public BaseCamera ChaseCamera;
         public BaseCamera FreeCamera;
         Boolean FreeCameraActive;
-        Entity ShipEntity;
+
+        //Collision rules handler
+        CollisionHandler CollisionHandler;
+
+        GameLogic GameLogic;
 
         public Boolean DebugEnabled;
         public StaticMesh testVarGround;
@@ -74,6 +78,10 @@ namespace ERoD
             FreeCamera = new FreeCamera(this, 0.01f, 10000.0f, new Vector3(0, 20.0f, 0), 50.0f);
             this.Services.AddService(typeof(ICamera), FreeCamera);
             FreeCameraActive = true;
+
+            GameLogic = new GameLogic(this);
+            this.Services.AddService(typeof(GameLogic), GameLogic);
+
             base.Initialize();
         }
 
@@ -83,11 +91,17 @@ namespace ERoD
         /// </summary>
         protected override void LoadContent()
         {
+
+            // Loading the collision rules handler
+            CollisionHandler = new CollisionHandler(this);
+
+            // Loading the ship
             Model shipModel = Content.Load<Model>("Models/ship");
             Vector3 shipScale = new Vector3(0.002f, 0.002f, 0.002f);
             Vector3 shipPosition = new Vector3(-24, 15, 22);
             Quaternion shipRotation = Quaternion.CreateFromAxisAngle(Vector3.Up, Microsoft.Xna.Framework.MathHelper.ToRadians(-90));
 
+            // Loading the ground
             Model groundModel = Content.Load<Model>("Models/ground");
             AffineTransform groundTransform = new AffineTransform(new BVector3(10, 10, 10), new BEPUutilities.Quaternion(0,0,0,0), BVector3.Zero);
 
@@ -111,9 +125,16 @@ namespace ERoD
 
             space.ForceUpdater.Gravity = new BVector3(0, -9.82f, 0);
             AddStaticObject(groundModel, groundTransform);
+
+            //Adds the test triggers
+            AddPowerup(CubeModel, new Vector3(0, 15, 10), new Vector3(4,4,4));
+            AddPowerup(CubeModel, new Vector3(250, 15, 10), new Vector3(4,4,4));
+            AddPowerup(CubeModel, new Vector3(-200, 45, 10), new Vector3(4,4,4));
+
             AddShip(shipModel, shipPosition, shipRotation, shipScale);
         }
 
+        // Ugly method, should be moved to the respective "initialize"-method of the object
         private void AddEntityObject(Model model, Vector3 position, Vector3 scaling)
         {            
             BVector3[] vertices;
@@ -128,7 +149,28 @@ namespace ERoD
             {
                 modelDrawer.Add(entity);
             }
-            Components.Add(new EntityObject(entity, model, Matrix.CreateScale(scaling), this));        
+            EntityObject entityObject = new EntityObject(entity, model, Matrix.CreateScale(scaling), this);
+            Components.Add(new EntityObject(entity, model, Matrix.CreateScale(scaling), this));
+            CollisionHandler.addTriggerGroup(entityObject);
+        }
+
+        private void AddPowerup(Model model, Vector3 position, Vector3 scaling)
+        {
+            BVector3[] vertices;
+            int[] indices;
+            ModelDataExtractor.GetVerticesAndIndicesFromModel(model, out vertices, out indices);
+            ConvexHullShape CHS = new ConvexHullShape(OurHelper.scaleVertices(vertices, scaling));
+            Entity entity = new Entity(CHS, 10);
+            entity.Position = ConversionHelper.MathConverter.Convert(position);
+            space.Add(entity);
+
+            if (DebugEnabled)
+            {
+                modelDrawer.Add(entity);
+            }
+            EntityObject entityObject = new EntityObject(entity, model, Matrix.CreateScale(scaling), this);
+            Components.Add(entityObject);
+            CollisionHandler.addPowerupGroup(entityObject);
         }
 
         private void AddShip(Model model, Vector3 position, Quaternion shipRotation, Vector3 scaling)
@@ -145,9 +187,11 @@ namespace ERoD
             {
                 modelDrawer.Add(entity);
             }
-            Components.Add(new Ship(entity, model, Matrix.CreateScale(scaling), this));
+            Ship ship = new Ship(entity, model, Matrix.CreateScale(scaling), this);
+            Components.Add(ship);
 
-            ShipEntity = entity;
+            // Adding the ship to the "shipgroup" collision system
+            CollisionHandler.addShipGroup(ship);
 
             // Should not be done here, need to move
             ChaseCamera = new ChaseCamera(entity, new BEPUutilities.Vector3(0.0f, 5.0f, 0.0f), true, 20.0f, 0.1f, 2000.0f, this);
@@ -198,10 +242,12 @@ namespace ERoD
                 //If the user is holding down the trigger, start firing some boxes.
                 //First, create a new dynamic box at the camera's location.
                 Box toAdd = new Box(ConversionHelper.MathConverter.Convert(FreeCamera.Position), 1, 1, 1, 1);
+
                 //Set the velocity of the new box to fly in the direction the camera is pointing.
                 //Entities have a whole bunch of properties that can be read from and written to.
                 //Try looking around in the entity's available properties to get an idea of what is available.
                 toAdd.LinearVelocity = ConversionHelper.MathConverter.Convert(FreeCamera.World.Forward * 10);
+
                 //Add the new box to the simulation.
                 space.Add(toAdd);
 
@@ -217,7 +263,6 @@ namespace ERoD
                 if (FreeCameraActive)
                 {
                     FreeCameraActive = false;
-                    Console.WriteLine("Freecameractive = false");
                     Services.AddService(typeof(ICamera), ChaseCamera);
                 }
                 else
