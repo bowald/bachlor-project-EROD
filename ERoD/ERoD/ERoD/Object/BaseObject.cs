@@ -76,11 +76,6 @@ namespace ERoD
             boneTransforms = new Matrix[model.Bones.Count];
         }
 
-        public ICamera Camera
-        {
-            get { return ((ICamera)Game.Services.GetService(typeof(ICamera))); }
-        }
-
         public virtual void Draw(GameTime gameTime, Effect effect)
         {
             model.CopyAbsoluteBoneTransformsTo(boneTransforms);

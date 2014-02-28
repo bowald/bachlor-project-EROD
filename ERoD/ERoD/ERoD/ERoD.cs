@@ -38,8 +38,7 @@ namespace ERoD
         SpriteBatch spriteBatch;
 
         private Space space;
-<<<<<<< HEAD
-        
+
         // Camera Variables
         public BaseCamera ChaseCamera;
         public BaseCamera FreeCamera;
@@ -50,28 +49,21 @@ namespace ERoD
 
         GameLogic GameLogic;
 
-=======
-        public ICamera Camera;
->>>>>>> Develop
         public Boolean DebugEnabled;
         public StaticMesh testVarGround;
 
-        public ModelDrawer modelDrawer;  //Used to draw entities for debug.
-
-<<<<<<< HEAD
         public Space Space
         {
             get { return space; }
         }
-=======
+
         private DeferredRenderer renderer;
 
-        public ModelDrawer modelDrawer;  //Used to draw entitis for debug.
->>>>>>> Develop
+        public ModelDrawer modelDrawer;  //Used to draw entities for debug.
 
         public GamePadState GamePadState { get; set; }
         public GamePadState LastGamePadState { get; set; }
-        Model CubeModel;
+        Model cubeModel;
 
         public ERoD()
         {
@@ -92,7 +84,6 @@ namespace ERoD
         /// </summary>
         protected override void Initialize()
         {
-<<<<<<< HEAD
             FreeCamera = new FreeCamera(this, 0.01f, 10000.0f, new Vector3(0, 20.0f, 0), 50.0f);
             this.Services.AddService(typeof(ICamera), FreeCamera);
             FreeCameraActive = true;
@@ -100,10 +91,6 @@ namespace ERoD
             GameLogic = new GameLogic(this);
             this.Services.AddService(typeof(GameLogic), GameLogic);
 
-=======
-            Camera = new FreeCamera(this, 0.1f, 1000, new Vector3(0, 50, 40), 40.0f);
-            this.Services.AddService(typeof(ICamera), Camera);
->>>>>>> Develop
             base.Initialize();
         }
 
@@ -113,22 +100,13 @@ namespace ERoD
         /// </summary>
         protected override void LoadContent()
         {
-<<<<<<< HEAD
 
             // Loading the collision rules handler
             CollisionHandler = new CollisionHandler(this);
 
-            // Loading the ship
-            Model shipModel = Content.Load<Model>("Models/ship");
-            Vector3 shipScale = new Vector3(0.002f, 0.002f, 0.002f);
-            Vector3 shipPosition = new Vector3(-24, 15, 22);
-            Quaternion shipRotation = Quaternion.CreateFromAxisAngle(Vector3.Up, Microsoft.Xna.Framework.MathHelper.ToRadians(-90));
-
-            // Loading the ground
-            Model groundModel = Content.Load<Model>("Models/ground");
-            AffineTransform groundTransform = new AffineTransform(new BVector3(10, 10, 10), new BEPUutilities.Quaternion(0,0,0,0), BVector3.Zero);
-=======
             spriteBatch = new SpriteBatch(GraphicsDevice);
+
+            cubeModel = Content.Load<Model>("Models/cube");
 
             Model shipModel = Content.Load<Model>("Models/space_frigate");
             Model shipModelT = Content.Load<Model>("Models/space_frigate_tangentOn");
@@ -136,81 +114,24 @@ namespace ERoD
             Vector3 shipPosition = new Vector3(0, 60, 0);
 
             Model groundModel = Content.Load<Model>("Models/Z3B0_Arena_alphaVersion");
-            AffineTransform groundTransform = new AffineTransform(new BVector3(0.1f, 0.1f, 0.1f), new BQuaternion(0, 0, 0, 0), new BVector3(0, 0, 0));
->>>>>>> Develop
-
-            CubeModel = Content.Load<Model>("Models/cube");
-            modelDrawer = new InstancedModelDrawer(this); // For debug
-            space = new Space();
-
-            foreach (Entity e in space.Entities)
-            {
-                Box box = e as Box;
-                if (box != null) //This won't create any graphics for an entity that isn't a box since the model being used is a box.
-                {
-
-                    Matrix scaling = Matrix.CreateScale(box.Width, box.Height, box.Length); //Since the cube model is 1x1x1, it needs to be scaled to match the size of each individual box.
-                    EntityObject model = new EntityObject(e, CubeModel, scaling, this);
-                    //Add the drawable game component for this entity to the game.
-                    Components.Add(model);
-                    e.Tag = model; //set the object tag of this entity to the model so that it's easy to delete the graphics component later if the entity is removed.
-                }
-            }
-
-<<<<<<< HEAD
-            space.ForceUpdater.Gravity = new BVector3(0, -9.82f, 0);
-            AddStaticObject(groundModel, groundTransform);
-
-            //Adds the test triggers
-            AddPowerup(CubeModel, new Vector3(0, 15, 10), new Vector3(4,4,4));
-            AddPowerup(CubeModel, new Vector3(250, 15, 10), new Vector3(4,4,4));
-            AddPowerup(CubeModel, new Vector3(-200, 45, 10), new Vector3(4,4,4));
-
-            AddShip(shipModel, shipPosition, shipRotation, shipScale);
-        }
-
-        // Ugly method, should be moved to the respective "initialize"-method of the object
-        private void AddEntityObject(Model model, Vector3 position, Vector3 scaling)
-        {            
-            BVector3[] vertices;
-            int[] indices;
-            ModelDataExtractor.GetVerticesAndIndicesFromModel(model, out vertices, out indices);
-            ConvexHullShape CHS = new ConvexHullShape(OurHelper.scaleVertices(vertices, scaling));
-            Entity entity = new Entity(CHS, 10);
-            entity.Position = ConversionHelper.MathConverter.Convert(position);
-            space.Add(entity);
-
-            if (DebugEnabled) 
-            {
-                modelDrawer.Add(entity);
-            }
-            EntityObject entityObject = new EntityObject(entity, model, Matrix.CreateScale(scaling), this);
-            Components.Add(new EntityObject(entity, model, Matrix.CreateScale(scaling), this));
-            CollisionHandler.addTriggerGroup(entityObject);
-        }
-
-        private void AddPowerup(Model model, Vector3 position, Vector3 scaling)
-=======
+            AffineTransform groundTransform = new AffineTransform(new BVector3(0.15f, 0.15f, 0.15f), new BQuaternion(0, 0, 0, 0), new BVector3(0, 0, 0));
+            
             Effect objEffect = Content.Load<Effect>("Shaders/DeferredObjectRender");
 
-            space.ForceUpdater.Gravity = new BVector3(0, -0.82f, 0);
+            space = new Space();
+
+            // Fix ship loading
             Entity entity = LoadEntityObject(shipModel, shipPosition, shipScale);
-            EntityObject eobj = new EntityObject(entity, shipModelT, Matrix.CreateScale(shipScale), this);
+            Ship ship = new Ship(entity, shipModelT, Matrix.CreateScale(shipScale), this);
             space.Add(entity);
+            ship.Texture = Content.Load<Texture2D>("Textures/Ship2/diffuse");
+            ship.SpecularMap = Content.Load<Texture2D>("Textures/Ship2/specular");
+            ship.TextureEnabled = true;
+            ship.standardEffect = objEffect;
+            Components.Add(ship);
 
-            if (DebugEnabled)
-            {
-                modelDrawer.Add(entity);
-            }
-            eobj.Texture = Content.Load<Texture2D>("Textures/Ship2/diffuse");
-            eobj.SpecularMap = Content.Load<Texture2D>("Textures/Ship2/specular");
-            eobj.TextureEnabled = true;
-            eobj.standardEffect = objEffect;
-            Components.Add(eobj);
-
-            //Camera = new ChaseCamera(eobj.entity, new BEPUutilities.Vector3(0.0f, 5.0f, 0.0f), true, 20.0f, 0.1f, 2000.0f, this);
-            //this.Services.AddService(typeof(ICamera), Camera);
-            //((ChaseCamera)Camera).Initialize();
+            ChaseCamera = new ChaseCamera(ship.Entity, new BEPUutilities.Vector3(0.0f, 5.0f, 0.0f), true, 20.0f, 0.1f, 2000.0f, this);
+            ((ChaseCamera)ChaseCamera).Initialize();
 
             StaticObject sobj = LoadStaticObject(groundModel, groundTransform);
             sobj.Texture = Content.Load<Texture2D>("Textures/Ground/diffuse");
@@ -219,6 +140,21 @@ namespace ERoD
             sobj.TextureEnabled = true;
             sobj.standardEffect = objEffect;
             Components.Add(sobj);
+            
+            space.ForceUpdater.Gravity = new BVector3(0, -9.82f, 0);
+
+            //Adds the test triggers
+            //Vector3 pwrScale = new Vector3(2, 2, 2);
+            //Vector3 pwrLocation = new Vector3(20, 20, -20);
+            //entity = LoadEntityObject(cubeModel, pwrLocation, pwrScale);
+            //EntityObject powerUp = new EntityObject(entity, cubeModel, Matrix.CreateScale(pwrScale), this);
+            //CollisionHandler.addPowerupGroup(powerUp);
+            //Components.Add(powerUp);
+
+            //AddPowerup(cubeModel, new Vector3(0, 15, 10), new Vector3(4,4,4));
+            //AddPowerup(cubeModel, new Vector3(250, 15, 10), new Vector3(4,4,4));
+            //AddPowerup(cubeModel, new Vector3(-200, 45, 10), new Vector3(4,4,4));
+
 
             renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(50, 250, 250), Vector3.Zero, Color.LightYellow, 1.0f, true));
 
@@ -229,8 +165,9 @@ namespace ERoD
             renderer.PointLights.Add(new PointLight(new Vector3(115, 17, 45), Color.Red, 10.0f, 1.0f));
         }
 
+        //CollisionHandler.addTriggerGroup(entityObject);
+
         private Entity LoadEntityObject(Model model, Vector3 position, Vector3 scaling)
->>>>>>> Develop
         {
             BVector3[] vertices;
             int[] indices;
@@ -245,16 +182,7 @@ namespace ERoD
             ConvexHullShape CHS = new ConvexHullShape(OurHelper.scaleVertices(vertices, scaling));
             Entity entity = new Entity(CHS, 10);
             entity.Position = ConversionHelper.MathConverter.Convert(position);
-<<<<<<< HEAD
-            space.Add(entity);
-
-            if (DebugEnabled)
-            {
-                modelDrawer.Add(entity);
-            }
-            EntityObject entityObject = new EntityObject(entity, model, Matrix.CreateScale(scaling), this);
-            Components.Add(entityObject);
-            CollisionHandler.addPowerupGroup(entityObject);
+            return entity;
         }
 
         private void AddShip(Model model, Vector3 position, Quaternion shipRotation, Vector3 scaling)
@@ -267,10 +195,7 @@ namespace ERoD
             entity.Orientation = ConversionHelper.MathConverter.Convert(shipRotation);
             entity.Position = ConversionHelper.MathConverter.Convert(position);
             space.Add(entity);
-            if (DebugEnabled)
-            {
-                modelDrawer.Add(entity);
-            }
+            
             Ship ship = new Ship(entity, model, Matrix.CreateScale(scaling), this);
             Components.Add(ship);
 
@@ -280,10 +205,6 @@ namespace ERoD
             // Should not be done here, need to move
             ChaseCamera = new ChaseCamera(entity, new BEPUutilities.Vector3(0.0f, 5.0f, 0.0f), true, 20.0f, 0.1f, 2000.0f, this);
             ChaseCamera.Initialize();
-=======
-
-            return entity;
->>>>>>> Develop
         }
 
         private StaticObject LoadStaticObject(Model model, AffineTransform transform) 
@@ -313,37 +234,12 @@ namespace ERoD
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
-            if (DebugEnabled)
-            {
-                modelDrawer.Update(); // For debug
-            }
             GamePadState = GamePad.GetState(PlayerIndex.One);
 
             // Allows the game to exit
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
             {
                 this.Exit();
-            }
-
-            if (GamePadState.Triggers.Right > 0)
-            {
-                //If the user is holding down the trigger, start firing some boxes.
-                //First, create a new dynamic box at the camera's location.
-                Box toAdd = new Box(ConversionHelper.MathConverter.Convert(FreeCamera.Position), 1, 1, 1, 1);
-
-                //Set the velocity of the new box to fly in the direction the camera is pointing.
-                //Entities have a whole bunch of properties that can be read from and written to.
-                //Try looking around in the entity's available properties to get an idea of what is available.
-                toAdd.LinearVelocity = ConversionHelper.MathConverter.Convert(FreeCamera.World.Forward * 10);
-
-                //Add the new box to the simulation.
-                space.Add(toAdd);
-
-                //Add a graphical representation of the box to the drawable game components.
-                EntityObject obj = new EntityObject(toAdd, CubeModel, Matrix.Identity, this);
-                obj.TextureEnabled = false;
-                Components.Add(obj);
-                toAdd.Tag = obj;  //set the object tag of this entity to the model so that it's easy to delete the graphics component later if the entity is removed.
             }
 
             if ((GamePadState.Buttons.B == ButtonState.Pressed) && (LastGamePadState.Buttons.B == ButtonState.Released ))
@@ -363,14 +259,8 @@ namespace ERoD
 
             space.Update();
 
-<<<<<<< HEAD
-            //FreeCamera.Update(gameTime);
-            //ChaseCamera.Update(gameTime);
-
-=======
->>>>>>> Develop
-            base.Update(gameTime);
             LastGamePadState = GamePadState;
+            base.Update(gameTime);
         }
 
         /// <summary>
@@ -381,21 +271,6 @@ namespace ERoD
         {
             renderer.Draw(gameTime);
             GraphicsDevice.Clear(Color.CornflowerBlue);
-<<<<<<< HEAD
-            if (DebugEnabled)
-            {
-                if (FreeCameraActive)
-                {
-                    modelDrawer.Draw(ConversionHelper.MathConverter.Convert(FreeCamera.View), ConversionHelper.MathConverter.Convert(FreeCamera.Projection));
-                }
-                else
-                {                 
-                    modelDrawer.Draw(ConversionHelper.MathConverter.Convert(ChaseCamera.View), ConversionHelper.MathConverter.Convert(ChaseCamera.Projection));
-                }
-            }
-            base.Draw(gameTime);
-=======
-
 
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque,
                 SamplerState.PointClamp, DepthStencilState.Default,
@@ -405,12 +280,6 @@ namespace ERoD
             spriteBatch.End();
 
             renderer.RenderDebug();
-
-            //if (DebugEnabled)
-            //{
-            //    modelDrawer.Draw(ConversionHelper.MathConverter.Convert(Camera.View), ConversionHelper.MathConverter.Convert(Camera.Projection));
-            //}
->>>>>>> Develop
         }
     }
 }

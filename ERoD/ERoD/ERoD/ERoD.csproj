@@ -94,7 +94,6 @@
     <Compile Include="Interface\IObject.cs" />
     <Compile Include="Interface\IDeferredRender.cs" />
     <Compile Include="Helper\ModelDataExtractor.cs" />
-    <Compile Include="Light\PointLight.cs" />
     <Compile Include="Logic\GameLogic.cs" />
     <Compile Include="Light\DirectionalLight.cs" />
     <Compile Include="Object\BaseObject.cs" />
