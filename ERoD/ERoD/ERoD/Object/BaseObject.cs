@@ -8,15 +8,30 @@ using System.Text;
 
 namespace ERoD
 {
-    public class BaseObject : DrawableGameComponent, IObject
+    public class BaseObject : DrawableGameComponent, IObject, IDeferredRender
     {
         
-        //Entity entity;
+        public ICamera Camera
+        {
+            get { return ((ICamera)Game.Services.GetService(typeof(ICamera))); }
+        }
+
         protected Matrix world;
         protected Matrix transform;
         protected Model model;
-        protected Texture2D texture;
+        protected Texture2D diffuseTexture;
+        protected Texture2D specularMap;
+        protected Texture2D bumpMap;
+        protected Boolean textureEnabled;
         Matrix[] boneTransforms;
+
+        public Effect standardEffect;
+
+        public bool TextureEnabled
+        {
+            get { return textureEnabled; }
+            set { textureEnabled = value; }
+        }
 
         public Matrix Transform
         {
@@ -38,8 +53,20 @@ namespace ERoD
 
         public Texture2D Texture
         {
-            get { return texture; }
-            set { texture = value; }
+            get { return diffuseTexture; }
+            set { diffuseTexture = value; }
+        }
+
+        public Texture2D SpecularMap
+        {
+            get { return specularMap; }
+            set { specularMap = value; }
+        }
+
+        public Texture2D BumpMap
+        {
+            get { return bumpMap; }
+            set { bumpMap = value; }
         }
 
         protected BaseObject(Model model, Matrix transform, Game game) : base(game)
@@ -47,14 +74,6 @@ namespace ERoD
             this.model = model;
             this.transform = transform;
             boneTransforms = new Matrix[model.Bones.Count];
-            foreach (ModelMesh mesh in model.Meshes)
-            {
-                foreach (BasicEffect effect in mesh.Effects)
-                {
-                    effect.EnableDefaultLighting();
-                }
-            }
-           
         }
 
         public ICamera Camera
@@ -62,21 +81,54 @@ namespace ERoD
             get { return ((ICamera)Game.Services.GetService(typeof(ICamera))); }
         }
 
-        public override void Draw(GameTime gameTime)
+        public virtual void Draw(GameTime gameTime, Effect effect)
         {
             model.CopyAbsoluteBoneTransformsTo(boneTransforms);
 
             foreach (ModelMesh mesh in model.Meshes)
             {
-                foreach (BasicEffect effect in mesh.Effects)
+                Matrix meshWorld = boneTransforms[mesh.ParentBone.Index] * World;
+                Matrix wvp = meshWorld * Camera.View * Camera.Projection;
+
+                foreach (ModelMeshPart part in mesh.MeshParts)
                 {
-                    effect.World = boneTransforms[mesh.ParentBone.Index] * world;
-                    effect.View = Camera.View;
-                    effect.Projection = Camera.Projection;
+                    part.Effect = effect;
+                    if (effect.Parameters["World"] != null)
+                    {
+                        effect.Parameters["World"].SetValue(meshWorld);
+                    }
+                    if (effect.Parameters["wvp"] != null)
+                    {
+                        effect.Parameters["wvp"].SetValue(wvp);
+                    }
+                    if (effect.Parameters["color"] != null)
+                    {
+                        effect.Parameters["color"].SetValue(Color.White.ToVector3());
+                    }
+                    if (effect.Parameters["textureEnabled"] != null)
+                    {
+                        effect.Parameters["textureEnabled"].SetValue(textureEnabled);
+                    }
+                    if (effect.Parameters["diffuseTexture"] != null) 
+                    {
+                        effect.Parameters["diffuseTexture"].SetValue(diffuseTexture);
+                    }
+                    if (effect.Parameters["specularMap"] != null)
+                    {
+                        effect.Parameters["specularMap"].SetValue(specularMap);
+                    }
+                    if (effect.Parameters["bumpMap"] != null)
+                    {
+                        effect.Parameters["bumpMap"].SetValue(bumpMap);
+                    }
                 }
                 mesh.Draw();
             }
-            base.Draw(gameTime);
+        }
+
+        public override void Draw(GameTime gameTime)
+        {
+            Draw(gameTime, standardEffect);
         }
     }
 }

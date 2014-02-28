@@ -14,10 +14,18 @@ namespace ERoD
         float Intensity { get; set; }
         Matrix View { get; }
         Matrix Projection { get; }
+        bool CastShadow { get; set; }
+        RenderTarget2D ShadowMap { get; set; }
     }
 
     public interface IPointLight : ILight
     {
         float Radius { get; set; }
+    }
+
+    public interface IDirectionalLight : ILight
+    {
+        Vector3 Target { get; set; }
+        Vector3 Direction { get; }
     }
 }

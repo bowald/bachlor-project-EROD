@@ -21,16 +21,11 @@ namespace ERoD
             this.Entity = entity;
         }
 
-        public override void Draw(GameTime gameTime)
+        public override void Draw(GameTime gameTime, Effect effect)
         {
-            base.Draw(gameTime);
-        }
+            World = Transform * MathConverter.Convert(entity.WorldTransform);
 
-        public override void Update(GameTime gameTime)
-        {
-            World = Transform * MathConverter.Convert(Entity.WorldTransform);
-
-            base.Update(gameTime);
+            base.Draw(gameTime, effect);
         }
     }
 }
