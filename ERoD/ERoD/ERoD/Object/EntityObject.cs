@@ -13,17 +13,17 @@ namespace ERoD
 {
     class EntityObject : BaseObject
     {
-        public Entity entity;
+        public Entity Entity;
 
         public EntityObject(Entity entity, Model model, Matrix world, Game game) 
             : base(model, world, game)
         {
-            this.entity = entity;
+            this.Entity = entity;
         }
 
         public override void Draw(GameTime gameTime, Effect effect)
         {
-            World = Transform * MathConverter.Convert(entity.WorldTransform);
+            World = Transform * MathConverter.Convert(Entity.WorldTransform);
 
             base.Draw(gameTime, effect);
         }
