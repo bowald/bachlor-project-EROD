@@ -60,6 +60,7 @@
       <Name>ship</Name>
       <Importer>FbxImporter</Importer>
       <Processor>ModelProcessor</Processor>
+      <ProcessorParameters_GenerateTangentFrames>True</ProcessorParameters_GenerateTangentFrames>
     </Compile>
     <Compile Include="Models\shrine.FBX">
       <Name>shrine</Name>
@@ -91,6 +92,7 @@
       <Name>diffuse</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
   </ItemGroup>
   <ItemGroup>
@@ -127,6 +129,102 @@
       <Name>horse</Name>
       <Importer>FbxImporter</Importer>
       <Processor>ModelProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Shaders\DeferredObjectRender.fx">
+      <Name>DeferredObjectRender</Name>
+      <Importer>EffectImporter</Importer>
+      <Processor>EffectProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Models\lightmesh.fbx">
+      <Name>lightmesh</Name>
+      <Importer>FbxImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Shaders\PointLightShader.fx">
+      <Name>PointLightShader</Name>
+      <Importer>EffectImporter</Importer>
+      <Processor>EffectProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Shaders\DeferredRender.fx">
+      <Name>DeferredRender</Name>
+      <Importer>EffectImporter</Importer>
+      <Processor>EffectProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Textures\Ship2\diffuse.png">
+      <Name>diffuse</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="Textures\Ship2\glow.png">
+      <Name>glow</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="Textures\Ship2\specular.png">
+      <Name>specular</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Models\space_frigate.FBX">
+      <Name>space_frigate</Name>
+      <Importer>FbxImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Models\Z3B0_Arena_alphaVersion.FBX">
+      <Name>Z3B0_Arena_alphaVersion</Name>
+      <Importer>FbxImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+      <ProcessorParameters_GenerateTangentFrames>True</ProcessorParameters_GenerateTangentFrames>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Shaders\DirectionalLightShader.fx">
+      <Name>DirectionalLightShader</Name>
+      <Importer>EffectImporter</Importer>
+      <Processor>EffectProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Shaders\DeferredShadowShader.fx">
+      <Name>DeferredShadowShader</Name>
+      <Importer>EffectImporter</Importer>
+      <Processor>EffectProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Shaders\depthRender.fx">
+      <Name>depthRender</Name>
+      <Importer>EffectImporter</Importer>
+      <Processor>EffectProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Textures\Ship2\normal.png">
+      <Name>normal</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Models\space_frigate_tangentOn.FBX">
+      <Name>space_frigate_tangentOn</Name>
+      <Importer>FbxImporter</Importer>
+      <Processor>ModelProcessor</Processor>
+      <ProcessorParameters_GenerateTangentFrames>True</ProcessorParameters_GenerateTangentFrames>
     </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\XNA Game Studio\$(XnaFrameworkVersion)\Microsoft.Xna.GameStudio.ContentPipeline.targets" />

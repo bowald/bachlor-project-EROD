@@ -13,7 +13,7 @@ namespace ERoD
 {
     class EntityObject : BaseObject
     {
-        private Entity entity;
+        public Entity entity;
 
         public EntityObject(Entity entity, Model model, Matrix world, Game game) 
             : base(model, world, game)
@@ -21,11 +21,11 @@ namespace ERoD
             this.entity = entity;
         }
 
-        public override void Draw(GameTime gameTime)
+        public override void Draw(GameTime gameTime, Effect effect)
         {
             World = Transform * MathConverter.Convert(entity.WorldTransform);
 
-            base.Draw(gameTime);
+            base.Draw(gameTime, effect);
         }
     }
 }
