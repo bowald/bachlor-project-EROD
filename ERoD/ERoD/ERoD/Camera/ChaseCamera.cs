@@ -53,9 +53,9 @@ namespace ERoD
         /// </summary>
         public BEPUutilities.Vector3 Up
         {
-            get { return ChasedEntity.OrientationMatrix.Up; }
+            //get { return ChasedEntity.OrientationMatrix.Up; }
+            get { return BEPUutilities.Vector3.Up; }
         }
-
         //The raycast filter limits the results retrieved from the Space.RayCast while in chase camera mode.
         Func<BroadPhaseEntry, bool> rayCastFilter;
         bool RayCastFilter(BroadPhaseEntry entry)
@@ -81,7 +81,6 @@ namespace ERoD
             TransformOffset = transformOffset;
             DistanceToTarget = distanceToTarget;
             ChaseCameraMargin = 1;
-            
             rayCastFilter = RayCastFilter;
         }
 
@@ -89,7 +88,6 @@ namespace ERoD
 
         public override void Update(GameTime gameTime)
         {
-
             BEPUutilities.Vector3 offset = TransformOffset ? Matrix3x3.Transform(OffsetFromChaseTarget, ChasedEntity.BufferedStates.InterpolatedStates.OrientationMatrix) : OffsetFromChaseTarget;
             BEPUutilities.Vector3 lookAt = ChasedEntity.BufferedStates.InterpolatedStates.Position + offset;
             BEPUutilities.Vector3 backwards = -ViewDirection;

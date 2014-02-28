@@ -76,8 +76,22 @@ namespace ERoD
             Rotation = Quaternion.CreateFromYawPitchRoll(yaw, pitch, 0);
 
             //Move based on gamepad input.
-            MoveForward(gamePadState.ThumbSticks.Left.Y * deltaTime);
-            MoveRight(gamePadState.ThumbSticks.Left.X * deltaTime);
+            if (gamePadState.IsButtonDown(Buttons.DPadUp))
+            {
+                MoveForward(deltaTime);
+            }
+            if ((gamePadState.IsButtonDown(Buttons.DPadDown)))
+            {
+                MoveForward(-deltaTime);
+            }
+            if ((gamePadState.IsButtonDown(Buttons.DPadLeft)))
+            {
+                MoveRight(-deltaTime);
+            }
+            if ((gamePadState.IsButtonDown(Buttons.DPadRight)))
+            {
+                MoveRight(deltaTime);
+            }
             if (gamePadState.IsButtonDown(Buttons.LeftStick))
             {
                 MoveUpR(deltaTime);
