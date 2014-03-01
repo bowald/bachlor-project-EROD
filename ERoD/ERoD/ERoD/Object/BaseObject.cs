@@ -23,6 +23,7 @@ namespace ERoD
         protected Texture2D specularMap;
         protected Texture2D bumpMap;
         protected Boolean textureEnabled;
+        protected Vector3 nodeRotation = Vector3.Zero;
         Matrix[] boneTransforms;
 
         public Effect standardEffect;
@@ -31,6 +32,12 @@ namespace ERoD
         {
             get { return textureEnabled; }
             set { textureEnabled = value; }
+        }
+
+        public Vector3 NodeRotation
+        {
+            get { return nodeRotation; }
+            set { nodeRotation = value; }
         }
 
         public Matrix Transform
@@ -69,10 +76,19 @@ namespace ERoD
             set { bumpMap = value; }
         }
 
-        protected BaseObject(Model model, Matrix transform, Game game) : base(game)
+        protected BaseObject(Model model, Matrix transform, Game game)
+            : base(game)
         {
             this.model = model;
             this.transform = transform;
+            boneTransforms = new Matrix[model.Bones.Count];
+        }
+
+        protected BaseObject(Model model, Matrix transform, Vector3 nodeRotation, Game game) : base(game)
+        {
+            this.model = model;
+            this.transform = transform;
+            this.nodeRotation = nodeRotation;
             boneTransforms = new Matrix[model.Bones.Count];
         }
 
@@ -82,7 +98,7 @@ namespace ERoD
 
             foreach (ModelMesh mesh in model.Meshes)
             {
-                Matrix meshWorld = boneTransforms[mesh.ParentBone.Index] * World;
+                Matrix meshWorld = boneTransforms[mesh.ParentBone.Index] * Matrix.CreateFromYawPitchRoll(nodeRotation.X, nodeRotation.Y, nodeRotation.Z) * World;
                 Matrix wvp = meshWorld * Camera.View * Camera.Projection;
 
                 foreach (ModelMeshPart part in mesh.MeshParts)

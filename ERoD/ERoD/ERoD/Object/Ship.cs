@@ -21,8 +21,8 @@ namespace ERoD
         private float maxSpeed = 50.0f;
 
 
-        public Ship(Entity entity, Model model, Matrix world, Game game) 
-            : base(entity, model, world, game)
+        public Ship(Entity entity, Model model, Matrix world, Vector3 nodeRotation, Game game) 
+            : base(entity, model, world, nodeRotation, game)
         {
             erod = game as ERoD;
             space = erod.Space;

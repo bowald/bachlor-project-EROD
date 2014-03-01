@@ -57,7 +57,13 @@ namespace ERoD
             get { return space; }
         }
 
-        private DeferredRenderer renderer;
+        protected DeferredRenderer renderer;
+        public DeferredRenderer Renderer
+        {
+            get { return renderer; }
+        }
+
+        protected List<PostProcess> postProcesses = new List<PostProcess>();
 
         public ModelDrawer modelDrawer;  //Used to draw entities for debug.
 
@@ -122,13 +128,15 @@ namespace ERoD
 
             // Fix ship loading
             Entity entity = LoadEntityObject(shipModel, shipPosition, shipScale);
-            Ship ship = new Ship(entity, shipModelT, Matrix.CreateScale(shipScale), this);
+            Ship ship = new Ship(entity, shipModelT, Matrix.CreateScale(shipScale), new Vector3(Microsoft.Xna.Framework.MathHelper.ToRadians(-90.0f), 0.0f, 0.0f), this);
             space.Add(entity);
             ship.Texture = Content.Load<Texture2D>("Textures/Ship2/diffuse");
             ship.SpecularMap = Content.Load<Texture2D>("Textures/Ship2/specular");
             ship.TextureEnabled = true;
             ship.standardEffect = objEffect;
             Components.Add(ship);
+
+            CollisionHandler.addShipGroup(ship);
 
             ChaseCamera = new ChaseCamera(ship.Entity, new BEPUutilities.Vector3(0.0f, 5.0f, 0.0f), true, 20.0f, 0.1f, 2000.0f, this);
             ((ChaseCamera)ChaseCamera).Initialize();
@@ -142,6 +150,8 @@ namespace ERoD
             Components.Add(sobj);
             
             space.ForceUpdater.Gravity = new BVector3(0, -9.82f, 0);
+
+            postProcesses.Add(new MotionBlur(this));
 
             //Adds the test triggers
             //Vector3 pwrScale = new Vector3(2, 2, 2);
@@ -185,27 +195,6 @@ namespace ERoD
             return entity;
         }
 
-        private void AddShip(Model model, Vector3 position, Quaternion shipRotation, Vector3 scaling)
-        {
-            BVector3[] vertices;
-            int[] indices;
-            ModelDataExtractor.GetVerticesAndIndicesFromModel(model, out vertices, out indices);
-            ConvexHullShape CHS = new ConvexHullShape(OurHelper.scaleVertices(vertices, scaling));
-            Entity entity = new Entity(CHS, 250);
-            entity.Orientation = ConversionHelper.MathConverter.Convert(shipRotation);
-            entity.Position = ConversionHelper.MathConverter.Convert(position);
-            space.Add(entity);
-            
-            Ship ship = new Ship(entity, model, Matrix.CreateScale(scaling), this);
-            Components.Add(ship);
-
-            // Adding the ship to the "shipgroup" collision system
-            CollisionHandler.addShipGroup(ship);
-
-            // Should not be done here, need to move
-            ChaseCamera = new ChaseCamera(entity, new BEPUutilities.Vector3(0.0f, 5.0f, 0.0f), true, 20.0f, 0.1f, 2000.0f, this);
-            ChaseCamera.Initialize();
-        }
 
         private StaticObject LoadStaticObject(Model model, AffineTransform transform) 
         {
@@ -278,6 +267,11 @@ namespace ERoD
             spriteBatch.Draw(renderer.finalBackBuffer, new Rectangle(0, 0, GraphicsDevice.Viewport.Width,
                 GraphicsDevice.Viewport.Height), Color.White);
             spriteBatch.End();
+
+            //foreach (PostProcess postProcess in postProcesses)
+            //{
+            //    postProcess.Draw(gameTime);
+            //}
 
             renderer.RenderDebug();
         }
