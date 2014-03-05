@@ -17,12 +17,9 @@ namespace ERoD
     {
         private Space space;
         private ERoD erod;
-        private float rollSpeed = 0.7f;
-        private float maxSpeed = 50.0f;
 
-
-        public Ship(Entity entity, Model model, Matrix world, Game game) 
-            : base(entity, model, world, game)
+        public Ship(Entity entity, Model model, Matrix world, Vector3 nodeRotation, Game game) 
+            : base(entity, model, world , nodeRotation, game)
         {
             erod = game as ERoD;
             space = erod.Space;
@@ -44,7 +41,7 @@ namespace ERoD
             {
                 turn = Entity.OrientationMatrix.Left;
             }
-            velocity = turn * 15.0f;
+            velocity = turn * ObjectConstants.StrafeSpeed;
             return new BVector3(velocity.X, 0, velocity.Z);
         }
         /// <summary>
@@ -79,36 +76,31 @@ namespace ERoD
             BEPUutilities.RayHit hit;
             if (erod.testVarGround.RayCast(ray, rayLength, out hit))
             {
-                Debug.WriteLine(helper(ray.Direction));
                 BRay rayRight = new BRay(Entity.Position, Entity.OrientationMatrix.Forward - 0.3f * ray.Direction);
                 BRay rayLeft = new BRay(Entity.Position, Entity.OrientationMatrix.Forward + 0.3f * ray.Direction);
                 BEPUutilities.RayHit hitRight;
                 BEPUutilities.RayHit hitLeft;
-                Boolean rayCastHitRight = erod.testVarGround.RayCast(rayRight, 4.0f, out hitRight);
-                Boolean rayCastHitLeft = erod.testVarGround.RayCast(rayLeft, 4.0f, out hitLeft);
-                float angularspeed = 0.5f;
-                float directionBump = 0.2f;
+                Boolean rayCastHitRight = erod.testVarGround.RayCast(rayRight, ObjectConstants.RayLengthSide, out hitRight);
+                Boolean rayCastHitLeft = erod.testVarGround.RayCast(rayLeft, ObjectConstants.RayLengthSide, out hitLeft);
+                float angularspeed = ObjectConstants.AngularSpeed;
+                float directionBump = ObjectConstants.DirectionBump;
                 BVector3 velocityDirection = -ray.Direction;
                 if (rayCastHitRight && rayCastHitLeft)
                 {
-                    Debug.WriteLine("Both Left & Right");
                     if (hitRight.T > hitLeft.T)
                     {
                         //yaw = -yaw;
                         angularspeed = -angularspeed;
                         directionBump = -directionBump;
-                        Debug.WriteLine("Turning Left");
                     }
                     velocityDirection = Entity.OrientationMatrix.Forward * directionBump;
                 }
                 else if (rayCastHitRight)
                 {
-                    Debug.WriteLine("only right");
                     velocityDirection = Entity.OrientationMatrix.Forward * directionBump;
                 }
                 else if (rayCastHitLeft)
                 {
-                    Debug.WriteLine("only Left");
                     angularspeed = -angularspeed;
                     directionBump = -directionBump;
                     velocityDirection = Entity.OrientationMatrix.Forward * directionBump;
@@ -126,17 +118,16 @@ namespace ERoD
                     gamePadDirection = 1.0f;
                 }
                 Entity.AngularVelocity = new BVector3(0, angularspeed * gamePadDirection, 0);
-                Entity.LinearVelocity = velocityDirection * (Entity.LinearVelocity.Length() * 0.9f);
+                Entity.LinearVelocity = velocityDirection * (Entity.LinearVelocity.Length() * ObjectConstants.SpeedDecrease);
             }
         }
         /// <summary>
         /// Returns true if its above the ideal heigth
         /// </summary>
-        /// <param name="idealHeight">Ships hovering distance from the ground</param>
-        private bool fly(float idealHeight){
+        private bool fly(){
             float h = distancefromG();
-            if ((idealHeight - h) > 0) {
-                Entity.Position = new BVector3(Entity.Position.X, Entity.Position.Y + (idealHeight - h), Entity.Position.Z);
+            if ((ObjectConstants.IdealHeight - h) > 0) {
+                Entity.Position = new BVector3(Entity.Position.X, Entity.Position.Y + (ObjectConstants.IdealHeight - h), Entity.Position.Z);
                 return false;
             }
             else
@@ -163,29 +154,29 @@ namespace ERoD
             float currentLength = currentSpeed.Length() - strafeSpeed;
             BVector3 newVelocity = BVector3.Zero;
             float accelerationLength;
-            float a = currentLength / maxSpeed;
+            float a = currentLength / ObjectConstants.MaxSpeed;
             if (a < 0.1f)
             {
-                newVelocity = Entity.OrientationMatrix.Forward * maxSpeed * 0.12f;
+                newVelocity = Entity.OrientationMatrix.Forward * ObjectConstants.MaxSpeed * 0.12f;
             }
-            else if (a < 0.7f)
+            else if (a < ObjectConstants.FirstCase)
             {
-                accelerationLength = maxSpeed * 0.2f * dt;
+                accelerationLength = ObjectConstants.MaxSpeed * ObjectConstants.StartAcceleration * dt;
                 newVelocity = Entity.OrientationMatrix.Forward * (Entity.LinearVelocity.Length() + accelerationLength);
             }
-            else if (a < 0.9f)
+            else if (a < ObjectConstants.SecondCase)
             {
-                accelerationLength = maxSpeed * 0.1f * dt;
+                accelerationLength = ObjectConstants.MaxSpeed * ObjectConstants.MidAcceleration * dt;
                 newVelocity = Entity.OrientationMatrix.Forward * (Entity.LinearVelocity.Length() + accelerationLength);
             }
             else if (a < 1.0f)
             {
-                accelerationLength = maxSpeed * 0.05f * dt;
+                accelerationLength = ObjectConstants.MaxSpeed * ObjectConstants.EndAcceleration * dt;
                 newVelocity = Entity.OrientationMatrix.Forward * (Entity.LinearVelocity.Length() + accelerationLength);
             }
             else
             {
-                newVelocity = Entity.OrientationMatrix.Forward * maxSpeed;
+                newVelocity = Entity.OrientationMatrix.Forward * ObjectConstants.MaxSpeed;
             }
             return newVelocity;
         }
@@ -205,15 +196,15 @@ namespace ERoD
             float angle = (float)(Math.Acos(BVector3.Dot(Entity.OrientationMatrix.Up, BVector3.Up)) * 180.0 / Math.PI);
             if (angle > 1.0f && gamepadX == 0)
             {
-                rollValue = (Entity.LinearVelocity.Length() * 1.5f) / maxSpeed * rollSpeed * dt + 0.005f;
+                rollValue = (Entity.LinearVelocity.Length() * 1.5f) / ObjectConstants.MaxSpeed * ObjectConstants.RollSpeed * dt + 0.005f;
                 if (ifRollRight())
                 {
                     rollValue = -rollValue;
                 }
             }
-            else if (angle < 45.0f)
+            else if (angle < ObjectConstants.MaxRollAngle)
             {
-                rollValue = (Entity.LinearVelocity.Length() * 1.5f) / maxSpeed * rollSpeed * dt * gamepadX + gamepadX / 500;
+                rollValue = (Entity.LinearVelocity.Length() * 1.5f) / ObjectConstants.MaxSpeed * ObjectConstants.RollSpeed * dt * gamepadX + gamepadX / 500;
             }
             return rollValue;
         }
@@ -227,16 +218,16 @@ namespace ERoD
             Single roll = 0;
 
             //Aircontroll
-            if (fly(4.0f))
+            if (fly())
             {
-                downward = new BVector3(0, -16.0f, 0);
-                downward.Y -= gamePadState.ThumbSticks.Left.Y * 5.0f;
+                downward = new BVector3(0, -ObjectConstants.FallingSpeed, 0);
+                downward.Y -= gamePadState.ThumbSticks.Left.Y * ObjectConstants.ControllSpeed;
             }
             // Turning, strafing and rolling the ship
             if (gamePadState.ThumbSticks.Left.X != 0)
             {
                 roll = rolling(gamePadState.ThumbSticks.Left.X, dt);
-                Entity.AngularVelocity = new BVector3(0,-gamePadState.ThumbSticks.Left.X * 1.3f,0);
+                Entity.AngularVelocity = new BVector3(0,-gamePadState.ThumbSticks.Left.X * ObjectConstants.TurningSpeed,0);
                 shipStrafe = strafe(gamePadState.ThumbSticks.Left.X > 0);
             }
             // stop turning and stablize the roll
@@ -253,7 +244,7 @@ namespace ERoD
             // Gets forwad and downward decrease
             else
             {
-                forward = (getPlanarSpeedVector() * 0.98f) - shipStrafe + new BVector3(0, Entity.LinearVelocity.Y * 0.5f, 0);
+                forward = (getPlanarSpeedVector() * ObjectConstants.Decceleration) - shipStrafe + new BVector3(0, Entity.LinearVelocity.Y * 0.5f, 0);
             }
             // Applies the roll
             BEPUutilities.Quaternion AddRot = BEPUutilities.Quaternion.CreateFromYawPitchRoll(0, 0, -roll);
