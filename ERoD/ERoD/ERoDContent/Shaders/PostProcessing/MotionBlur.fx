@@ -4,6 +4,17 @@ float4x4 vp;
 float4x4 g_ViewProjectionInverseMatrix;
 float4x4 g_previousViewProjectionMatrix;
 
+texture mask;
+sampler maskSampler = sampler_state
+{
+	Texture = (mask);
+	AddressU = Clamp;
+	AddressV = Clamp;
+	MinFilter = Point;
+	MagFilter = Point;
+	MipFilter = Point;
+};
+
 float2 halfPixel;
 sampler screen : register(s0);
 
@@ -41,6 +52,15 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 
 float4 PixelShaderFunction(float2 texCoord : TEXCOORD0) : COLOR0
 {
+
+	float mask = tex2D(maskSampler, texCoord).a;
+	float4 color = tex2D(screen, texCoord);
+
+	if (mask == 0)
+	{
+		return color;
+	}
+
 	texCoord -= halfPixel;
 
 	float zOverW = 1 - tex2D(depth, texCoord);
@@ -64,17 +84,23 @@ float4 PixelShaderFunction(float2 texCoord : TEXCOORD0) : COLOR0
 	float2 velocity = (currentPos - previousPos) / 2.f;
 
 	// Get the initial color at this pixel.  
-	float4 color = tex2D(screen, texCoord);
 	texCoord += velocity;
+
+	float4 blendedColor = color;
 	for (int i = 1; i < g_numSamples; ++i, texCoord += velocity)
 	{
 		// Sample the color buffer along the velocity vector.  
 		float4 currentColor = tex2D(screen, texCoord);
+		float mask = tex2D(maskSampler, texCoord).a;
+		if (mask == 0)
+		{
+			return color;
+		}
 		// Add the current color to our color sum.  
-		color += currentColor;
+		blendedColor += currentColor;
 	}
 	// Average all of the samples to get the final blur color.  
-	float4 finalColor = color / g_numSamples;
+	float4 finalColor = blendedColor / g_numSamples;
 
 	return finalColor;
 }

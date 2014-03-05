@@ -23,10 +23,17 @@ namespace ERoD
         protected Texture2D specularMap;
         protected Texture2D bumpMap;
         protected Boolean textureEnabled;
+        protected Boolean mask;
         protected Vector3 nodeRotation = Vector3.Zero;
         Matrix[] boneTransforms;
 
         public Effect standardEffect;
+
+        public bool Mask
+        {
+            get { return mask; }
+            set { mask = value; }
+        }
 
         public bool TextureEnabled
         {
@@ -131,6 +138,10 @@ namespace ERoD
                     if (effect.Parameters["bumpMap"] != null)
                     {
                         effect.Parameters["bumpMap"].SetValue(bumpMap);
+                    }
+                    if (effect.Parameters["mask"] != null)
+                    {
+                        effect.Parameters["mask"].SetValue(mask);
                     }
                 }
                 mesh.Draw();

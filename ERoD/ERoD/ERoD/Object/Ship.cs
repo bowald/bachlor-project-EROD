@@ -74,6 +74,7 @@ namespace ERoD
                 return "Down";
             return "no match";
         }
+
         private void dontCollide(BRay ray, float rayLength, float gamePadDirection)
         {
             BEPUutilities.RayHit hit;

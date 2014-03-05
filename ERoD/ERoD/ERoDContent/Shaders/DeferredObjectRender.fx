@@ -3,6 +3,8 @@ float4x4 wvp : WorldViewProjection;
 
 float3 color = 1;
 
+bool mask = false;
+
 bool textureEnabled;
 texture diffuseTexture;
 sampler diffuseSampler = sampler_state
@@ -116,6 +118,15 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input) : COLOR0
 	else
 	{
 		output.Color = float4(color, 1);
+	}
+
+	if (mask)
+	{
+		output.Color.a = 0;
+	}
+	else 
+	{
+		output.Color.a = 1;
 	}
 
 	float3 bumpValue = bumpConstant * tex2D(BumpMapSampler, input.TexCoord);

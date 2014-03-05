@@ -120,7 +120,7 @@ namespace ERoD
             Vector3 shipPosition = new Vector3(0, 60, 0);
 
             Model groundModel = Content.Load<Model>("Models/Z3B0_Arena_alphaVersion");
-            AffineTransform groundTransform = new AffineTransform(new BVector3(0.15f, 0.15f, 0.15f), new BQuaternion(0, 0, 0, 0), new BVector3(0, 0, 0));
+            AffineTransform groundTransform = new AffineTransform(new BVector3(0.30f, 0.30f, 0.30f), new BQuaternion(0, 0, 0, 0), new BVector3(0, 0, 0));
             
             Effect objEffect = Content.Load<Effect>("Shaders/DeferredObjectRender");
 
@@ -134,6 +134,7 @@ namespace ERoD
             ship.SpecularMap = Content.Load<Texture2D>("Textures/Ship2/specular");
             ship.TextureEnabled = true;
             ship.standardEffect = objEffect;
+            ship.Mask = true;
             Components.Add(ship);
 
             CollisionHandler.addShipGroup(ship);
@@ -166,7 +167,7 @@ namespace ERoD
             //AddPowerup(cubeModel, new Vector3(-200, 45, 10), new Vector3(4,4,4));
 
 
-            renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(50, 250, 250), Vector3.Zero, Color.LightYellow, 1.0f, true));
+            renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(100, 400, 400), Vector3.Zero, Color.LightYellow, 1.0f, true));
 
             renderer.PointLights.Add(new PointLight(new Vector3(10, 10, 10), Color.White, 25.0f, 1.0f));
             renderer.PointLights.Add(new PointLight(new Vector3(-10, 10, -10), Color.Red, 25.0f, 1.0f));
@@ -268,10 +269,10 @@ namespace ERoD
                 GraphicsDevice.Viewport.Height), Color.White);
             spriteBatch.End();
 
-            //foreach (PostProcess postProcess in postProcesses)
-            //{
-            //    postProcess.Draw(gameTime);
-            //}
+            foreach (PostProcess postProcess in postProcesses)
+            {
+                postProcess.Draw(gameTime);
+            }
 
             renderer.RenderDebug();
         }
