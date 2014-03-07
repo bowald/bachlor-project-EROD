@@ -84,6 +84,9 @@ namespace ERoD
         /// </summary>
         protected override void Initialize()
         {
+            terrain = new HeightTerrain(this);
+            Components.Add(terrain);
+
             FreeCamera = new FreeCamera(this, 0.01f, 10000.0f, new Vector3(0, 20.0f, 0), 50.0f);
             this.Services.AddService(typeof(ICamera), FreeCamera);
             FreeCameraActive = true;
@@ -102,67 +105,55 @@ namespace ERoD
         {
 
             // Loading the collision rules handler
-            CollisionHandler = new CollisionHandler(this);
+            //CollisionHandler = new CollisionHandler(this);
 
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            cubeModel = Content.Load<Model>("Models/cube");
+            //cubeModel = Content.Load<Model>("Models/cube");
 
-            Model shipModel = Content.Load<Model>("Models/space_frigate");
-            Model shipModelT = Content.Load<Model>("Models/space_frigate_tangentOn");
-            Vector3 shipScale = new Vector3(0.07f, 0.07f, 0.07f);
-            Vector3 shipPosition = new Vector3(0, 60, 0);
+            //Model shipModel = Content.Load<Model>("Models/space_frigate");
+            //Model shipModelT = Content.Load<Model>("Models/space_frigate_tangentOn");
+            //Vector3 shipScale = new Vector3(0.07f, 0.07f, 0.07f);
+            //Vector3 shipPosition = new Vector3(0, 60, 0);
 
-            Model groundModel = Content.Load<Model>("Models/Z3B0_Arena_alphaVersion");
-            AffineTransform groundTransform = new AffineTransform(new BVector3(0.15f, 0.15f, 0.15f), new BQuaternion(0, 0, 0, 0), new BVector3(0, 0, 0));
+            //Model groundModel = Content.Load<Model>("Models/Z3B0_Arena_alphaVersion");
+            //AffineTransform groundTransform = new AffineTransform(new BVector3(0.15f, 0.15f, 0.15f), new BQuaternion(0, 0, 0, 0), new BVector3(0, 0, 0));
             
-            Effect objEffect = Content.Load<Effect>("Shaders/DeferredObjectRender");
+            //Effect objEffect = Content.Load<Effect>("Shaders/DeferredObjectRender");
 
             space = new Space();
 
-            // Fix ship loading
-            Entity entity = LoadEntityObject(shipModel, shipPosition, shipScale);
-            Ship ship = new Ship(entity, shipModelT, Matrix.CreateScale(shipScale), this);
-            space.Add(entity);
-            ship.Texture = Content.Load<Texture2D>("Textures/Ship2/diffuse");
-            ship.SpecularMap = Content.Load<Texture2D>("Textures/Ship2/specular");
-            ship.TextureEnabled = true;
-            ship.standardEffect = objEffect;
-            Components.Add(ship);
+            //// Fix ship loading
+            //Entity entity = LoadEntityObject(shipModel, shipPosition, shipScale);
+            //Ship ship = new Ship(entity, shipModelT, Matrix.CreateScale(shipScale), this);
+            //space.Add(entity);
+            //ship.Texture = Content.Load<Texture2D>("Textures/Ship2/diffuse");
+            //ship.SpecularMap = Content.Load<Texture2D>("Textures/Ship2/specular");
+            //ship.TextureEnabled = true;
+            //ship.standardEffect = objEffect;
+            //Components.Add(ship);
 
-            ChaseCamera = new ChaseCamera(ship.Entity, new BEPUutilities.Vector3(0.0f, 5.0f, 0.0f), true, 20.0f, 0.1f, 2000.0f, this);
-            ((ChaseCamera)ChaseCamera).Initialize();
+            //ChaseCamera = new ChaseCamera(ship.Entity, new BEPUutilities.Vector3(0.0f, 5.0f, 0.0f), true, 20.0f, 0.1f, 2000.0f, this);
+            //((ChaseCamera)ChaseCamera).Initialize();
 
-            StaticObject sobj = LoadStaticObject(groundModel, groundTransform);
-            sobj.Texture = Content.Load<Texture2D>("Textures/Ground/diffuse");
-            sobj.SpecularMap = Content.Load<Texture2D>("Textures/Ground/specular");
-            sobj.BumpMap = Content.Load<Texture2D>("Textures/Ground/normal");
-            sobj.TextureEnabled = true;
-            sobj.standardEffect = objEffect;
-            Components.Add(sobj);
+            //StaticObject sobj = LoadStaticObject(groundModel, groundTransform);
+            //sobj.Texture = Content.Load<Texture2D>("Textures/Ground/diffuse");
+            //sobj.SpecularMap = Content.Load<Texture2D>("Textures/Ground/specular");
+            //sobj.BumpMap = Content.Load<Texture2D>("Textures/Ground/normal");
+            //sobj.TextureEnabled = true;
+            //sobj.standardEffect = objEffect;
+            //Components.Add(sobj);
             
             space.ForceUpdater.Gravity = new BVector3(0, -9.82f, 0);
 
-            //Adds the test triggers
-            //Vector3 pwrScale = new Vector3(2, 2, 2);
-            //Vector3 pwrLocation = new Vector3(20, 20, -20);
-            //entity = LoadEntityObject(cubeModel, pwrLocation, pwrScale);
-            //EntityObject powerUp = new EntityObject(entity, cubeModel, Matrix.CreateScale(pwrScale), this);
-            //CollisionHandler.addPowerupGroup(powerUp);
-            //Components.Add(powerUp);
 
-            //AddPowerup(cubeModel, new Vector3(0, 15, 10), new Vector3(4,4,4));
-            //AddPowerup(cubeModel, new Vector3(250, 15, 10), new Vector3(4,4,4));
-            //AddPowerup(cubeModel, new Vector3(-200, 45, 10), new Vector3(4,4,4));
+            //renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(50, 250, 250), Vector3.Zero, Color.LightYellow, 1.0f, true));
 
-
-            renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(50, 250, 250), Vector3.Zero, Color.LightYellow, 1.0f, true));
-
-            renderer.PointLights.Add(new PointLight(new Vector3(10, 10, 10), Color.White, 25.0f, 1.0f));
-            renderer.PointLights.Add(new PointLight(new Vector3(-10, 10, -10), Color.Red, 25.0f, 1.0f));
-            renderer.PointLights.Add(new PointLight(new Vector3(95, 17, 70), Color.Blue, 10.0f, 1.0f));
-            renderer.PointLights.Add(new PointLight(new Vector3(110, 17, 55), Color.Cyan, 10.0f, 1.0f));
-            renderer.PointLights.Add(new PointLight(new Vector3(115, 17, 45), Color.Red, 10.0f, 1.0f));
+            //renderer.PointLights.Add(new PointLight(new Vector3(10, 10, 10), Color.White, 25.0f, 1.0f));
+            //renderer.PointLights.Add(new PointLight(new Vector3(-10, 10, -10), Color.Red, 25.0f, 1.0f));
+            //renderer.PointLights.Add(new PointLight(new Vector3(95, 17, 70), Color.Blue, 10.0f, 1.0f));
+            //renderer.PointLights.Add(new PointLight(new Vector3(110, 17, 55), Color.Cyan, 10.0f, 1.0f));
+            //renderer.PointLights.Add(new PointLight(new Vector3(115, 17, 45), Color.Red, 10.0f, 1.0f));
         }
 
         //CollisionHandler.addTriggerGroup(entityObject);
@@ -263,23 +254,29 @@ namespace ERoD
             base.Update(gameTime);
         }
 
+        HeightTerrain terrain;
+
         /// <summary>
         /// This is called when the game should draw itself.
         /// </summary>
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
-            renderer.Draw(gameTime);
-            GraphicsDevice.Clear(Color.CornflowerBlue);
+            base.Draw(gameTime);
+            //renderer.Draw(gameTime);
+            //GraphicsDevice.Clear(Color.CornflowerBlue);
 
-            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque,
-                SamplerState.PointClamp, DepthStencilState.Default,
-                RasterizerState.CullCounterClockwise);
-            spriteBatch.Draw(renderer.finalBackBuffer, new Rectangle(0, 0, GraphicsDevice.Viewport.Width,
-                GraphicsDevice.Viewport.Height), Color.White);
-            spriteBatch.End();
+            //spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque,
+            //    SamplerState.PointClamp, DepthStencilState.Default,
+            //    RasterizerState.CullCounterClockwise);
+            //spriteBatch.Draw(renderer.finalBackBuffer, new Rectangle(0, 0, GraphicsDevice.Viewport.Width,
+            //    GraphicsDevice.Viewport.Height), Color.White);
+            //spriteBatch.End();
 
-            renderer.RenderDebug();
+            //renderer.RenderDebug();
+
+
+
         }
     }
 }
