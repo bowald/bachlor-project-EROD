@@ -17,9 +17,11 @@ namespace ERoD
 
         VertexBuffer myVertexBuffer;
         IndexBuffer myIndexBuffer;
-        VertexPositionColorNormal[] vertices;
+        VertexPositionNormalTexture[] vertices;
         int[] indices;
 
+        Texture2D texture;
+        
         private int terrainWidth = 4;
         private int terrainHeight = 3;
 
@@ -38,6 +40,8 @@ namespace ERoD
         {
             effect = Game.Content.Load<Effect>("HeightMap/Effect1");
             Texture2D heightMap = Game.Content.Load<Texture2D>("HeightMap_lowres/height");
+            texture = Game.Content.Load<Texture2D>("HeightMap/color");
+
             LoadHeightData(heightMap);
 
             SetUpVertices();
@@ -61,7 +65,8 @@ namespace ERoD
             //rs.FillMode = FillMode.WireFrame;
             GraphicsDevice.RasterizerState = rs;
 
-            effect.CurrentTechnique = effect.Techniques["Colored"];
+            effect.CurrentTechnique = effect.Techniques["Textured"];
+            effect.Parameters["xTexture"].SetValue(texture);
             effect.Parameters["xView"].SetValue(Camera.View);
             effect.Parameters["xProjection"].SetValue(Camera.Projection);
             effect.Parameters["xWorld"].SetValue(Matrix.Identity);
@@ -82,7 +87,7 @@ namespace ERoD
 
         private void CopyToBuffers()
         {
-            myVertexBuffer = new VertexBuffer(GraphicsDevice, VertexPositionColorNormal.VertexDeclaration, vertices.Length, BufferUsage.WriteOnly);
+            myVertexBuffer = new VertexBuffer(GraphicsDevice, VertexPositionNormalTexture.VertexDeclaration, vertices.Length, BufferUsage.WriteOnly);
             myVertexBuffer.SetData(vertices);
 
             myIndexBuffer = new IndexBuffer(GraphicsDevice, typeof(int), indices.Length, BufferUsage.WriteOnly);
@@ -137,13 +142,14 @@ namespace ERoD
 
         private void SetUpVertices()
         {
-            vertices = new VertexPositionColorNormal[terrainWidth * terrainHeight];
+            vertices = new VertexPositionNormalTexture[terrainWidth * terrainHeight];
             for (int x = 0; x < terrainWidth; x++)
             {
                 for (int y = 0; y < terrainHeight; y++)
                 {
                     vertices[x + y * terrainWidth].Position = new Vector3(x, heightData[x, y], -y);
-                    vertices[x + y * terrainWidth].Color = Color.BurlyWood;
+                    vertices[x + y * terrainWidth].TextureCoordinate.X = (float)x / terrainWidth;
+                    vertices[x + y * terrainWidth].TextureCoordinate.Y = (float)y / terrainHeight;
                 }
             }
         }
