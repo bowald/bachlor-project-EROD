@@ -7,7 +7,7 @@ using System.Text;
 
 namespace ERoD
 {
-    public class HeightTerrain : DrawableGameComponent
+    public class HeightTerrain : DrawableGameComponent, IDeferredRender
     {
 
         public ICamera Camera
@@ -27,22 +27,23 @@ namespace ERoD
 
         private float[,] heightData;
 
-        Effect effect;
+        Effect StandardEffect;
 
-        Matrix viewMatrix;
+        Matrix worldMatrix;
 
         public HeightTerrain(Game game) : base(game)
         {
-            viewMatrix = Matrix.CreateLookAt(new Vector3(0, 50, 0), new Vector3(0, 0, 0), new Vector3(0, 0, -1));
         }
 
         protected override void LoadContent()
         {
-            effect = Game.Content.Load<Effect>("HeightMap/Effect1");
+            StandardEffect = Game.Content.Load<Effect>("Shaders/HeightTerrainShader");
             Texture2D heightMap = Game.Content.Load<Texture2D>("HeightMap_lowres/height");
             texture = Game.Content.Load<Texture2D>("HeightMap/color");
 
             LoadHeightData(heightMap);
+
+            worldMatrix = Matrix.CreateTranslation(new Vector3(-terrainWidth/2, 0, terrainHeight/2));
 
             SetUpVertices();
             SetUpIndices();
@@ -55,33 +56,37 @@ namespace ERoD
             base.Initialize();
         }
 
-
         public override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
+            Draw(gameTime, StandardEffect);
+        }
 
-            RasterizerState rs = new RasterizerState();
-            rs.CullMode = CullMode.None;
-            //rs.FillMode = FillMode.WireFrame;
-            GraphicsDevice.RasterizerState = rs;
+        public void Draw(GameTime gameTime, Effect effect)
+        {
 
-            effect.CurrentTechnique = effect.Techniques["Textured"];
-            effect.Parameters["xTexture"].SetValue(texture);
-            effect.Parameters["xView"].SetValue(Camera.View);
-            effect.Parameters["xProjection"].SetValue(Camera.Projection);
-            effect.Parameters["xWorld"].SetValue(Matrix.Identity);
-
-            Vector3 lightDirection = new Vector3(1.0f, -1.0f, -1.0f);
-            lightDirection.Normalize();
-            effect.Parameters["xLightDirection"].SetValue(lightDirection);
-            effect.Parameters["xAmbient"].SetValue(0.1f); effect.Parameters["xEnableLighting"].SetValue(true); 
+            if (effect.Parameters["Texture"] != null) 
+            {
+                effect.Parameters["Texture"].SetValue(texture);
+            }
+            if (effect.Parameters["View"] != null) 
+            {
+                effect.Parameters["View"].SetValue(Camera.View);
+            }
+            if (effect.Parameters["Projection"] != null) 
+            {
+                effect.Parameters["Projection"].SetValue(Camera.Projection);
+            }
+            if (effect.Parameters["World"] != null) 
+            {
+                effect.Parameters["World"].SetValue(worldMatrix);
+            }
 
             foreach (EffectPass pass in effect.CurrentTechnique.Passes)
             {
                 pass.Apply();
                 GraphicsDevice.Indices = myIndexBuffer;
                 GraphicsDevice.SetVertexBuffer(myVertexBuffer);
-                GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, vertices.Length, 0, indices.Length / 3);    
+                GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, vertices.Length, 0, indices.Length / 3);
             }
         }
 

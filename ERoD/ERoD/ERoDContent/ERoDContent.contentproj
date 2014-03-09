@@ -242,8 +242,8 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="HeightMap\Effect1.fx">
-      <Name>Effect1</Name>
+    <Compile Include="HeightMap\ForwardTerrain.fx">
+      <Name>ForwardTerrain</Name>
       <Importer>EffectImporter</Importer>
       <Processor>EffectProcessor</Processor>
     </Compile>
@@ -265,6 +265,13 @@
       <Name>height</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Shaders\HeightTerrainShader.fx">
+      <Name>HeightTerrainShader</Name>
+      <Importer>EffectImporter</Importer>
+      <Processor>EffectProcessor</Processor>
     </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\XNA Game Studio\$(XnaFrameworkVersion)\Microsoft.Xna.GameStudio.ContentPipeline.targets" />

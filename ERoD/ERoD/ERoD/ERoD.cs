@@ -87,7 +87,7 @@ namespace ERoD
             terrain = new HeightTerrain(this);
             Components.Add(terrain);
 
-            FreeCamera = new FreeCamera(this, 0.01f, 10000.0f, new Vector3(0, 20.0f, 0), 50.0f);
+            FreeCamera = new FreeCamera(this, 0.01f, 10000.0f, new Vector3(90, 85.0f, -160), 90.0f);
             this.Services.AddService(typeof(ICamera), FreeCamera);
             FreeCameraActive = true;
 
@@ -118,7 +118,7 @@ namespace ERoD
 
             //Model groundModel = Content.Load<Model>("Models/Z3B0_Arena_alphaVersion");
             //AffineTransform groundTransform = new AffineTransform(new BVector3(0.15f, 0.15f, 0.15f), new BQuaternion(0, 0, 0, 0), new BVector3(0, 0, 0));
-            
+
             //Effect objEffect = Content.Load<Effect>("Shaders/DeferredObjectRender");
 
             space = new Space();
@@ -146,14 +146,15 @@ namespace ERoD
             
             space.ForceUpdater.Gravity = new BVector3(0, -9.82f, 0);
 
+            renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(50, 250, 250), Vector3.Zero, Color.LightYellow, 0.5f, true));
 
-            //renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(50, 250, 250), Vector3.Zero, Color.LightYellow, 1.0f, true));
+            renderer.PointLights.Add(new PointLight(new Vector3(0, 85, 50), Color.Blue, 50.0f, 1.0f));
+            renderer.PointLights.Add(new PointLight(new Vector3(50, 85, 0), Color.Red, 50.0f, 1.0f));
+            renderer.PointLights.Add(new PointLight(new Vector3(-50, 85, 0), Color.Green, 50.0f, 1.0f));
 
-            //renderer.PointLights.Add(new PointLight(new Vector3(10, 10, 10), Color.White, 25.0f, 1.0f));
-            //renderer.PointLights.Add(new PointLight(new Vector3(-10, 10, -10), Color.Red, 25.0f, 1.0f));
-            //renderer.PointLights.Add(new PointLight(new Vector3(95, 17, 70), Color.Blue, 10.0f, 1.0f));
-            //renderer.PointLights.Add(new PointLight(new Vector3(110, 17, 55), Color.Cyan, 10.0f, 1.0f));
-            //renderer.PointLights.Add(new PointLight(new Vector3(115, 17, 45), Color.Red, 10.0f, 1.0f));
+            renderer.PointLights.Add(new PointLight(new Vector3(170, 85, -175), Color.Goldenrod, 50.0f, 1.0f));
+            renderer.PointLights.Add(new PointLight(new Vector3(130, 85, -172), Color.Goldenrod, 50.0f, 1.0f));
+            renderer.PointLights.Add(new PointLight(new Vector3(90, 85, -160), Color.Goldenrod, 50.0f, 1.0f));
         }
 
         //CollisionHandler.addTriggerGroup(entityObject);
@@ -176,27 +177,6 @@ namespace ERoD
             return entity;
         }
 
-        private void AddShip(Model model, Vector3 position, Quaternion shipRotation, Vector3 scaling)
-        {
-            BVector3[] vertices;
-            int[] indices;
-            ModelDataExtractor.GetVerticesAndIndicesFromModel(model, out vertices, out indices);
-            ConvexHullShape CHS = new ConvexHullShape(OurHelper.scaleVertices(vertices, scaling));
-            Entity entity = new Entity(CHS, 250);
-            entity.Orientation = ConversionHelper.MathConverter.Convert(shipRotation);
-            entity.Position = ConversionHelper.MathConverter.Convert(position);
-            space.Add(entity);
-            
-            Ship ship = new Ship(entity, model, Matrix.CreateScale(scaling), this);
-            Components.Add(ship);
-
-            // Adding the ship to the "shipgroup" collision system
-            CollisionHandler.addShipGroup(ship);
-
-            // Should not be done here, need to move
-            ChaseCamera = new ChaseCamera(entity, new BEPUutilities.Vector3(0.0f, 5.0f, 0.0f), true, 20.0f, 0.1f, 2000.0f, this);
-            ChaseCamera.Initialize();
-        }
 
         private StaticObject LoadStaticObject(Model model, AffineTransform transform) 
         {
@@ -262,18 +242,17 @@ namespace ERoD
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
-            base.Draw(gameTime);
-            //renderer.Draw(gameTime);
-            //GraphicsDevice.Clear(Color.CornflowerBlue);
+            renderer.Draw(gameTime);
+            GraphicsDevice.Clear(Color.CornflowerBlue);
 
-            //spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque,
-            //    SamplerState.PointClamp, DepthStencilState.Default,
-            //    RasterizerState.CullCounterClockwise);
-            //spriteBatch.Draw(renderer.finalBackBuffer, new Rectangle(0, 0, GraphicsDevice.Viewport.Width,
-            //    GraphicsDevice.Viewport.Height), Color.White);
-            //spriteBatch.End();
+            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque,
+            SamplerState.PointClamp, DepthStencilState.Default,
+            RasterizerState.CullCounterClockwise);
+            spriteBatch.Draw(renderer.finalBackBuffer, new Rectangle(0, 0, GraphicsDevice.Viewport.Width,
+            GraphicsDevice.Viewport.Height), Color.White);
+            spriteBatch.End();
 
-            //renderer.RenderDebug();
+            renderer.RenderDebug();
 
 
 

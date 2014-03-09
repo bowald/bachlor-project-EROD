@@ -7,7 +7,7 @@ float3 lightDirection;
 float3 cameraPosition;
 
 float power = 1;
-float specularModifier = 10;
+float specularModifier = 3;
 
 float2 halfPixel;
 
@@ -47,7 +47,7 @@ sampler depthSampler = sampler_state
 	Mipfilter = POINT;
 };
 
-float shadowBias = 0.00000045f;
+float shadowBias = 0.00000065f;
 bool castShadow;
 texture shadowMap;
 sampler shadowSampler = sampler_state
@@ -141,7 +141,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 	
 	float4 specular = SGR.r * float4(color, 1) * max(pow(dotProduct, 20), 0);
 
-	diffuseLight += (specular * specularModifier);
+	diffuseLight += (specular * specularModifier * power);
 
 	//output the two lights
 	return float4(diffuseLight.rgb, 1) * shading;
