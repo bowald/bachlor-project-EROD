@@ -17,8 +17,11 @@ namespace ERoD
     {
         Game Game;
 
+        GameLogic gameLogic;
+
         Dictionary<Entity, EntityObject> Triggers;
         Dictionary<Entity, EntityObject> Powerups;
+        Dictionary<Entity, EntityObject> Ships;
 
         // Pairs for the ship+trigger and for the ship+powerup
         CollisionGroupPair ShipTriggerPair;
@@ -34,11 +37,13 @@ namespace ERoD
             // The game.
             // Used to access the GameLogic service
             this.Game = game;
+            gameLogic = (GameLogic)Game.Services.GetService(typeof(GameLogic));
 
             // Maps all trigger-entities and all powerup-entities together with their respective entityobjects.
             // Necessary when you want to remove an entityobject from the game
             Triggers = new Dictionary<Entity, EntityObject>();
             Powerups = new Dictionary<Entity, EntityObject>();
+            Ships = new Dictionary<Entity, EntityObject>();
 
             // Setting up collisiongroups
             shipGroup = new CollisionGroup();
@@ -57,19 +62,22 @@ namespace ERoD
 
         // Add an entityobject to the "ship" collision group
         // Also sets its tag to be equal to its entityobject
-        public void addShipGroup(EntityObject ship)
+        public void addShipGroup(Ship ship)
         {
+            Debug.WriteLine("Added the ship to the collision group!");
             ship.Entity.CollisionInformation.Tag = ship;
             ship.Entity.CollisionInformation.CollisionRules.Group = shipGroup;
-            ship.Entity.CollisionInformation.Events.PairCreated += Events_PairCreated;
+            Ships.Add(ship.Entity, ship);
         }
 
         // Add an entityobject to the "trigger" collision group
         // Also sets its tag to be equal to its entityobject
-        public void addTriggerGroup(EntityObject trigger)
+        public void addTriggerGroup(LapTrigger trigger)
         {
+            Debug.WriteLine("Added the trigger to the collision group!");
             trigger.Entity.CollisionInformation.Tag = trigger;
             trigger.Entity.CollisionInformation.CollisionRules.Group = triggerGroup;
+            trigger.Entity.CollisionInformation.Events.PairCreated += TriggerPairCreated;
             Triggers.Add(trigger.Entity, trigger);
         }
 
@@ -79,40 +87,34 @@ namespace ERoD
         {
             powerup.Entity.CollisionInformation.Tag = powerup;
             powerup.Entity.CollisionInformation.CollisionRules.Group = powerupGroup;
+            powerup.Entity.CollisionInformation.Events.PairCreated += PowerupPairCreated;
             Powerups.Add(powerup.Entity, powerup);
         }
 
-        // If a pair was created with the ship and something else,
-        // check what the other thing is and do the appropriate action.
-        void Events_PairCreated(EntityCollidable sender, BroadPhaseEntry other, NarrowPhasePair pair)
+        public void TriggerPairCreated(EntityCollidable sender, BroadPhaseEntry other, NarrowPhasePair pair)
         {
-            GameLogic gameLogic = (GameLogic)Game.Services.GetService(typeof (GameLogic));
-            EntityObject entityObject = (EntityObject)other.Tag;
-            
-            try{
-                // Checks the Tag of the collided object
-                Entity entity = entityObject.Entity;
-                Debug.WriteLine("Checking what the tag was!");
-
-                // If it is a trigger, increment the lap counter.
-                if (Triggers.ContainsKey(entity))
-                {
-                    Debug.WriteLine("It was a trigger!");
-                    gameLogic.IncrementLap();
-                }
-
-                // If it is a powerup, remove the entityobject and its entity from the game.
-                else if (Powerups.ContainsKey(entity))
-                {
-                    Debug.WriteLine("It was a powerup!");
-                    gameLogic.RemoveObject(entity, Powerups[entity]);
-                    Powerups.Remove(entity);
-                }  
-            }
-            catch (NullReferenceException e)
+            if (other.Tag is Ship)
             {
-                Debug.WriteLine(e);
-            }              
+                Ship ship = (Ship)other.Tag;
+                LapTrigger lapTrigger = (LapTrigger)sender.Tag;
+
+                Debug.WriteLine("A ship hit the trigger!");
+                // If it is a trigger, increment the lap counter.
+                gameLogic.IncrementLap(ship.ID, lapTrigger.ID);
+            }       
+        }
+
+        public void PowerupPairCreated(EntityCollidable sender, BroadPhaseEntry other, NarrowPhasePair pair)
+        {
+            Debug.WriteLine("A ship hit the powerup!");
+            if (other.Tag is Ship)
+            {
+                // If it is a powerup, remove the entityobject and its entity from the game.
+                EntityObject entityObject = (EntityObject)sender.Tag;
+                Entity entity = entityObject.Entity;
+                gameLogic.RemoveObject(entity, Powerups[entity]);
+            }
+            
         }
     }
 }

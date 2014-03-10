@@ -17,14 +17,19 @@ namespace ERoD
     {
         private Space space;
         private ERoD erod;
+        public int ID { get; set; }
 
-        public Ship(Entity entity, Model model, Matrix world, Vector3 nodeRotation, Game game) 
+        public Ship(int ID, Entity entity, Model model, Matrix world, Vector3 nodeRotation, Game game) 
             : base(entity, model, world , nodeRotation, game)
         {
             erod = game as ERoD;
             space = erod.Space;
             entity.BecomeKinematic();
+            this.ID = ID;
+            GameLogic gameLogic = (GameLogic)Game.Services.GetService(typeof(GameLogic));
+            gameLogic.CreateShip(ID);
         }
+
         /// <summary>
         /// Returns the strafeing velocity
         /// </summary>
@@ -216,6 +221,7 @@ namespace ERoD
             BVector3 downward = BVector3.Zero;
             GamePadState gamePadState = ((ERoD)Game).GamePadState;
             Single roll = 0;
+            //Debug.WriteLine(Entity.Position);
 
             //Aircontroll
             if (fly())

@@ -122,12 +122,13 @@ namespace ERoD
 
             // Fix ship loading
             Entity entity = LoadEntityObject(shipModel, shipPosition, shipScale);
-            Ship ship = new Ship(entity, shipModelT, Matrix.CreateScale(shipScale), new Vector3(Microsoft.Xna.Framework.MathHelper.ToRadians(-90.0f), 0.0f, 0.0f), this);
+            Ship ship = new Ship(1, entity, shipModelT, Matrix.CreateScale(shipScale), new Vector3(Microsoft.Xna.Framework.MathHelper.ToRadians(-90.0f), 0.0f, 0.0f), this);
             space.Add(entity);
             ship.Texture = Content.Load<Texture2D>("Textures/Ship2/diffuse");
             ship.SpecularMap = Content.Load<Texture2D>("Textures/Ship2/specular");
             ship.TextureEnabled = true;
             ship.standardEffect = objEffect;
+            CollisionHandler.addShipGroup(ship);
             Components.Add(ship);
 
             ChaseCamera = new ChaseCamera(ship.Entity, new BEPUutilities.Vector3(0.0f, 5.0f, 0.0f), true, 20.0f, 0.1f, 2000.0f, this);
@@ -144,17 +145,42 @@ namespace ERoD
             space.ForceUpdater.Gravity = new BVector3(0, -9.82f, 0);
 
             //Adds the test triggers
-            //Vector3 pwrScale = new Vector3(2, 2, 2);
-            //Vector3 pwrLocation = new Vector3(20, 20, -20);
-            //entity = LoadEntityObject(cubeModel, pwrLocation, pwrScale);
-            //EntityObject powerUp = new EntityObject(entity, cubeModel, Matrix.CreateScale(pwrScale), this);
-            //CollisionHandler.addPowerupGroup(powerUp);
-            //Components.Add(powerUp);
+            Vector3 pwrScale = new Vector3(20, 20, 2);
 
-            //AddPowerup(cubeModel, new Vector3(0, 15, 10), new Vector3(4,4,4));
-            //AddPowerup(cubeModel, new Vector3(250, 15, 10), new Vector3(4,4,4));
-            //AddPowerup(cubeModel, new Vector3(-200, 45, 10), new Vector3(4,4,4));
+            Vector3 pwrLocation1 = new Vector3(75, 27.0f, 114);
+            Vector3 pwrLocation2 = new Vector3(-114, 4.0f, -141); 
+            Vector3 pwrLocation3 = new Vector3(120, 4.0f, -130);                 
+            Vector3 pwrLocation4 = new Vector3(40, 4, -35);
 
+            Entity entity1 = LoadEntityObject(cubeModel, pwrLocation1, pwrScale);
+            Entity entity2 = LoadEntityObject(cubeModel, pwrLocation2, pwrScale);
+            Entity entity3 = LoadEntityObject(cubeModel, pwrLocation3, pwrScale);
+            Entity entity4 = LoadEntityObject(cubeModel, pwrLocation4, pwrScale);
+            BEPUutilities.Quaternion AddRot = BEPUutilities.Quaternion.CreateFromAxisAngle(BVector3.Up, -90);
+            entity4.Orientation *= AddRot;
+            entity1.Orientation *= AddRot;
+
+            LapTrigger trigger1 = new LapTrigger(1, entity1, cubeModel, Matrix.CreateScale(pwrScale), Vector3.Zero, this);
+            LapTrigger trigger2 = new LapTrigger(2, entity2, cubeModel, Matrix.CreateScale(pwrScale), Vector3.Zero, this);
+            LapTrigger trigger3 = new LapTrigger(3, entity3, cubeModel, Matrix.CreateScale(pwrScale), Vector3.Zero, this);
+            LapTrigger trigger4 = new LapTrigger(4, entity4, cubeModel, Matrix.CreateScale(pwrScale), Vector3.Zero, this);
+ 
+            trigger1.standardEffect = objEffect;
+            trigger2.standardEffect = objEffect;
+            trigger3.standardEffect = objEffect;
+            trigger4.standardEffect = objEffect;
+            CollisionHandler.addTriggerGroup(trigger1);
+            CollisionHandler.addTriggerGroup(trigger2);
+            CollisionHandler.addTriggerGroup(trigger3);
+            CollisionHandler.addTriggerGroup(trigger4);
+            space.Add(entity1);
+            space.Add(entity2);
+            space.Add(entity3);
+            space.Add(entity4);
+            Components.Add(trigger1);
+            Components.Add(trigger2);
+            Components.Add(trigger3);
+            Components.Add(trigger4);
 
             renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(50, 250, 250), Vector3.Zero, Color.LightYellow, 1.0f, true));
 
@@ -164,8 +190,6 @@ namespace ERoD
             renderer.PointLights.Add(new PointLight(new Vector3(110, 17, 55), Color.Cyan, 10.0f, 1.0f));
             renderer.PointLights.Add(new PointLight(new Vector3(115, 17, 45), Color.Red, 10.0f, 1.0f));
         }
-
-        //CollisionHandler.addTriggerGroup(entityObject);
 
         private Entity LoadEntityObject(Model model, Vector3 position, Vector3 scaling)
         {
