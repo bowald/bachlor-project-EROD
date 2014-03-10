@@ -87,7 +87,7 @@ namespace ERoD
             terrain = new HeightTerrain(this);
             Components.Add(terrain);
 
-            FreeCamera = new FreeCamera(this, 0.01f, 10000.0f, new Vector3(90, 85.0f, -160), 90.0f);
+            FreeCamera = new FreeCamera(this, 0.1f, 10000.0f, new Vector3(90, 85.0f, -160), 90.0f);
             this.Services.AddService(typeof(ICamera), FreeCamera);
             FreeCameraActive = true;
 
