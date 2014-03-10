@@ -64,6 +64,8 @@ namespace ERoD
         }
 
         protected List<PostProcess> postProcesses = new List<PostProcess>();
+        protected PostProcessingManager manager;
+
 
         public ModelDrawer modelDrawer;  //Used to draw entities for debug.
 
@@ -93,6 +95,8 @@ namespace ERoD
             FreeCamera = new FreeCamera(this, 0.01f, 10000.0f, new Vector3(0, 20.0f, 0), 50.0f);
             this.Services.AddService(typeof(ICamera), FreeCamera);
             FreeCameraActive = true;
+
+            manager = new PostProcessingManager(this);
 
             GameLogic = new GameLogic(this);
             this.Services.AddService(typeof(GameLogic), GameLogic);
@@ -152,7 +156,7 @@ namespace ERoD
             
             space.ForceUpdater.Gravity = new BVector3(0, -9.82f, 0);
 
-            postProcesses.Add(new MotionBlur(this));
+            //manager.AddEffect(new MotionBlur(this));
 
             //Adds the test triggers
             //Vector3 pwrScale = new Vector3(2, 2, 2);
@@ -269,10 +273,7 @@ namespace ERoD
                 GraphicsDevice.Viewport.Height), Color.White);
             spriteBatch.End();
 
-            foreach (PostProcess postProcess in postProcesses)
-            {
-                postProcess.Draw(gameTime);
-            }
+            manager.Draw(gameTime);
 
             renderer.RenderDebug();
         }
