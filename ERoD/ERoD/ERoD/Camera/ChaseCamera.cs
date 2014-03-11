@@ -84,17 +84,21 @@ namespace ERoD
             rayCastFilter = RayCastFilter;
         }
 
-
-
         public override void Update(GameTime gameTime)
         {
             BEPUutilities.Vector3 offset = TransformOffset ? Matrix3x3.Transform(OffsetFromChaseTarget, ChasedEntity.BufferedStates.InterpolatedStates.OrientationMatrix) : OffsetFromChaseTarget;
             BEPUutilities.Vector3 lookAt = ChasedEntity.BufferedStates.InterpolatedStates.Position + offset;
             BEPUutilities.Vector3 backwards = -ViewDirection;
 
-            //Find the earliest ray hit that isn't the chase target to position the camera appropriately.
-            RayCastResult result;
-            float cameraDistance = ChasedEntity.Space.RayCast(new BEPUutilities.Ray(lookAt, backwards), DistanceToTarget, rayCastFilter, out result) ? result.HitData.T : DistanceToTarget;
+            //Test against everything in the world
+            //RayCastResult result;
+            //float cameraDistance = ChasedEntity.Space.RayCast(new BEPUutilities.Ray(lookAt, backwards), DistanceToTarget, rayCastFilter, out result) ? result.HitData.T : DistanceToTarget;
+
+            //Test only against the ground
+            ERoD erod = Game as ERoD;
+            RayHit hit;
+            BEPUutilities.Ray ray = new BEPUutilities.Ray(lookAt, backwards);
+            float cameraDistance = erod.testVarGround.RayCast(ray, DistanceToTarget, out hit) ? hit.T : DistanceToTarget;
 
             BEPUutilities.Vector3 pos = lookAt + (Math.Max(cameraDistance - ChaseCameraMargin, 0)) * backwards;
             Position = ConversionHelper.MathConverter.Convert(pos); //Put the camera just before any hit spot.
