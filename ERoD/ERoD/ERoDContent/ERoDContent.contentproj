@@ -229,12 +229,13 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-<<<<<<< HEAD
     <Compile Include="Sprites\Lap1.spritefont">
       <Name>Lap1</Name>
       <Importer>FontDescriptionImporter</Importer>
       <Processor>FontDescriptionProcessor</Processor>
-=======
+	</Compile>
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="Shaders\PostProcessing\MotionBlur.fx">
       <Name>MotionBlur</Name>
       <Importer>EffectImporter</Importer>
@@ -248,7 +249,6 @@
       <Processor>ModelProcessor</Processor>
       <ProcessorParameters_GenerateTangentFrames>True</ProcessorParameters_GenerateTangentFrames>
       <ProcessorParameters_RotationX>-90</ProcessorParameters_RotationX>
->>>>>>> PostProcess
     </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\XNA Game Studio\$(XnaFrameworkVersion)\Microsoft.Xna.GameStudio.ContentPipeline.targets" />
