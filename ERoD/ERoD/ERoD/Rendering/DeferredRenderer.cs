@@ -210,7 +210,8 @@ namespace ERoD
                 * Camera.Projection));
             directionalLightShader.Parameters["lightViewProjection"].SetValue(directionalLight.View
                 * directionalLight.Projection);
-
+            
+            directionalLightShader.Parameters["shadowMapSize"].SetValue(shadowMapSize);
             directionalLightShader.Parameters["castShadow"].SetValue(directionalLight.CastShadow);
             if (directionalLight.CastShadow)
             {

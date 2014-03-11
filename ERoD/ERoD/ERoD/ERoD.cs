@@ -80,7 +80,6 @@ namespace ERoD
             graphics.PreferredBackBufferWidth = 1280;
 
             Content.RootDirectory = "Content";
-
             renderer = new DeferredRenderer(this);
         }
 
@@ -92,7 +91,7 @@ namespace ERoD
         /// </summary>
         protected override void Initialize()
         {
-            FreeCamera = new FreeCamera(this, 0.01f, 10000.0f, new Vector3(0, 20.0f, 0), 50.0f);
+            FreeCamera = new FreeCamera(this, 0.1f, 1000.0f, new Vector3(0, 20.0f, 0), 250.0f);
             this.Services.AddService(typeof(ICamera), FreeCamera);
             FreeCameraActive = true;
 
@@ -156,7 +155,7 @@ namespace ERoD
             
             space.ForceUpdater.Gravity = new BVector3(0, -9.82f, 0);
 
-            //manager.AddEffect(new MotionBlur(this));
+            manager.AddEffect(new MotionBlur(this));
 
             //Adds the test triggers
             //Vector3 pwrScale = new Vector3(2, 2, 2);

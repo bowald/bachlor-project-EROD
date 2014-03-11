@@ -17,8 +17,8 @@ namespace ERoD
     {
         private Space space;
         private ERoD erod;
-        private float rollSpeed = 0.7f;
-        private float maxSpeed = 50.0f;
+        private float rollSpeed = 0.9f;
+        private float maxSpeed = 100.0f;
 
 
         public Ship(Entity entity, Model model, Matrix world, Vector3 nodeRotation, Game game) 
