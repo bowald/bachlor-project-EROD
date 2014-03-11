@@ -68,8 +68,8 @@ namespace ERoD
         public ERoD()
         {
             graphics = new GraphicsDeviceManager(this);
-            graphics.PreferredBackBufferHeight = 720;
-            graphics.PreferredBackBufferWidth = 1280;
+            graphics.PreferredBackBufferHeight = 480;
+            graphics.PreferredBackBufferWidth = 800;
 
             Content.RootDirectory = "Content";
 
@@ -86,8 +86,9 @@ namespace ERoD
         {
             terrain = new HeightTerrain(this);
             Components.Add(terrain);
+            Services.AddService(typeof(ITerrain), terrain);
 
-            FreeCamera = new FreeCamera(this, 0.1f, 10000.0f, new Vector3(90, 85.0f, -160), 90.0f);
+            FreeCamera = new FreeCamera(this, 0.1f, 1000.0f, new Vector3(0, 90.0f, 100), 90.0f);
             this.Services.AddService(typeof(ICamera), FreeCamera);
             FreeCameraActive = true;
 
@@ -111,30 +112,35 @@ namespace ERoD
 
             //cubeModel = Content.Load<Model>("Models/cube");
 
-            //Model shipModel = Content.Load<Model>("Models/space_frigate");
-            //Model shipModelT = Content.Load<Model>("Models/space_frigate_tangentOn");
-            //Vector3 shipScale = new Vector3(0.07f, 0.07f, 0.07f);
-            //Vector3 shipPosition = new Vector3(0, 60, 0);
+            Model shipModel = Content.Load<Model>("Models/space_frigate");
+            Model shipModelT = Content.Load<Model>("Models/space_frigate_tangentOn");
+            Vector3 shipScale = new Vector3(0.02f, 0.02f, 0.02f);
+            Vector3 shipPosition = new Vector3(-5, 70, -5);
 
             //Model groundModel = Content.Load<Model>("Models/Z3B0_Arena_alphaVersion");
             //AffineTransform groundTransform = new AffineTransform(new BVector3(0.15f, 0.15f, 0.15f), new BQuaternion(0, 0, 0, 0), new BVector3(0, 0, 0));
 
-            //Effect objEffect = Content.Load<Effect>("Shaders/DeferredObjectRender");
+            Effect objEffect = Content.Load<Effect>("Shaders/DeferredObjectRender");
 
             space = new Space();
 
-            //// Fix ship loading
-            //Entity entity = LoadEntityObject(shipModel, shipPosition, shipScale);
-            //Ship ship = new Ship(entity, shipModelT, Matrix.CreateScale(shipScale), this);
-            //space.Add(entity);
-            //ship.Texture = Content.Load<Texture2D>("Textures/Ship2/diffuse");
-            //ship.SpecularMap = Content.Load<Texture2D>("Textures/Ship2/specular");
-            //ship.TextureEnabled = true;
-            //ship.standardEffect = objEffect;
-            //Components.Add(ship);
+            space.Add(((ITerrain)Services.GetService(typeof(ITerrain))).PhysicTerrain);
 
-            //ChaseCamera = new ChaseCamera(ship.Entity, new BEPUutilities.Vector3(0.0f, 5.0f, 0.0f), true, 20.0f, 0.1f, 2000.0f, this);
-            //((ChaseCamera)ChaseCamera).Initialize();
+
+            Console.WriteLine("Max {0}, Min {1}", terrain.PhysicTerrain.BoundingBox.Max, terrain.PhysicTerrain.BoundingBox.Min);
+
+            // Fix ship loading
+            Entity entity = LoadEntityObject(shipModel, shipPosition, shipScale);
+            Ship ship = new Ship(entity, shipModelT, Matrix.CreateScale(shipScale), this);
+            space.Add(entity);
+            ship.Texture = Content.Load<Texture2D>("Textures/Ship2/diffuse");
+            ship.SpecularMap = Content.Load<Texture2D>("Textures/Ship2/specular");
+            ship.TextureEnabled = true;
+            ship.standardEffect = objEffect;
+            Components.Add(ship);
+
+            ChaseCamera = new ChaseCamera(ship.Entity, new BEPUutilities.Vector3(0.0f, 5.0f, 0.0f), true, 20.0f, 0.1f, 2000.0f, this);
+            ((ChaseCamera)ChaseCamera).Initialize();
 
             //StaticObject sobj = LoadStaticObject(groundModel, groundTransform);
             //sobj.Texture = Content.Load<Texture2D>("Textures/Ground/diffuse");
@@ -222,6 +228,7 @@ namespace ERoD
                     Services.AddService(typeof(ICamera), ChaseCamera);
                 }
                 else
+
                 {
                     FreeCameraActive = true;
                     Services.AddService(typeof(ICamera), FreeCamera);
@@ -236,12 +243,30 @@ namespace ERoD
 
         HeightTerrain terrain;
 
+
+        int x = 0;
+        double totTime = 0;
+        double time2 = 0;
+
         /// <summary>
         /// This is called when the game should draw itself.
         /// </summary>
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
+
+            float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
+            totTime += dt;
+            if (totTime > 2)
+            {
+                time2 += dt;
+                x++;
+            }
+            if (time2 > 5)
+            {
+                Console.WriteLine(x / time2);
+            }
+
             renderer.Draw(gameTime);
             GraphicsDevice.Clear(Color.CornflowerBlue);
 

@@ -1,5 +1,6 @@
 ﻿using BEPUphysics;
 using BEPUphysics.Entities;
+using BEPUphysics.BroadPhaseEntries;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -19,7 +20,11 @@ namespace ERoD
         private ERoD erod;
         private float rollSpeed = 0.7f;
         private float maxSpeed = 50.0f;
-
+        
+        private StaticCollidable Terrain
+        {
+            get { return ((ITerrain)Game.Services.GetService(typeof(ITerrain))).PhysicTerrain; }
+        }
 
         public Ship(Entity entity, Model model, Matrix world, Game game) 
             : base(entity, model, world, game)
@@ -50,11 +55,11 @@ namespace ERoD
         /// <summary>
         /// Returns the distance from the ship to the ground.
         /// </summary>
-        private float distancefromG()
+        private float distancefromGround()
         {
             BEPUutilities.RayHit hit;
-            BRay ray = new BRay(Entity.Position,BVector3.Down);
-            erod.testVarGround.RayCast(ray, 100.0f, out hit);
+            BRay ray = new BRay(Entity.Position, BVector3.Down);
+            Terrain.RayCast(ray, 100.0f, out hit);
             return hit.T;
         }
         /// <summary>
@@ -63,7 +68,7 @@ namespace ERoD
         /// </summary>
         private String helper(BVector3 vec3){
             if (vec3 == Entity.OrientationMatrix.Forward)
-                return "forward";
+                return "Forward";
             if (vec3 == Entity.OrientationMatrix.Right)
                 return "Right";
             if (vec3 == Entity.OrientationMatrix.Left)
@@ -77,27 +82,24 @@ namespace ERoD
         private void dontCollide(BRay ray, float rayLength, float gamePadDirection)
         {
             BEPUutilities.RayHit hit;
-            if (erod.testVarGround.RayCast(ray, rayLength, out hit))
+            if (Terrain.RayCast(ray, rayLength, out hit))
             {
-                Debug.WriteLine(helper(ray.Direction));
                 BRay rayRight = new BRay(Entity.Position, Entity.OrientationMatrix.Forward - 0.3f * ray.Direction);
                 BRay rayLeft = new BRay(Entity.Position, Entity.OrientationMatrix.Forward + 0.3f * ray.Direction);
                 BEPUutilities.RayHit hitRight;
                 BEPUutilities.RayHit hitLeft;
-                Boolean rayCastHitRight = erod.testVarGround.RayCast(rayRight, 4.0f, out hitRight);
-                Boolean rayCastHitLeft = erod.testVarGround.RayCast(rayLeft, 4.0f, out hitLeft);
+                Boolean rayCastHitRight = Terrain.RayCast(rayRight, 4.0f, out hitRight);
+                Boolean rayCastHitLeft = Terrain.RayCast(rayLeft, 4.0f, out hitLeft);
                 float angularspeed = 0.5f;
                 float directionBump = 0.2f;
                 BVector3 velocityDirection = -ray.Direction;
                 if (rayCastHitRight && rayCastHitLeft)
                 {
-                    Debug.WriteLine("Both Left & Right");
                     if (hitRight.T > hitLeft.T)
                     {
                         //yaw = -yaw;
                         angularspeed = -angularspeed;
                         directionBump = -directionBump;
-                        Debug.WriteLine("Turning Left");
                     }
                     velocityDirection = Entity.OrientationMatrix.Forward * directionBump;
                 }
@@ -134,7 +136,7 @@ namespace ERoD
         /// </summary>
         /// <param name="idealHeight">Ships hovering distance from the ground</param>
         private bool fly(float idealHeight){
-            float h = distancefromG();
+            float h = distancefromGround();
             if ((idealHeight - h) > 0) {
                 Entity.Position = new BVector3(Entity.Position.X, Entity.Position.Y + (idealHeight - h), Entity.Position.Z);
                 return false;
@@ -217,6 +219,7 @@ namespace ERoD
             }
             return rollValue;
         }
+
         public override void Update(GameTime gameTime)
         {
             float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
@@ -232,6 +235,7 @@ namespace ERoD
                 downward = new BVector3(0, -16.0f, 0);
                 downward.Y -= gamePadState.ThumbSticks.Left.Y * 5.0f;
             }
+
             // Turning, strafing and rolling the ship
             if (gamePadState.ThumbSticks.Left.X != 0)
             {
@@ -261,7 +265,9 @@ namespace ERoD
 
             // Applies all speed
             Entity.LinearVelocity = shipStrafe + forward + downward;
-            
+
+
+
             // Checks for collitions
             dontCollide(new BRay(Entity.Position, Entity.OrientationMatrix.Forward), 4.0f, gamePadState.ThumbSticks.Left.X);
             dontCollide(new BRay(Entity.Position, Entity.OrientationMatrix.Left), 2.0f, gamePadState.ThumbSticks.Left.X);

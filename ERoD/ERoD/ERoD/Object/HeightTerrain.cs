@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using BEPUphysics.BroadPhaseEntries;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
@@ -7,7 +8,7 @@ using System.Text;
 
 namespace ERoD
 {
-    public class HeightTerrain : DrawableGameComponent, IDeferredRender
+    public class HeightTerrain : DrawableGameComponent, IDeferredRender, ITerrain
     {
 
         public ICamera Camera
@@ -26,6 +27,12 @@ namespace ERoD
         private int terrainHeight = 3;
 
         private float[,] heightData;
+
+        private Terrain cTerrain;
+        public StaticCollidable PhysicTerrain
+        {
+            get { return cTerrain; }
+        }
 
         Effect StandardEffect;
 
@@ -49,6 +56,16 @@ namespace ERoD
             SetUpIndices();
             CalculateNormals();
             CopyToBuffers();
+            CreatePhysicsTerrain();
+        }
+
+        private void CreatePhysicsTerrain()
+        {
+            cTerrain = new Terrain(heightData, new BEPUutilities.AffineTransform(
+                        new BEPUutilities.Vector3(1, 1, -1),
+                        BEPUutilities.Quaternion.Identity,
+                        new BEPUutilities.Vector3(-terrainWidth / 2, 0, terrainHeight / 2))
+                    );
         }
 
         public override void Initialize()
