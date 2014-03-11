@@ -45,10 +45,20 @@ namespace ERoD
         protected override void LoadContent()
         {
             StandardEffect = Game.Content.Load<Effect>("Shaders/HeightTerrainShader");
-            Texture2D heightMap = Game.Content.Load<Texture2D>("HeightMap_lowres/height");
+            Texture2D heightMap = Game.Content.Load<Texture2D>("HeightMap/height");
+            Texture2D heightMapLowRes = Game.Content.Load<Texture2D>("HeightMap_lowres/height");
             texture = Game.Content.Load<Texture2D>("HeightMap/color");
 
+
             LoadHeightData(heightMap);
+
+            SetUpVertices();
+            SetUpIndices();
+
+            CreatePhysicsTerrain();
+
+            // Load lower res
+            LoadHeightData(heightMapLowRes);
 
             worldMatrix = Matrix.CreateTranslation(new Vector3(-terrainWidth/2, 0, terrainHeight/2));
 
@@ -56,15 +66,14 @@ namespace ERoD
             SetUpIndices();
             CalculateNormals();
             CopyToBuffers();
-            CreatePhysicsTerrain();
         }
 
         private void CreatePhysicsTerrain()
         {
             cTerrain = new Terrain(heightData, new BEPUutilities.AffineTransform(
-                        new BEPUutilities.Vector3(1, 1, -1),
+                        new BEPUutilities.Vector3(0.25f, 1, -0.25f),
                         BEPUutilities.Quaternion.Identity,
-                        new BEPUutilities.Vector3(-terrainWidth / 2, 0, terrainHeight / 2))
+                        new BEPUutilities.Vector3(-terrainWidth / 8, 0, terrainHeight / 8))
                     );
         }
 
