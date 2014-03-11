@@ -10,7 +10,7 @@ namespace ERoD
 {
     public class BaseObject : DrawableGameComponent, IObject, IDeferredRender
     {
-        
+
         public ICamera Camera
         {
             get { return ((ICamera)Game.Services.GetService(typeof(ICamera))); }
@@ -35,8 +35,8 @@ namespace ERoD
 
         public Matrix Transform
         {
-            get { return transform;  }
-            set { transform = value;  }
+            get { return transform; }
+            set { transform = value; }
         }
 
         public Matrix World
@@ -69,7 +69,8 @@ namespace ERoD
             set { bumpMap = value; }
         }
 
-        protected BaseObject(Model model, Matrix transform, Game game) : base(game)
+        protected BaseObject(Model model, Matrix transform, Game game)
+            : base(game)
         {
             this.model = model;
             this.transform = transform;
@@ -104,7 +105,7 @@ namespace ERoD
                     {
                         effect.Parameters["textureEnabled"].SetValue(textureEnabled);
                     }
-                    if (effect.Parameters["diffuseTexture"] != null) 
+                    if (effect.Parameters["diffuseTexture"] != null)
                     {
                         effect.Parameters["diffuseTexture"].SetValue(diffuseTexture);
                     }

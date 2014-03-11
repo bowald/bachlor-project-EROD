@@ -114,7 +114,7 @@ namespace ERoD
 
             Model shipModel = Content.Load<Model>("Models/space_frigate");
             Model shipModelT = Content.Load<Model>("Models/space_frigate_tangentOn");
-            Vector3 shipScale = new Vector3(0.02f, 0.02f, 0.02f);
+            Vector3 shipScale = new Vector3(0.01f, 0.01f, 0.01f);
             Vector3 shipPosition = new Vector3(-5, 70, -5);
 
             //Model groundModel = Content.Load<Model>("Models/Z3B0_Arena_alphaVersion");
@@ -139,7 +139,7 @@ namespace ERoD
             ship.standardEffect = objEffect;
             Components.Add(ship);
 
-            ChaseCamera = new ChaseCamera(ship.Entity, new BEPUutilities.Vector3(0.0f, 5.0f, 0.0f), true, 20.0f, 0.1f, 2000.0f, this);
+            ChaseCamera = new ChaseCamera(ship.Entity, new BEPUutilities.Vector3(0.0f, 0.7f, 0.0f), true, 4.0f, 0.1f, 1000.0f, this);
             ((ChaseCamera)ChaseCamera).Initialize();
 
             //StaticObject sobj = LoadStaticObject(groundModel, groundTransform);
@@ -183,14 +183,12 @@ namespace ERoD
             return entity;
         }
 
-
         private StaticObject LoadStaticObject(Model model, AffineTransform transform) 
         {
             BVector3[] vertices;
             int[] indices;
             ModelDataExtractor.GetVerticesAndIndicesFromModel(model, out vertices, out indices);
             var mesh = new StaticMesh(vertices, indices, transform);
-            testVarGround = mesh;
             space.Add(mesh);
             return new StaticObject(model, MathConverter.Convert(mesh.WorldTransform.Matrix), this);
         }
