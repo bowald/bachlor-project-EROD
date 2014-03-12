@@ -27,7 +27,6 @@ namespace ERoD
             entity.BecomeKinematic();
             this.ID = ID;
             GameLogic gameLogic = (GameLogic)Game.Services.GetService(typeof(GameLogic));
-            gameLogic.CreateShip(ID);
         }
 
         /// <summary>

@@ -39,13 +39,12 @@ namespace ERoD
 
         private Space space;
 
+        // Boolean for drawing the debug frame
+        private bool RenderDebug;
         // Camera Variables
         public BaseCamera ChaseCamera;
         public BaseCamera FreeCamera;
         Boolean FreeCameraActive;
-
-        //Collision rules handler
-        CollisionHandler CollisionHandler;
 
         GameLogic GameLogic;
 
@@ -80,6 +79,8 @@ namespace ERoD
             Content.RootDirectory = "Content";
 
             renderer = new DeferredRenderer(this);
+
+            RenderDebug = false;
         }
 
         /// <summary>
@@ -94,7 +95,7 @@ namespace ERoD
             this.Services.AddService(typeof(ICamera), FreeCamera);
             FreeCameraActive = true;
 
-            GameLogic = new GameLogic(this);
+            GameLogic = new GameLogic(4, this);
             this.Services.AddService(typeof(GameLogic), GameLogic);
 
             base.Initialize();
@@ -106,9 +107,6 @@ namespace ERoD
         /// </summary>
         protected override void LoadContent()
         {
-
-            // Loading the collision rules handler
-            CollisionHandler = new CollisionHandler(this);
 
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
@@ -136,10 +134,8 @@ namespace ERoD
             ship.SpecularMap = Content.Load<Texture2D>("Textures/Ship2/specular");
             ship.TextureEnabled = true;
             ship.standardEffect = objEffect;
-            CollisionHandler.addShipGroup(ship);
+            GameLogic.CreateShip(ship);
             Components.Add(ship);
-
-            CollisionHandler.addShipGroup(ship);
 
             ChaseCamera = new ChaseCamera(ship.Entity, new BEPUutilities.Vector3(0.0f, 5.0f, 0.0f), true, 20.0f, 0.1f, 2000.0f, this);
             ((ChaseCamera)ChaseCamera).Initialize();
@@ -157,42 +153,13 @@ namespace ERoD
             postProcesses.Add(new MotionBlur(this));
 
             //Adds the test triggers
-            Vector3 pwrScale = new Vector3(20, 20, 2);
+            //Vector3 pwrScale = new Vector3(20, 20, 2);
 
-            Vector3 pwrLocation1 = new Vector3(75, 27.0f, 114);
-            Vector3 pwrLocation2 = new Vector3(-114, 4.0f, -141); 
-            Vector3 pwrLocation3 = new Vector3(120, 4.0f, -130);                 
-            Vector3 pwrLocation4 = new Vector3(40, 4, -35);
+            //Vector3 pwrLocation1 = new Vector3(75, 27.0f, 114);
+            //Vector3 pwrLocation2 = new Vector3(-114, 4.0f, -141); 
+            //Vector3 pwrLocation3 = new Vector3(120, 4.0f, -130);                 
+            //Vector3 pwrLocation4 = new Vector3(40, 4, -35);
 
-            Entity entity1 = LoadEntityObject(cubeModel, pwrLocation1, pwrScale);
-            Entity entity2 = LoadEntityObject(cubeModel, pwrLocation2, pwrScale);
-            Entity entity3 = LoadEntityObject(cubeModel, pwrLocation3, pwrScale);
-            Entity entity4 = LoadEntityObject(cubeModel, pwrLocation4, pwrScale);
-            BEPUutilities.Quaternion AddRot = BEPUutilities.Quaternion.CreateFromAxisAngle(BVector3.Up, -90);
-            entity4.Orientation *= AddRot;
-            entity1.Orientation *= AddRot;
-
-            LapTrigger trigger1 = new LapTrigger(1, entity1, cubeModel, Matrix.CreateScale(pwrScale), Vector3.Zero, this);
-            LapTrigger trigger2 = new LapTrigger(2, entity2, cubeModel, Matrix.CreateScale(pwrScale), Vector3.Zero, this);
-            LapTrigger trigger3 = new LapTrigger(3, entity3, cubeModel, Matrix.CreateScale(pwrScale), Vector3.Zero, this);
-            LapTrigger trigger4 = new LapTrigger(4, entity4, cubeModel, Matrix.CreateScale(pwrScale), Vector3.Zero, this);
- 
-            trigger1.standardEffect = objEffect;
-            trigger2.standardEffect = objEffect;
-            trigger3.standardEffect = objEffect;
-            trigger4.standardEffect = objEffect;
-            CollisionHandler.addTriggerGroup(trigger1);
-            CollisionHandler.addTriggerGroup(trigger2);
-            CollisionHandler.addTriggerGroup(trigger3);
-            CollisionHandler.addTriggerGroup(trigger4);
-            space.Add(entity1);
-            space.Add(entity2);
-            space.Add(entity3);
-            space.Add(entity4);
-            Components.Add(trigger1);
-            Components.Add(trigger2);
-            Components.Add(trigger3);
-            Components.Add(trigger4);
 
             renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(50, 250, 250), Vector3.Zero, Color.LightYellow, 1.0f, true));
 
@@ -271,6 +238,11 @@ namespace ERoD
                 }
             }
 
+            if ((GamePadState.Buttons.Y == ButtonState.Pressed) && (LastGamePadState.Buttons.Y == ButtonState.Released))
+            {
+                RenderDebug = !RenderDebug;
+            }
+
             space.Update();
 
             LastGamePadState = GamePadState;
@@ -298,7 +270,10 @@ namespace ERoD
             //    postProcess.Draw(gameTime);
             //}
 
-            renderer.RenderDebug();
+            if (RenderDebug)
+            {
+                renderer.RenderDebug();
+            }
         }
     }
 }

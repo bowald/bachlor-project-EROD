@@ -19,7 +19,7 @@ namespace ERoD
 
         GameLogic gameLogic;
 
-        Dictionary<Entity, EntityObject> Triggers;
+        Dictionary<Entity, EntityObject> Checkpoints;
         Dictionary<Entity, EntityObject> Powerups;
         Dictionary<Entity, EntityObject> Ships;
 
@@ -41,7 +41,7 @@ namespace ERoD
 
             // Maps all trigger-entities and all powerup-entities together with their respective entityobjects.
             // Necessary when you want to remove an entityobject from the game
-            Triggers = new Dictionary<Entity, EntityObject>();
+            Checkpoints = new Dictionary<Entity, EntityObject>();
             Powerups = new Dictionary<Entity, EntityObject>();
             Ships = new Dictionary<Entity, EntityObject>();
 
@@ -72,13 +72,13 @@ namespace ERoD
 
         // Add an entityobject to the "trigger" collision group
         // Also sets its tag to be equal to its entityobject
-        public void addTriggerGroup(LapTrigger trigger)
+        public void addTriggerGroup(EntityObject trigger)
         {
             Debug.WriteLine("Added the trigger to the collision group!");
             trigger.Entity.CollisionInformation.Tag = trigger;
             trigger.Entity.CollisionInformation.CollisionRules.Group = triggerGroup;
             trigger.Entity.CollisionInformation.Events.PairCreated += TriggerPairCreated;
-            Triggers.Add(trigger.Entity, trigger);
+            Checkpoints.Add(trigger.Entity, trigger);
         }
 
         // Add an entityobject to the "powerup" collision group
@@ -95,12 +95,7 @@ namespace ERoD
         {
             if (other.Tag is Ship)
             {
-                Ship ship = (Ship)other.Tag;
-                LapTrigger lapTrigger = (LapTrigger)sender.Tag;
-
                 Debug.WriteLine("A ship hit the trigger!");
-                // If it is a trigger, increment the lap counter.
-                gameLogic.IncrementLap(ship.ID, lapTrigger.ID);
             }       
         }
 

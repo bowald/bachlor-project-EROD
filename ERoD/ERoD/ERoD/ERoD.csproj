@@ -102,7 +102,6 @@
     <Compile Include="Object\ObjectConstants.cs" />
     <Compile Include="Object\Ship.cs" />
     <Compile Include="Object\StaticObject.cs" />
-    <Compile Include="Object\LapTrigger.cs" />
     <Compile Include="PostProcess\MotionBlur.cs" />
     <Compile Include="PostProcess\PostProcess.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
