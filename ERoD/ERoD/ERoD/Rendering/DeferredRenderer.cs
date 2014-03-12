@@ -21,6 +21,7 @@ namespace ERoD
         public RenderTarget2D normalMap;
         public RenderTarget2D SGRMap;
         public RenderTarget2D lightMap;
+        public RenderTarget2D SSAOMap;
         public RenderTarget2D finalBackBuffer;
         //public RenderTarget2D blendedDepthBuffer;
 
@@ -33,6 +34,7 @@ namespace ERoD
         Effect directionalLightShader;
         Effect deferredShader;
         Effect deferredShadowShader;
+        Effect SSAOShader;
 
         public List<IPointLight> PointLights = new List<IPointLight>();
         public List<IDirectionalLight> DirectionalLights = new List<IDirectionalLight>();
@@ -70,6 +72,9 @@ namespace ERoD
             lightMap = new RenderTarget2D(GraphicsDevice, width, height, false,
                 SurfaceFormat.Color, DepthFormat.None);
 
+            SSAOMap = new RenderTarget2D(GraphicsDevice, width, height, false,
+                SurfaceFormat.Color, DepthFormat.None);
+
             finalBackBuffer = new RenderTarget2D(GraphicsDevice, width, height, false,
                 SurfaceFormat.Color, DepthFormat.None);
 
@@ -81,11 +86,12 @@ namespace ERoD
             pointLightShader = Game.Content.Load<Effect>("Shaders/PointLightShader");
             deferredShader = Game.Content.Load<Effect>("Shaders/DeferredRender");
             deferredShadowShader = Game.Content.Load<Effect>("Shaders/DeferredShadowShader");
+            SSAOShader = Game.Content.Load<Effect>("Shaders/SSAO");
 
             // Debug depth renderer
             DepthRender = Game.Content.Load<Effect>("Shaders/depthRender");
-            w = GraphicsDevice.Viewport.Width / 5;
-            h = (int) (GraphicsDevice.Viewport.Height / 3.5f);
+            w = GraphicsDevice.Viewport.Width / 6;
+            h = GraphicsDevice.Viewport.Height / 4;
 
             pointLightMesh = Game.Content.Load<Model>("Models/lightmesh");
             pointLightMesh.Meshes[0].MeshParts[0].Effect = pointLightShader;
@@ -122,6 +128,9 @@ namespace ERoD
                     ((IDeferredRender)component).Draw(gameTime);
                 }
             }
+            GraphicsDevice.SetRenderTarget(SSAOMap);
+            GraphicsDevice.Clear(Color.Transparent);
+            RenderSSAO();
 
             GraphicsDevice.SetRenderTarget(null);
 
@@ -129,7 +138,6 @@ namespace ERoD
             DeferredLightning(gameTime);
 
             GraphicsDevice.SetRenderTargets(finalBackBuffer);
-
             DrawDeferred();
 
             GraphicsDevice.SetRenderTarget(null);
@@ -191,6 +199,17 @@ namespace ERoD
             }
 
             GraphicsDevice.SetRenderTarget(null);
+        }
+
+        private void RenderSSAO()
+        {
+
+            SSAOShader.Parameters["halfPixel"].SetValue(halfPixel);
+            SSAOShader.Parameters["normalMap"].SetValue(normalMap);
+            SSAOShader.Parameters["depthMap"].SetValue(depthMap);
+            SSAOShader.Parameters["viewProjectionInv"].SetValue(Matrix.Invert(Camera.View 
+                * Camera.Projection));
+            SSAOShader.Techniques[0].Passes[0].Apply();
         }
 
         private void RenderDirectionalLight(IDirectionalLight directionalLight)
@@ -292,6 +311,7 @@ namespace ERoD
 
             spriteBatch.Draw(colorMap, new Rectangle(1, 1, w, h), Color.White);
             spriteBatch.Draw(SGRMap, new Rectangle((w * 4) + 4, 1, w, h), Color.White);
+            spriteBatch.Draw(SSAOMap, new Rectangle((w * 5) + 4, 1, w, h), Color.White);
             spriteBatch.Draw(normalMap, new Rectangle(w + 2, 1, w, h), Color.White);
 
             GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
