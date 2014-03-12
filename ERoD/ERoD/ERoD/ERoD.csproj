@@ -94,11 +94,13 @@
     <Compile Include="Interface\IObject.cs" />
     <Compile Include="Interface\IDeferredRender.cs" />
     <Compile Include="Helper\ModelDataExtractor.cs" />
+    <Compile Include="Interface\ITerrain.cs" />
     <Compile Include="Logic\GameLogic.cs" />
     <Compile Include="Light\DirectionalLight.cs" />
     <Compile Include="Object\BaseObject.cs" />
     <Compile Include="Object\EntityObject.cs" />
     <Compile Include="Object\Ground.cs" />
+    <Compile Include="Object\HeightTerrain.cs" />
     <Compile Include="Object\ObjectConstants.cs" />
     <Compile Include="Object\Ship.cs" />
     <Compile Include="Object\StaticObject.cs" />

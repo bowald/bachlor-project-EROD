@@ -1,5 +1,6 @@
 ﻿using BEPUphysics;
 using BEPUphysics.Entities;
+using BEPUphysics.BroadPhaseEntries;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -14,19 +15,16 @@ using BVector3 = BEPUutilities.Vector3;
 namespace ERoD
 {
     class Ship : EntityObject
-    {
-        private Space space;
-        private ERoD erod;
-        public int ID { get; set; }
-
-        public Ship(int ID, Entity entity, Model model, Matrix world, Vector3 nodeRotation, Game game) 
-            : base(entity, model, world , nodeRotation, game)
+    {        
+        private StaticCollidable Terrain
         {
-            erod = game as ERoD;
-            space = erod.Space;
+            get { return ((ITerrain)Game.Services.GetService(typeof(ITerrain))).PhysicTerrain; }
+        }
+
+        public Ship(Entity entity, Model model, Matrix world, Game game) 
+            : base(entity, model, world, game)
+        {
             entity.BecomeKinematic();
-            this.ID = ID;
-            GameLogic gameLogic = (GameLogic)Game.Services.GetService(typeof(GameLogic));
         }
 
         /// <summary>
@@ -51,11 +49,11 @@ namespace ERoD
         /// <summary>
         /// Returns the distance from the ship to the ground.
         /// </summary>
-        private float distancefromG()
+        private float distancefromGround()
         {
             BEPUutilities.RayHit hit;
-            BRay ray = new BRay(Entity.Position,BVector3.Down);
-            erod.testVarGround.RayCast(ray, 100.0f, out hit);
+            BRay ray = new BRay(Entity.Position, BVector3.Down);
+            Terrain.RayCast(ray, 100.0f, out hit);
             return hit.T;
         }
         /// <summary>
@@ -64,7 +62,7 @@ namespace ERoD
         /// </summary>
         private String helper(BVector3 vec3){
             if (vec3 == Entity.OrientationMatrix.Forward)
-                return "forward";
+                return "Forward";
             if (vec3 == Entity.OrientationMatrix.Right)
                 return "Right";
             if (vec3 == Entity.OrientationMatrix.Left)
@@ -78,16 +76,18 @@ namespace ERoD
         private void dontCollide(BRay ray, float rayLength, float gamePadDirection)
         {
             BEPUutilities.RayHit hit;
-            if (erod.testVarGround.RayCast(ray, rayLength, out hit))
+            if (Terrain.RayCast(ray, rayLength, out hit))
             {
                 BRay rayRight = new BRay(Entity.Position, Entity.OrientationMatrix.Forward - 0.3f * ray.Direction);
                 BRay rayLeft = new BRay(Entity.Position, Entity.OrientationMatrix.Forward + 0.3f * ray.Direction);
                 BEPUutilities.RayHit hitRight;
                 BEPUutilities.RayHit hitLeft;
-                Boolean rayCastHitRight = erod.testVarGround.RayCast(rayRight, ObjectConstants.RayLengthSide, out hitRight);
-                Boolean rayCastHitLeft = erod.testVarGround.RayCast(rayLeft, ObjectConstants.RayLengthSide, out hitLeft);
+
+                Boolean rayCastHitRight = Terrain.RayCast(rayRight, ObjectConstants.RayLengthSide, out hitRight);
+                Boolean rayCastHitLeft = Terrain.RayCast(rayLeft, ObjectConstants.RayLengthSide, out hitLeft);
                 float angularspeed = ObjectConstants.AngularSpeed;
                 float directionBump = ObjectConstants.DirectionBump;
+
                 BVector3 velocityDirection = -ray.Direction;
                 if (rayCastHitRight && rayCastHitLeft)
                 {
@@ -128,17 +128,16 @@ namespace ERoD
         /// <summary>
         /// Returns true if its above the ideal heigth
         /// </summary>
+        /// <param name="idealHeight">Ships hovering distance from the ground</param>
         private bool fly(){
-            float h = distancefromG();
+            float h = distancefromGround();
             if ((ObjectConstants.IdealHeight - h) > 0) {
                 Entity.Position = new BVector3(Entity.Position.X, Entity.Position.Y + (ObjectConstants.IdealHeight - h), Entity.Position.Z);
                 return false;
             }
-            else
-            {
-                return true;
-            }
+            return true;
         }
+
         /// <summary>
         /// Checks if ship is rolling right
         /// </summary>
@@ -148,6 +147,7 @@ namespace ERoD
             BVector3 Left = Entity.Position + Entity.OrientationMatrix.Left;
             return Right.Y < Left.Y;
         }
+
         /// <summary>
         /// Returns the ships new velocity.
         /// Used to make the ship accelerate.
@@ -212,6 +212,7 @@ namespace ERoD
             }
             return rollValue;
         }
+
         public override void Update(GameTime gameTime)
         {
             float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
@@ -228,6 +229,7 @@ namespace ERoD
                 downward = new BVector3(0, -ObjectConstants.FallingSpeed, 0);
                 downward.Y -= gamePadState.ThumbSticks.Left.Y * ObjectConstants.ControllSpeed;
             }
+
             // Turning, strafing and rolling the ship
             if (gamePadState.ThumbSticks.Left.X != 0)
             {
@@ -257,11 +259,13 @@ namespace ERoD
 
             // Applies all speed
             Entity.LinearVelocity = shipStrafe + forward + downward;
-            
+
+
+
             // Checks for collitions
-            dontCollide(new BRay(Entity.Position, Entity.OrientationMatrix.Forward), 4.0f, gamePadState.ThumbSticks.Left.X);
-            dontCollide(new BRay(Entity.Position, Entity.OrientationMatrix.Left), 2.0f, gamePadState.ThumbSticks.Left.X);
-            dontCollide(new BRay(Entity.Position, Entity.OrientationMatrix.Right), 2.0f, gamePadState.ThumbSticks.Left.X);
+            dontCollide(new BRay(Entity.Position, Entity.OrientationMatrix.Forward), ObjectConstants.ForwardCollideLength, gamePadState.ThumbSticks.Left.X);
+            dontCollide(new BRay(Entity.Position, Entity.OrientationMatrix.Left), ObjectConstants.SideCollideLength, gamePadState.ThumbSticks.Left.X);
+            dontCollide(new BRay(Entity.Position, Entity.OrientationMatrix.Right), ObjectConstants.SideCollideLength, gamePadState.ThumbSticks.Left.X);
             base.Update(gameTime);
         }
     }

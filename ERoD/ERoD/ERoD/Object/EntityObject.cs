@@ -15,9 +15,9 @@ namespace ERoD
     {
         public Entity Entity;
 
-        public EntityObject(Entity entity, Model model, Matrix world, Vector3 nodeRotation, Game game) 
-            : base(model, world, nodeRotation, game)
-        {   
+        public EntityObject(Entity entity, Model model, Matrix world, Game game) 
+            : base(model, world, game)
+        {
             this.Entity = entity;
         }
 
