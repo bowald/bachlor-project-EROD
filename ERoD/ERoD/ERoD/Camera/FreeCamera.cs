@@ -102,6 +102,8 @@ namespace ERoD
             }
             world = Matrix.CreateFromQuaternion(rotation) * Matrix.CreateTranslation(position);
             view = Matrix.Invert(World);
+            Frustum.Matrix = view * projection;
+            
 
             base.Update(gameTime);
         }

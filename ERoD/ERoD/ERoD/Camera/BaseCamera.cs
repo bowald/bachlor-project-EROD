@@ -15,6 +15,7 @@ namespace ERoD
         protected Quaternion rotation;
         protected Matrix world;
         protected Viewport viewport;
+        private BoundingFrustum frustum = new BoundingFrustum(Matrix.Identity); 
         protected float nearPlane;
         protected float farPlane;
 
@@ -52,6 +53,23 @@ namespace ERoD
             set { viewport = value; }
         }
 
+        public BoundingFrustum Frustum
+        {
+            get { return frustum; }
+            set { frustum = value; }
+        }
+        public float NearPlane
+        {
+            get { return nearPlane; }
+            set { nearPlane = value; }
+        }
+
+        public float FarPlane
+        {
+            get { return farPlane; }
+            set { farPlane = value; }
+        }
+
         protected BaseCamera(Game game, float nearPlane, float farPlane) : base(game)
         {
             this.nearPlane = nearPlane;
@@ -80,5 +98,7 @@ namespace ERoD
         //    base.Dispose();
         //    Game.Components.Remove(this);
         //}
+
+        
     }
 }

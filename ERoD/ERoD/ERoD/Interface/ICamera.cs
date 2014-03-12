@@ -14,6 +14,9 @@ namespace ERoD
         Vector3 Position { get; set; }
         Quaternion Rotation { get; set; }
         Matrix World { get; }
+        BoundingFrustum Frustum { get; }
         Viewport Viewport { get; set; }
+        float NearPlane { get; set; }
+        float FarPlane { get; set; }
     }
 }

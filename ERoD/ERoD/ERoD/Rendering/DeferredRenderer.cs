@@ -16,6 +16,8 @@ namespace ERoD
             get { return ((ICamera)Game.Services.GetService(typeof(ICamera))); }
         }
 
+        public ShadowRenderer shadowRenderer;
+
         public RenderTarget2D depthMap;
         public RenderTarget2D colorMap;
         public RenderTarget2D normalMap;
@@ -32,7 +34,12 @@ namespace ERoD
         Effect pointLightShader;
         Effect directionalLightShader;
         Effect deferredShader;
-        Effect deferredShadowShader;
+        protected Effect deferredShadowShader;
+
+        public Effect DeferredShadowShader
+        {
+            get { return deferredShadowShader; }
+        }
 
         public List<IPointLight> PointLights = new List<IPointLight>();
         public List<IDirectionalLight> DirectionalLights = new List<IDirectionalLight>();
@@ -46,6 +53,7 @@ namespace ERoD
         {
             game.Components.Add(this);
             sceneQuad = new ScreenQuad(game);
+            
         }
 
         protected override void LoadContent()
@@ -94,6 +102,8 @@ namespace ERoD
             pointLightMesh.CopyAbsoluteBoneTransformsTo(boneTransforms);
 
             spriteBatch = new SpriteBatch(Game.GraphicsDevice);
+            shadowRenderer = new ShadowRenderer(this);
+            shadowRenderer.InitFrame();
         }
 
         public override void Initialize()
@@ -139,33 +149,20 @@ namespace ERoD
         {
             List<ILight> lights = new List<ILight>(DirectionalLights.Where(entity => entity.Intensity > 0 && entity.Color != Color.Black && entity.CastShadow));
 
-            List<ILight> needShadowMaps = new List<ILight>(lights.Where(entity => entity.ShadowMap == null));
-
-            int width = GraphicsDevice.Viewport.Width;
-            int height = GraphicsDevice.Viewport.Height;
+            List<ILight> needShadowMaps = new List<ILight>(lights.Where(entity => entity.CascadedShadowMap == null));
 
             foreach (ILight light in needShadowMaps)
             {
-                light.ShadowMap = new RenderTarget2D(GraphicsDevice, shadowMapSize, shadowMapSize,
-                    false, SurfaceFormat.Single, DepthFormat.Depth24Stencil8);
+                light.CascadedShadowMap = shadowRenderer.GetFreeCascadeShadowMap();
+                light.CastShadow = light.CascadedShadowMap != null;
+                //light.ShadowMap = new RenderTarget2D(GraphicsDevice, shadowMapSize, shadowMapSize,
+                //    false, SurfaceFormat.Single, DepthFormat.Depth24Stencil8);
                 //light.SoftShadowMap = new RenderTarget2D(GraphicsDevice, width, height, false, SurfaceFormat.Color, DepthFormat.None);
             }
 
             foreach (ILight light in lights)
             {
-                // Clear shadow map..
-                GraphicsDevice.SetRenderTarget(light.ShadowMap);
-                GraphicsDevice.Clear(Color.Transparent);
-
-                deferredShadowShader.Parameters["vp"].SetValue(light.View * light.Projection);
-
-                foreach (GameComponent component in Game.Components)
-                {
-                    if (component is IDeferredRender)
-                    {
-                        ((IDeferredRender)component).Draw(gameTime, deferredShadowShader);
-                    }
-                }
+                shadowRenderer.GenerateShadowTextureDirectionalLight(this, Game, light, Camera, gameTime);
             }
         }
 
@@ -205,17 +202,25 @@ namespace ERoD
             directionalLightShader.Parameters["depthMap"].SetValue(depthMap);
             directionalLightShader.Parameters["power"].SetValue(directionalLight.Intensity);
 
+            Vector2 shadowMapPixelSize = new Vector2(0.5f / directionalLight.CascadedShadowMap.Texture.Width, 0.5f / directionalLight.CascadedShadowMap.Texture.Height);
+            directionalLightShader.Parameters["ShadowMapPixelSize"].SetValue(shadowMapPixelSize);
+            directionalLightShader.Parameters["ShadowMapSize"].SetValue(new Vector2(directionalLight.CascadedShadowMap.Texture.Width, directionalLight.CascadedShadowMap.Texture.Height));
+            directionalLightShader.Parameters["shadowMap"].SetValue(directionalLight.CascadedShadowMap.Texture);
+
+            directionalLightShader.Parameters["ClipPlanes"].SetValue(directionalLight.CascadedShadowMap.LightClipPlanes);
+            directionalLightShader.Parameters["MatLightViewProj"].SetValue(directionalLight.CascadedShadowMap.LightViewProjectionMatrices);
+
+            Vector3 cascadeDistances = Vector3.Zero;
+            cascadeDistances.X = directionalLight.CascadedShadowMap.LightClipPlanes[0].X;
+            cascadeDistances.Y = directionalLight.CascadedShadowMap.LightClipPlanes[1].X;
+            cascadeDistances.Z = directionalLight.CascadedShadowMap.LightClipPlanes[2].X;
+            directionalLightShader.Parameters["CascadeDistances"].SetValue(cascadeDistances);
+
             directionalLightShader.Parameters["cameraPosition"].SetValue(Camera.Position);
             directionalLightShader.Parameters["viewProjectionInv"].SetValue(Matrix.Invert(Camera.View 
                 * Camera.Projection));
             directionalLightShader.Parameters["lightViewProjection"].SetValue(directionalLight.View
                 * directionalLight.Projection);
-
-            directionalLightShader.Parameters["castShadow"].SetValue(directionalLight.CastShadow);
-            if (directionalLight.CastShadow)
-            {
-                directionalLightShader.Parameters["shadowMap"].SetValue(directionalLight.ShadowMap);
-            }
 
             directionalLightShader.Techniques[0].Passes[0].Apply();
 

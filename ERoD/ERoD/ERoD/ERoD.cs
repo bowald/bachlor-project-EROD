@@ -88,7 +88,7 @@ namespace ERoD
             Components.Add(terrain);
             Services.AddService(typeof(ITerrain), terrain);
 
-            FreeCamera = new FreeCamera(this, 0.1f, 1000.0f, new Vector3(0, 90.0f, 100), 90.0f);
+            FreeCamera = new FreeCamera(this, 0.1f, 1000.0f, new Vector3(0, 90.0f, 100.0f), 90.0f);
             this.Services.AddService(typeof(ICamera), FreeCamera);
             FreeCameraActive = true;
 
@@ -151,6 +151,8 @@ namespace ERoD
             //Components.Add(sobj);
             
             space.ForceUpdater.Gravity = new BVector3(0, -9.82f, 0);
+
+
 
             renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(50, 250, 250), Vector3.Zero, Color.LightYellow, 0.5f, true));
 
