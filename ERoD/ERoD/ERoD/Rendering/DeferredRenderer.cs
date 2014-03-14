@@ -208,7 +208,7 @@ namespace ERoD
         private void RenderSSAO()
         {
             float rad = .1f;
-            float intensity = 1f;//2.5f;
+            float intensity = 1.0f;//2.5f;
             float scale = .5f;//5;
             float bias = 1f;
 
@@ -309,6 +309,7 @@ namespace ERoD
             deferredShader.Parameters["halfPixel"].SetValue(halfPixel);
             deferredShader.Parameters["colorMap"].SetValue(colorMap);
             deferredShader.Parameters["lightMap"].SetValue(lightMap);
+            deferredShader.Parameters["SSAOMap"].SetValue(SSAOMap);
 
             deferredShader.CurrentTechnique.Passes[0].Apply();
 

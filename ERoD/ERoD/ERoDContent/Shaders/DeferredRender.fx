@@ -23,6 +23,16 @@ sampler lightSampler = sampler_state
 	MinFilter = LINEAR;
 	Mipfilter = LINEAR;
 };
+texture SSAOMap;
+sampler SSAOSampler = sampler_state
+{
+	Texture = (SSAOMap);
+	AddressU = CLAMP;
+	AddressV = CLAMP;
+	MagFilter = LINEAR;
+	MinFilter = LINEAR;
+	Mipfilter = LINEAR;
+};
 
 float2 halfPixel;
 
@@ -52,6 +62,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 {
 	float4 color = tex2D(colorSampler, input.TexCoord);
 	color *= (tex2D(lightSampler, input.TexCoord) + AmbientMag);
+	color *= tex2D(SSAOSampler, input.TexCoord);
 
     return color;
 }
