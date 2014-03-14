@@ -82,6 +82,7 @@ float3 getPosition(in float2 uv)
 	worldPos /= worldPos.w;
 	return worldPos.xyz;
 
+
 }
 
 float3 getNormal(in float2 uv)

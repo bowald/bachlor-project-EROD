@@ -36,6 +36,8 @@ namespace ERoD
         Effect deferredShadowShader;
         Effect SSAOShader;
 
+        Texture2D randomTexture;
+
         public List<IPointLight> PointLights = new List<IPointLight>();
         public List<IDirectionalLight> DirectionalLights = new List<IDirectionalLight>();
 
@@ -87,6 +89,8 @@ namespace ERoD
             deferredShader = Game.Content.Load<Effect>("Shaders/DeferredRender");
             deferredShadowShader = Game.Content.Load<Effect>("Shaders/DeferredShadowShader");
             SSAOShader = Game.Content.Load<Effect>("Shaders/SSAO");
+
+            randomTexture = Game.Content.Load<Texture2D>("Textures/random");
 
             // Debug depth renderer
             DepthRender = Game.Content.Load<Effect>("Shaders/depthRender");
@@ -203,13 +207,27 @@ namespace ERoD
 
         private void RenderSSAO()
         {
+            float rad = .1f;
+            float intensity = 1f;//2.5f;
+            float scale = .5f;//5;
+            float bias = 1f;
 
             SSAOShader.Parameters["halfPixel"].SetValue(halfPixel);
             SSAOShader.Parameters["normalMap"].SetValue(normalMap);
             SSAOShader.Parameters["depthMap"].SetValue(depthMap);
+            SSAOShader.Parameters["screenSize"].SetValue(new Vector2(Camera.Viewport.Width, Camera.Viewport.Height));
+            SSAOShader.Parameters["random"].SetValue(randomTexture);
+            SSAOShader.Parameters["random_size"].SetValue(new Vector2(randomTexture.Width,randomTexture.Height));
             SSAOShader.Parameters["viewProjectionInv"].SetValue(Matrix.Invert(Camera.View 
                 * Camera.Projection));
+            SSAOShader.Parameters["g_sample_rad"].SetValue(rad);
+            SSAOShader.Parameters["g_intensity"].SetValue(intensity);
+            SSAOShader.Parameters["g_scale"].SetValue(scale);
+            SSAOShader.Parameters["g_bias"].SetValue(bias);
             SSAOShader.Techniques[0].Passes[0].Apply();
+
+            sceneQuad.Draw(-Vector2.One, Vector2.One);
+            
         }
 
         private void RenderDirectionalLight(IDirectionalLight directionalLight)
