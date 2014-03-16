@@ -163,6 +163,11 @@ namespace ERoD
                 {
                     if (component is IDeferredRender)
                     {
+                        if (component is CDLODTree)
+                        {
+                            // Skip if CDLODTree for the moment.
+                            continue;
+                        }
                         ((IDeferredRender)component).Draw(gameTime, deferredShadowShader);
                     }
                 }

@@ -104,6 +104,8 @@
     <Compile Include="Object\ObjectConstants.cs" />
     <Compile Include="Object\Ship.cs" />
     <Compile Include="Object\StaticObject.cs" />
+    <Compile Include="Object\Terrain\CDLODTree.cs" />
+    <Compile Include="Object\Terrain\QuadTree.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="ERoD.cs" />
@@ -111,6 +113,7 @@
     <Compile Include="Light\BaseLight.cs" />
     <Compile Include="Light\PointLight.cs" />
     <Compile Include="Rendering\ScreenQuad.cs" />
+    <Compile Include="Rendering\VertexType.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Game.ico" />
