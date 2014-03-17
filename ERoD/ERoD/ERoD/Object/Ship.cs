@@ -15,8 +15,7 @@ using BVector3 = BEPUutilities.Vector3;
 namespace ERoD
 {
     class Ship : EntityObject
-    {
-        
+    {        
         private StaticCollidable Terrain
         {
             get { return ((ITerrain)Game.Services.GetService(typeof(ITerrain))).PhysicTerrain; }
@@ -27,6 +26,7 @@ namespace ERoD
         {
             entity.BecomeKinematic();
         }
+
         /// <summary>
         /// Returns the strafeing velocity
         /// </summary>
@@ -221,6 +221,7 @@ namespace ERoD
             BVector3 downward = BVector3.Zero;
             GamePadState gamePadState = ((ERoD)Game).GamePadState;
             Single roll = 0;
+            //Debug.WriteLine(Entity.Position);
 
             //Aircontroll
             if (fly())
