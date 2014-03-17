@@ -105,7 +105,7 @@ struct PixelShaderOutput
 	float4 SGR : COLOR3;
 };
 
-PixelShaderOutput PixelShaderFunction(VertexShaderOutput input) : COLOR0
+PixelShaderOutput PixelShaderFunction(VertexShaderOutput input)
 {
 	PixelShaderOutput output = (PixelShaderOutput)0;
 
