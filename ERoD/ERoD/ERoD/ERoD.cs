@@ -117,6 +117,14 @@ namespace ERoD
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
+            // Create a new SpriteBatch, which can be used to draw textures.
+            spriteBatch = new SpriteBatch(GraphicsDevice);
+            font = Content.Load<SpriteFont>("Sprites/Lap1");
+
+            // TODO: Load your game content here            
+            fontPos = new Microsoft.Xna.Framework.Vector2(graphics.GraphicsDevice.Viewport.Width / 2,
+                graphics.GraphicsDevice.Viewport.Height / 2);
+
             Model cubeModel = Content.Load<Model>("Models/cube");
 
             Model shipModel = Content.Load<Model>("Models/space_frigate");
@@ -180,7 +188,7 @@ namespace ERoD
             {
                 p.BasicEffect = effect;
                 p.Model = model;
-                Components.Add(p);
+                //Components.Add(p); //Uncomment to draw checkpoints
             }
         }
 
@@ -262,6 +270,20 @@ namespace ERoD
             base.Update(gameTime);
         }
 
+        SpriteFont font;
+        Microsoft.Xna.Framework.Vector2 fontPos;
+        private string message = "";
+        private float startTime;
+        private float endTime = -1;
+        public void DisplayMessage(string message, float seconds)
+        {
+            this.message = message;
+            endTime = startTime + seconds;
+            Console.WriteLine(startTime);
+            Console.WriteLine(endTime);
+            Console.WriteLine("---");
+        }
+
         int x = 0;
         double totTime = 0;
         double time2 = 0;
@@ -274,6 +296,7 @@ namespace ERoD
         {
 
             float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
+            startTime = (float)gameTime.TotalGameTime.TotalSeconds; 
             totTime += dt;
             if (totTime > 2)
             {
@@ -294,6 +317,19 @@ namespace ERoD
             spriteBatch.Draw(renderer.finalBackBuffer, new Rectangle(0, 0, GraphicsDevice.Viewport.Width,
             GraphicsDevice.Viewport.Height), Color.White);
             spriteBatch.End();
+
+            if (startTime < endTime) 
+            {
+
+                spriteBatch.Begin();
+                // Draw sprites
+                Microsoft.Xna.Framework.Vector2 FontOrigin = font.MeasureString(message) / 2;
+                spriteBatch.DrawString(font, message, fontPos, Color.DeepPink,
+                    0, FontOrigin, 1.0f, SpriteEffects.None, 0.5f);
+
+                spriteBatch.End();
+            }
+
 
             foreach (PostProcess postProcess in postProcesses)
             {

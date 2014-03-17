@@ -86,11 +86,14 @@ namespace ERoD
                     if (player.Lap == GameConstants.NumberOfLaps + 1)
                     {
                         // TODO: Need to check which player was first in goal
-                        Debug.WriteLine("{0} has finished, was he first???", player.Name);
+                        //Debug.WriteLine("{0} has finished, was he first???", player.Name);
+                        (Game as ERoD).DisplayMessage("You Won!", 3.0f);
                     }
                     else
                     {
-                        Debug.WriteLine("{0} has started his {1} Lap", player.Name, player.Lap);
+                        (Game as ERoD).DisplayMessage("You Started your " +
+                            ((player.Lap == 1) ? "1st" : "2nd")
+                            + " Lap", 1.0f);
                     }
                 }
             }
