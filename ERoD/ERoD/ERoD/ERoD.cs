@@ -261,10 +261,7 @@ namespace ERoD
             GraphicsDevice.Viewport.Height), Color.White);
             spriteBatch.End();
 
-            renderer.RenderDebug();
-
-
-
+            //renderer.RenderDebug();
         }
     }
 }
