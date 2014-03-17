@@ -13,6 +13,18 @@ sampler colorSampler = sampler_state
 	Mipfilter = LINEAR;
 };
 
+texture skyMap;
+sampler skySampler = sampler_state
+{
+	Texture = (skyMap);
+	AddressU = CLAMP;
+	AddressV = CLAMP;
+	MagFilter = LINEAR;
+	MinFilter = LINEAR;
+	Mipfilter = LINEAR;
+};
+
+
 texture lightMap;
 sampler lightSampler = sampler_state
 {
@@ -22,6 +34,18 @@ sampler lightSampler = sampler_state
 	MagFilter = LINEAR;
 	MinFilter = LINEAR;
 	Mipfilter = LINEAR;
+};
+
+
+texture depthMap;
+sampler depthSampler = sampler_state
+{
+	Texture = <depthMap>;
+	AddressU = CLAMP;
+	AddressV = CLAMP;
+	MagFilter = POINT;
+	MinFilter = POINT;
+	Mipfilter = POINT;
 };
 
 float2 halfPixel;
@@ -53,6 +77,11 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 	float4 color = tex2D(colorSampler, input.TexCoord);
 	color *= (tex2D(lightSampler, input.TexCoord) + AmbientMag);
 
+	float depth = 1 - tex2D(depthSampler, input.TexCoord).r;
+	if (depth > 0.999999){
+		color = tex2D(skySampler, input.TexCoord);
+	}	
+
     return color;
 }
 
@@ -62,7 +91,7 @@ technique RenderScene
     {
 		ZEnable = true;
 		ZWriteEnable = true;
-        VertexShader = compile vs_2_0 VertexShaderFunction();
-        PixelShader = compile ps_2_0 PixelShaderFunction();
+        VertexShader = compile vs_3_0 VertexShaderFunction();
+        PixelShader = compile ps_3_0 PixelShaderFunction();
     }
 }

@@ -22,9 +22,13 @@ namespace ERoD
         public RenderTarget2D SGRMap;
         public RenderTarget2D lightMap;
         public RenderTarget2D finalBackBuffer;
+        public RenderTarget2D skyMap;
         //public RenderTarget2D blendedDepthBuffer;
 
         SpriteBatch spriteBatch;
+
+        // Skybox //
+        Skybox skybox;
 
         Model pointLightMesh;
         Matrix[] boneTransforms;
@@ -69,11 +73,16 @@ namespace ERoD
             lightMap = new RenderTarget2D(GraphicsDevice, width, height, false,
                 SurfaceFormat.Color, DepthFormat.None);
 
+            skyMap = new RenderTarget2D(GraphicsDevice, width, height, false,
+                SurfaceFormat.Color, DepthFormat.Depth24Stencil8);
+
             finalBackBuffer = new RenderTarget2D(GraphicsDevice, width, height, false,
                 SurfaceFormat.Color, DepthFormat.None);
 
             //blendedDepthBuffer = new RenderTarget2D(GraphicsDevice, width, height, false,
             //    SurfaceFormat.Rg32, DepthFormat.None);
+
+            skybox = new Skybox("Skyboxes/skybox", Game.Content);
 
             directionalLightShader = Game.Content.Load<Effect>("Shaders/DirectionalLightShader");
 
@@ -125,6 +134,9 @@ namespace ERoD
 
             DeferredShadows(gameTime);
             DeferredLightning(gameTime);
+
+            GraphicsDevice.SetRenderTarget(skyMap);
+            DrawSkybox();
 
             GraphicsDevice.SetRenderTargets(finalBackBuffer);
 
@@ -261,6 +273,13 @@ namespace ERoD
             
         }
 
+        private void DrawSkybox()
+        {
+            GraphicsDevice.RasterizerState = RasterizerState.CullClockwise;
+            skybox.Draw(Camera.View, Camera.Projection, Camera.Position);
+            GraphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+        }
+
         private void DrawDeferred()
         {
             GraphicsDevice.Clear(Color.White);
@@ -268,6 +287,8 @@ namespace ERoD
             deferredShader.Parameters["halfPixel"].SetValue(halfPixel);
             deferredShader.Parameters["colorMap"].SetValue(colorMap);
             deferredShader.Parameters["lightMap"].SetValue(lightMap);
+            deferredShader.Parameters["depthMap"].SetValue(depthMap);
+            deferredShader.Parameters["skyMap"].SetValue(skyMap);
 
             deferredShader.CurrentTechnique.Passes[0].Apply();
 

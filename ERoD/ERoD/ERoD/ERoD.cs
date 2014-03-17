@@ -47,6 +47,7 @@ namespace ERoD
         //Collision rules handler
         CollisionHandler CollisionHandler;
 
+        // GameLogic //
         GameLogic GameLogic;
 
         public Boolean DebugEnabled;
@@ -215,7 +216,6 @@ namespace ERoD
                     Services.AddService(typeof(ICamera), ChaseCamera);
                 }
                 else
-
                 {
                     FreeCameraActive = true;
                     Services.AddService(typeof(ICamera), FreeCamera);
@@ -252,7 +252,7 @@ namespace ERoD
             }
 
             renderer.Draw(gameTime);
-            GraphicsDevice.Clear(Color.CornflowerBlue);
+            GraphicsDevice.Clear(Color.Coral);
 
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque,
             SamplerState.PointClamp, DepthStencilState.Default,
