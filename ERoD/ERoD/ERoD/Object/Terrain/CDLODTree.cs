@@ -27,6 +27,8 @@ namespace ERoD
 
         #region Local data structures
 
+        Matrix WorldMatrix = Matrix.CreateScale(512.0f) * Matrix.CreateTranslation(0, 64, 0);
+
         // Height data as a texture. in float format.
         private Texture2D heightMap;
 
@@ -85,7 +87,10 @@ namespace ERoD
 
             // The patch can be subdivided any number of times to get more triangles.
             /// subdivide the patch from 2 triangles to 8
-            //Subdivide(vertices, indices, true);
+            Subdivide(vertices, indices, true);
+            Subdivide(vertices, indices, true);
+            Subdivide(vertices, indices, true);
+
 
             vertexBuffer = new VertexBuffer(Game.GraphicsDevice, VertexPositionNormalTexture.VertexDeclaration, vertices.Count, BufferUsage.WriteOnly);
             vertexBuffer.SetData(vertices.ToArray());
@@ -96,7 +101,86 @@ namespace ERoD
 
         #endregion
 
+        #region Subdivision
+
+        private int GetMidpointIndex(Dictionary<string, int> midpointIndices, List<VertexPositionNormalTexture> vertices, int i0, int i1)
+        {
+
+            var edgeKey = string.Format("{0}_{1}", Math.Min(i0, i1), Math.Max(i0, i1));
+
+            var midpointIndex = -1;
+
+            if (!midpointIndices.TryGetValue(edgeKey, out midpointIndex))
+            {
+                var halfVector = new Vector2(0.5f);
+                var v0 = vertices[i0];
+                var v1 = vertices[i1];
+
+                var midpoint = new VertexPositionNormalTexture();
+
+                /// midpoint position
+                midpoint.Position = (v0.Position + v1.Position) / 2f;
+                /// morph target
+                midpoint.Normal = Vector3.Min(v0.Position, v1.Position);
+                midpoint.TextureCoordinate = new Vector2(midpoint.Position.X, midpoint.Position.Z) + halfVector;
+
+                midpointIndex = vertices.Count;
+
+                midpointIndices.Add(edgeKey, midpointIndex);
+
+                vertices.Add(midpoint);
+            }
+
+
+            return midpointIndex;
+
+        }
+
+        public void Subdivide(List<VertexPositionNormalTexture> vertices, List<int> indices, bool removeSourceTriangles)
+        {
+            var midpointIndices = new Dictionary<string, int>();
+
+            var newIndices = new List<int>(indices.Count * 4);
+
+            if (!removeSourceTriangles)
+                newIndices.AddRange(indices);
+
+            for (var i = 0; i < indices.Count - 2; i += 3)
+            {
+                var i0 = indices[i];
+                var i1 = indices[i + 1];
+                var i2 = indices[i + 2];
+
+                var m01 = GetMidpointIndex(midpointIndices, vertices, i0, i1);
+                var m12 = GetMidpointIndex(midpointIndices, vertices, i1, i2);
+                var m02 = GetMidpointIndex(midpointIndices, vertices, i2, i0);
+
+                newIndices.AddRange(
+                    new[] {
+                        i0,m01,m02
+                        ,
+                        i1,m12,m01
+                        ,
+                        i2,m02,m12
+                        ,
+                        m02,m01,m12
+                    }
+                    );
+
+            }
+
+            indices.Clear();
+            indices.AddRange(newIndices);
+        }
+
+        #endregion
+
         #region Update view
+
+        Vector3 EyePos
+        {
+            get { return Vector3.Transform(Camera.Position, Matrix.Invert(WorldMatrix)); }
+        }
 
         // Update the currently selected patchList to include different patches based on
         // Camera location.
@@ -106,8 +190,10 @@ namespace ERoD
 
             var selectedNodes = new List<QuadTreeNode>();
 
+            
+
             // Select nodes and return if none are selected.
-            bool noneSelected = !QuadTree.LodSelect(Camera.Position, ref morphRanges, ref frustum, selectedNodes)
+            bool noneSelected = !QuadTree.LodSelect(EyePos, ref morphRanges, ref frustum, selectedNodes)
                 || selectedNodes.Count <= 0;
             if (noneSelected)
             {
@@ -123,7 +209,9 @@ namespace ERoD
 
                 // find the size of the selected node.
                 float size = Math.Min(boundsMax.X - boundsMin.X, boundsMax.Z - boundsMin.Z);
-
+                //Console.WriteLine(node.BoundingBox);
+                //Console.WriteLine(size);
+                
                 // Set morph info to send to shader.
                 float rangeStart = morphRanges[node.Level - 1];
                 float rangeEnd = morphRanges[node.Level];
@@ -198,7 +286,7 @@ namespace ERoD
             tempHeight.GetData(colors);
 
             // Get float height values in [-0.25, 0.25] from the colors.
-            float[] heights = colors.Select(c => (c.R / 255.0f - 0.5f) * 0.5f).ToArray();
+            float[] heights = colors.Select(c => (c.R / 255.0f - 0.5f) * 0.25f).ToArray();
 
             heightMap = new Texture2D(Game.GraphicsDevice, tempHeight.Width, tempHeight.Height, false, SurfaceFormat.Single);
             heightMap.SetData(heights);
@@ -207,10 +295,16 @@ namespace ERoD
             texture = Game.Content.Load<Texture2D>("HeightMap/color");
 
             // generate morph ranges (can be done in shaders??)
-            var ranges = Enumerable.Range(0, levels + 1).Select(i => (float)Math.Pow(2, i - 1)).ToList();
+            var ranges = Enumerable.Range(0, levels + 1).Select(i => (float)Math.Pow(2, i - 1)/1.5f).ToList();
             ranges.Add(0);
             ranges.Sort((a, b) => a.CompareTo(b));
 
+            foreach(var r in ranges)
+            {
+                Console.WriteLine(r);
+
+            }
+            
             morphRanges = ranges.ToArray();
 
             // Build the QuadTree witht the height data and morph ranges
@@ -219,7 +313,6 @@ namespace ERoD
 
         public void SetEffectParameters(GameTime gameTime, Effect effect)
         {
-            Matrix WorldMatrix = Matrix.CreateScale(300.0f);
             effect.Parameters["World"].SetValue(WorldMatrix);
 
             effect.Parameters["View"].SetValue(Camera.View);
@@ -229,7 +322,7 @@ namespace ERoD
             effect.Parameters["HeightMap"].SetValue(heightMap);
             effect.Parameters["NormalMap"].SetValue(normalMap);
             effect.Parameters["Texture"].SetValue(texture);
-            effect.Parameters["EyePosition"].SetValue(Camera.Position);
+            effect.Parameters["EyePosition"].SetValue(EyePos);
         }
 
         public override void Draw(GameTime gameTime)

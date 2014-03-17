@@ -71,9 +71,9 @@ namespace ERoD
         private void CreatePhysicsTerrain()
         {
             cTerrain = new Terrain(heightData, new BEPUutilities.AffineTransform(
-                        new BEPUutilities.Vector3(0.25f, 1, -0.25f),
+                        new BEPUutilities.Vector3(0.25f, 1, 0.25f),
                         BEPUutilities.Quaternion.Identity,
-                        new BEPUutilities.Vector3(-terrainWidth / 8, 0, terrainHeight / 8))
+                        new BEPUutilities.Vector3(-terrainWidth / 8, 0, -terrainHeight / 8))
                     );
         }
 

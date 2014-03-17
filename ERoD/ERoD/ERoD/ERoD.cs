@@ -89,7 +89,7 @@ namespace ERoD
         protected override void Initialize()
         {
             terrain = new HeightTerrain(this);
-            //Components.Add(terrain);
+            Components.Add(terrain);
             Services.AddService(typeof(ITerrain), terrain);
 
             treeTerrain = new CDLODTree(this, 7);
@@ -131,23 +131,23 @@ namespace ERoD
 
             space = new Space();
 
-            //space.Add(((ITerrain)Services.GetService(typeof(ITerrain))).PhysicTerrain);
-
+            space.Add(((ITerrain)Services.GetService(typeof(ITerrain))).PhysicTerrain);
+            Components.Remove(terrain);
 
             //Console.WriteLine("Max {0}, Min {1}", terrain.PhysicTerrain.BoundingBox.Max, terrain.PhysicTerrain.BoundingBox.Min);
 
             // Fix ship loading
             Entity entity = LoadEntityObject(shipModel, shipPosition, shipScale);
             Ship ship = new Ship(entity, shipModelT, Matrix.CreateScale(shipScale), this);
-            //space.Add(entity);
+            space.Add(entity);
             ship.Texture = Content.Load<Texture2D>("Textures/Ship2/diffuse");
             ship.SpecularMap = Content.Load<Texture2D>("Textures/Ship2/specular");
             ship.TextureEnabled = true;
             ship.standardEffect = objEffect;
-            //Components.Add(ship);
+            Components.Add(ship);
 
-            //ChaseCamera = new ChaseCamera(ship.Entity, new BEPUutilities.Vector3(0.0f, 0.7f, 0.0f), true, 4.0f, 0.1f, 1000.0f, this);
-            //((ChaseCamera)ChaseCamera).Initialize();
+            ChaseCamera = new ChaseCamera(ship.Entity, new BEPUutilities.Vector3(0.0f, 0.7f, 0.0f), true, 4.0f, 0.1f, 1000.0f, this);
+            ((ChaseCamera)ChaseCamera).Initialize();
 
             //StaticObject sobj = LoadStaticObject(groundModel, groundTransform);
             //sobj.Texture = Content.Load<Texture2D>("Textures/Ground/diffuse");

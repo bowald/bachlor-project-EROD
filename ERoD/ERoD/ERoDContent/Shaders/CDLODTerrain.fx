@@ -63,6 +63,7 @@ struct VertexShaderOutput
 	float2 texCoord : TEXCOORD0;
 	float3 worldPos : NORMAL0;
 	int treeLevel : NORMAL1;
+	float Depth : TEXCOORD1;
 };
 
 struct PixelShaderOutput
@@ -87,7 +88,7 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 
 	float cameraDistance = distance(EyePosition, output.position);
 	float morphFactor = MORPH_FACTOR(cameraDistance);
-	morphFactor = saturate((morphFactor - 0.25) / 0.5);
+	morphFactor = saturate((morphFactor - 0.25) / 0.25);
 
 	output.position = lerp(output.position, input.morphTarget, morphFactor);
 
@@ -97,6 +98,8 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 
 	output.position = mul(output.position, WorldViewProjection);
 
+	output.Depth = 1 - (output.position.z / output.position.w);
+
 	return output;
 }
 
@@ -105,12 +108,18 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input)
 	PixelShaderOutput output;
 
 	/// perform some very basic lighting
-	output.Normal = tex2D(NormalSampler, input.texCoord);
+	float4 normal = tex2D(NormalSampler, input.texCoord);
+	float y = normal.z;
+	float x = normal.x;
+	float z = normal.y;
 
+	output.Normal = float4(x, y, z, 1);
+	
 	/// grab the color used for this level of the source quadtree
+	//output.Color = float4(levelColors[input.treeLevel], 1);
 	output.Color = tex2D(TextureSampler, input.texCoord);
 
-	output.Depth = float4(1, 1, 1, 1);// 0;
+	output.Depth = float4(input.Depth.x, 0, 0, 1);
 	output.SGR = 0;
 
 	return output;
@@ -120,6 +129,7 @@ Technique Deferred
 {
 	pass pass0
 	{
+		CullMode = CCW;
 		VertexShader = compile vs_3_0 VertexShaderFunction();
 		PixelShader = compile ps_3_0 PixelShaderFunction();
 	}

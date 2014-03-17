@@ -144,7 +144,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 	diffuseLight += (specular * specularModifier * power);
 
 	//output the two lights
-	return float4(diffuseLight.rgb, 1) * shading;
+	return float4(diffuseLight.rgb, 1);// *shading;
 
 }
 

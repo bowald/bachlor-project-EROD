@@ -192,7 +192,7 @@ namespace ERoD
 
             for (var i = 0; i < ranges.Length; i++)
             {
-                var sphere = new BoundingSphere(Vector3.Zero, ranges[i]);
+                var sphere = new BoundingSphere(eyePosition, ranges[i]);
                 spheres.Add(sphere);
             }
             return Root.LodSelect(eyePosition, ref frustum, spheres, nodes);
