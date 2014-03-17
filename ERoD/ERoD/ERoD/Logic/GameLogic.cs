@@ -7,76 +7,65 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using Microsoft.Xna.Framework.GamerServices;
 
 namespace ERoD
 {
     // Class for handling game logic based on Collision Events
     class GameLogic
     {
-
         CollisionHandler CollisionHandler;
-        // The number of checkpoints per lap
-        int NRofCheckpoints;
 
-        // Dictionary with Ship ID's and what Lap they are on.
-        Dictionary<int, int> IDtoLap;
-        // Dictionary with Ship ID's and the ID of the last passed checkpoint
-        Dictionary<int, int> IDtoCurrentCheckpoint;
-        // Dictionary with Ship ID's and the number of passed checkpoints towards a full lap
-        Dictionary<int, int> IDtoCheckpointNR;
+        // A list of all the players currently racing
+        List<Player> Players;
 
         ERoD Game;
 
-        public GameLogic(int nrOfCheckpoints, ERoD game)
+        public GameLogic(ERoD game)
         {
             CollisionHandler = new CollisionHandler(game);
             this.Game = game;
-            this.NRofCheckpoints = nrOfCheckpoints;
-            IDtoLap = new Dictionary<int, int>();
-            IDtoCurrentCheckpoint = new Dictionary<int, int>();
-            IDtoCheckpointNR = new Dictionary<int, int>();
+            Players = new List<Player>();
         }
 
-        // When a ship is created, adds it to the dictionaries
-        public void CreateShip(Ship ship)
+        public void AddPlayer(Ship ship, String name)
         {
-            IDtoLap.Add(ship.ID, 1);
-            IDtoCurrentCheckpoint.Add(ship.ID, 0);
-            IDtoCheckpointNR.Add(ship.ID, 0);
-            CollisionHandler.addShipGroup(ship);
-            
+            Players.Add(new Player(ship, name));
         }
 
         // Increments the counter on each ship for each trigger they pass
         // Decrements if going the wrong way
         // A ship needs to pass 4 triggers in the right order to run a full lap
         // When a ship has run 3 laps, it wins the game. 
-        public void IncrementLap(int shipID, int ID)
+
+        public void CheckpointPassed(int checkpointID, Player player)
         {
-            if(IDtoCurrentCheckpoint[shipID] == (ID - 1))
-            {
-                IDtoCurrentCheckpoint[shipID] = ID;
-                IDtoCheckpointNR[shipID]++;
-                Debug.WriteLine("Ship nr: " + shipID + " just passed checkpoint nr: " + ID);
-            }
+            int lastID = player.LastCheckpoint;
 
-            else if(IDtoCurrentCheckpoint[shipID] <= ID ){
-                IDtoCheckpointNR[shipID]--;
-                Debug.WriteLine("Ship nr: " + shipID + " just passed checkpoint nr: " + ID + ", is going the wrong way!" );
-            }
-
-            if (IDtoCheckpointNR[shipID] == NRofCheckpoints)
+            // If the Checkpoint hit is the next Checkpoint
+            if (checkpointID == lastID + 1)
             {
-                IDtoLap[shipID]++;
-                Debug.WriteLine("Ship nr: " + shipID + " has ran a full lap! Is now on lap: " + IDtoLap[shipID]);
-                IDtoCheckpointNR[shipID] = 0;
-                IDtoCurrentCheckpoint[shipID] = 0;
+                player.LastCheckpoint = checkpointID;
+                player.CheckpointsPassed++;
+                // If the player have passed enough Checkpoints to make a full lap
+                if (player.CheckpointsPassed == GameConstants.NumberOfCheckpoints)
+                {
+                    player.Lap++;
+                    // If the player have ran enough Laps to finish the race
+                    if(player.Lap == GameConstants.NumberOfLaps)
+                    {
+                        // TODO: Need to check which player was first in goal
+                        Debug.WriteLine("{0} has finished, was he first???", player.Name);
+                    }
+                }
             }
-  
-            if (IDtoLap[shipID] == 3)
+            // If the Checkpoint hit is a previous Checkpoint
+            else if(lastID <= checkpointID)
             {
-                Debug.WriteLine("Woop Woop! Ship nr: " + shipID + " won the game!");
+                player.CheckpointsPassed--;             
             }
+            // To make sure the number of Checkpoints passed never exceeds the number of Checkpoints on the lap
+            player.CheckpointsPassed %= GameConstants.NumberOfCheckpoints;
         }
 
         // Removes an entity and its EntityObject from the world space
@@ -85,6 +74,19 @@ namespace ERoD
             Debug.WriteLine("I just removed an object!");
             Game.Space.Remove(entity);
             Game.Components.Remove(entityObject);
+        }
+
+        // Returns a Player from a Ship
+        public Player GetPlayer(Ship ship)
+        {
+            foreach(Player p in Players)
+            {
+                if (p.Ship == ship)
+                {
+                    return p;
+                }
+            }
+            return null;
         }
     }
 }

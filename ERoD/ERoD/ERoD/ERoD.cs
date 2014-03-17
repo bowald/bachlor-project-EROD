@@ -73,8 +73,9 @@ namespace ERoD
         public ERoD()
         {
             graphics = new GraphicsDeviceManager(this);
-            graphics.PreferredBackBufferHeight = 480;
-            graphics.PreferredBackBufferWidth = 800;
+            graphics.PreferredBackBufferHeight = 768;
+            graphics.PreferredBackBufferWidth = 1366;
+            graphics.IsFullScreen = true;
 
             Content.RootDirectory = "Content";
 
@@ -99,7 +100,7 @@ namespace ERoD
             this.Services.AddService(typeof(ICamera), FreeCamera);
             FreeCameraActive = true;
 
-            GameLogic = new GameLogic(4, this);
+            GameLogic = new GameLogic(this);
             this.Services.AddService(typeof(GameLogic), GameLogic);
 
             base.Initialize();
@@ -120,9 +121,6 @@ namespace ERoD
             Vector3 shipScale = new Vector3(0.01f, 0.01f, 0.01f);
             Vector3 shipPosition = new Vector3(-5, 70, -5);
 
-            //Model groundModel = Content.Load<Model>("Models/Z3B0_Arena_alphaVersion");
-            //AffineTransform groundTransform = new AffineTransform(new BVector3(0.15f, 0.15f, 0.15f), new BQuaternion(0, 0, 0, 0), new BVector3(0, 0, 0));
-
             Effect objEffect = Content.Load<Effect>("Shaders/DeferredObjectRender");
 
             space = new Space();
@@ -142,19 +140,11 @@ namespace ERoD
             ship.SpecularMap = Content.Load<Texture2D>("Textures/Ship2/specular");
             ship.TextureEnabled = true;
             ship.standardEffect = objEffect;
-            GameLogic.CreateShip(ship);
+            //GameLogic.CreateShip(ship);
             Components.Add(ship);
 
             ChaseCamera = new ChaseCamera(ship.Entity, new BEPUutilities.Vector3(0.0f, 0.7f, 0.0f), true, 4.0f, 0.1f, 1000.0f, this);
             ((ChaseCamera)ChaseCamera).Initialize();
-
-            //StaticObject sobj = LoadStaticObject(groundModel, groundTransform);
-            //sobj.Texture = Content.Load<Texture2D>("Textures/Ground/diffuse");
-            //sobj.SpecularMap = Content.Load<Texture2D>("Textures/Ground/specular");
-            //sobj.BumpMap = Content.Load<Texture2D>("Textures/Ground/normal");
-            //sobj.TextureEnabled = true;
-            //sobj.standardEffect = objEffect;
-            //Components.Add(sobj);
             
             space.ForceUpdater.Gravity = new BVector3(0, -9.82f, 0);
 

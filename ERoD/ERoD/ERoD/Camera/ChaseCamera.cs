@@ -95,10 +95,11 @@ namespace ERoD
             //float cameraDistance = ChasedEntity.Space.RayCast(new BEPUutilities.Ray(lookAt, backwards), DistanceToTarget, rayCastFilter, out result) ? result.HitData.T : DistanceToTarget;
 
             //Test only against the ground
-            ERoD erod = Game as ERoD;
             RayHit hit;
             BEPUutilities.Ray ray = new BEPUutilities.Ray(lookAt, backwards);
-            float cameraDistance = erod.testVarGround.RayCast(ray, DistanceToTarget, out hit) ? hit.T : DistanceToTarget;
+            float cameraDistance = 
+                ((ITerrain)Game.Services.GetService(typeof(ITerrain))).PhysicTerrain
+                .RayCast(ray, DistanceToTarget, out hit) ? hit.T : DistanceToTarget;
 
             BEPUutilities.Vector3 pos = lookAt + (Math.Max(cameraDistance - ChaseCameraMargin, 0)) * backwards;
             Position = ConversionHelper.MathConverter.Convert(pos); //Put the camera just before any hit spot.
