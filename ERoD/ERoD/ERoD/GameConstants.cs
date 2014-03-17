@@ -7,7 +7,7 @@ namespace ERoD
 {
     class GameConstants
     {
-        public const int NumberOfLaps = 3;
-        public const int NumberOfCheckpoints = 5;
+        public const int NumberOfLaps = 2;
+        public const int NumberOfCheckpoints = 4;
     }
 }

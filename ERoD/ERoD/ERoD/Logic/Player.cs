@@ -19,7 +19,7 @@ namespace ERoD
         {
             Name = name;
             Ship = ship;
-            Lap = 1;
+            Lap = 0; //start before 1st checkpt
             LastCheckpoint = 0;
             CheckpointsPassed = 0;
         }

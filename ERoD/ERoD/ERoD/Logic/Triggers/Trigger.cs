@@ -18,6 +18,7 @@ using Vector3 = Microsoft.Xna.Framework.Vector3;
 using Quaternion = Microsoft.Xna.Framework.Quaternion;
 using Matrix = Microsoft.Xna.Framework.Matrix;
 using BEPUphysics.CollisionRuleManagement;
+using BEPUphysics;
 
 namespace ERoD
 {
@@ -25,13 +26,17 @@ namespace ERoD
     {
 
         protected GameLogic GameLogic;
-        protected Entity Entity;
+        public Entity Entity
+        {
+            get;
+            protected set;
+        }
 
         public Trigger(Game game, GameLogic gameLogic, BVector3 size, BVector3 position, BQuaternion rotation, CollisionGroup collisionGroup)
             : base(game)
         {
             GameLogic = gameLogic;
-            Entity = new Box(position, size.X, size.Y, size.Z);
+            Entity = new Box(position, size.X, size.Y, size.Z); // Must save scale separately if the object should be drawn.
             Entity.Orientation = rotation;
             Entity.CollisionInformation.Tag = this;
             Entity.CollisionInformation.CollisionRules.Group = collisionGroup;
@@ -49,7 +54,7 @@ namespace ERoD
             // sender is this?
             // other is ship?
             // do gamelogic stuff
-            Console.WriteLine("Sender: {0} paired with Other: {1}", sender, other);
+            //Console.WriteLine("Sender: {0} paired with Other: {1}", sender, other);
         }
 
         public override void Draw(GameTime gameTime)

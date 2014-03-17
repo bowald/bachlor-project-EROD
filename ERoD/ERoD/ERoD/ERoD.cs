@@ -72,7 +72,6 @@ namespace ERoD
 
         public GamePadState GamePadState { get; set; }
         public GamePadState LastGamePadState { get; set; }
-        Model cubeModel;
 
         public ERoD()
         {
@@ -100,7 +99,7 @@ namespace ERoD
             Components.Add(terrain);
             Services.AddService(typeof(ITerrain), terrain);
 
-            FreeCamera = new FreeCamera(this, 0.1f, 1000.0f, new Vector3(25f, 50.0f, 25f), 70.0f);
+            FreeCamera = new FreeCamera(this, 0.1f, 1000.0f, new Vector3(25f, 150.0f, 25f), 70.0f);
             this.Services.AddService(typeof(ICamera), FreeCamera);
             FreeCameraActive = true;
 
@@ -118,16 +117,18 @@ namespace ERoD
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            //cubeModel = Content.Load<Model>("Models/cube");
+            Model cubeModel = Content.Load<Model>("Models/cube");
 
             Model shipModel = Content.Load<Model>("Models/space_frigate");
             Model shipModelT = Content.Load<Model>("Models/space_frigate_tangentOn");
             Vector3 shipScale = new Vector3(0.01f, 0.01f, 0.01f);
-            Vector3 shipPosition = new Vector3(-5, 70, -5);
+            Vector3 shipPosition = new Vector3(10, 20, 30);
 
             Effect objEffect = Content.Load<Effect>("Shaders/DeferredObjectRender");
             Effect objShadow = Content.Load<Effect>("Shaders/DeferredShadowShader");
+            
             space = new Space();
+            Services.AddService(typeof(Space), space);
 
             space.Add(((ITerrain)Services.GetService(typeof(ITerrain))).PhysicTerrain);
 
@@ -145,10 +146,13 @@ namespace ERoD
             ship.standardEffect = objEffect;
             ship.shadowEffect = objShadow;
             Components.Add(ship);
+            GameLogic.AddPlayer(ship, "Anton");
 
             ChaseCamera = new ChaseCamera(ship.Entity, new BEPUutilities.Vector3(0.0f, 0.7f, 0.0f), true, 4.0f, 0.1f, 1000.0f, this);
             ((ChaseCamera)ChaseCamera).Initialize();
-            
+
+            CreateCheckPoints(objEffect, cubeModel);
+
             space.ForceUpdater.Gravity = new BVector3(0, -20.0f, 0);
 
             renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(50, 550, 450), Vector3.Zero, Color.LightYellow, 0.5f, true));
@@ -160,6 +164,24 @@ namespace ERoD
             renderer.PointLights.Add(new PointLight(new Vector3(170, 25, -175), Color.Goldenrod, 50.0f, 1.0f));
             renderer.PointLights.Add(new PointLight(new Vector3(130, 25, -172), Color.Goldenrod, 50.0f, 1.0f));
             renderer.PointLights.Add(new PointLight(new Vector3(90, 25, -160), Color.Goldenrod, 50.0f, 1.0f));
+        }
+
+        private void CreateCheckPoints(Effect effect, Model model)
+        {
+            int nbrPoints = GameConstants.NumberOfCheckpoints; // Update!!
+            int i = 0;
+            Checkpoint[] points = new Checkpoint[nbrPoints];
+            points[i++] = GameLogic.AddCheckpoint(new BVector3(30, 20, 5), new BVector3(-5, 0, 0), BEPUutilities.MathHelper.ToRadians(10f));
+            points[i++] = GameLogic.AddCheckpoint(new BVector3(40, 30, 5), new BVector3(165, 10, -150), BEPUutilities.MathHelper.ToRadians(-20f));
+            points[i++] = GameLogic.AddCheckpoint(new BVector3(30, 20, 5), new BVector3(-175, 5, -15), BEPUutilities.MathHelper.ToRadians(-15f));
+            points[i++] = GameLogic.AddCheckpoint(new BVector3(30, 20, 5), new BVector3(0, 5, 115), BEPUutilities.MathHelper.ToRadians(75f));
+
+            foreach(Checkpoint p in points)
+            {
+                p.BasicEffect = effect;
+                p.Model = model;
+                Components.Add(p);
+            }
         }
 
         private Entity LoadEntityObject(Model model, Vector3 position, Vector3 scaling)
@@ -260,7 +282,7 @@ namespace ERoD
             }
             if (time2 > 5)
             {
-                Console.WriteLine(x / time2);
+                //Console.WriteLine(x / time2);
             }
 
             renderer.Draw(gameTime);
