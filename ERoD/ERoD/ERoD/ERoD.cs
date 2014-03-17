@@ -52,9 +52,7 @@ namespace ERoD
         public Boolean DebugEnabled;
         public StaticMesh testVarGround;
 
-
-        HeightTerrain terrain;
-        CDLODTree treeTerrain;
+        HeightTerrainCDLOD terrain;
 
         public Space Space
         {
@@ -88,12 +86,9 @@ namespace ERoD
         /// </summary>
         protected override void Initialize()
         {
-            terrain = new HeightTerrain(this);
+            terrain = new HeightTerrainCDLOD(this, 7);
             Components.Add(terrain);
             Services.AddService(typeof(ITerrain), terrain);
-
-            treeTerrain = new CDLODTree(this, 7);
-            Components.Add(treeTerrain);
 
             FreeCamera = new FreeCamera(this, 0.1f, 1000.0f, new Vector3(0, 90.0f, 100), 90.0f);
             this.Services.AddService(typeof(ICamera), FreeCamera);
@@ -124,15 +119,11 @@ namespace ERoD
             Vector3 shipScale = new Vector3(0.01f, 0.01f, 0.01f);
             Vector3 shipPosition = new Vector3(-5, 70, -5);
 
-            //Model groundModel = Content.Load<Model>("Models/Z3B0_Arena_alphaVersion");
-            //AffineTransform groundTransform = new AffineTransform(new BVector3(0.15f, 0.15f, 0.15f), new BQuaternion(0, 0, 0, 0), new BVector3(0, 0, 0));
-
             Effect objEffect = Content.Load<Effect>("Shaders/DeferredObjectRender");
 
             space = new Space();
 
             space.Add(((ITerrain)Services.GetService(typeof(ITerrain))).PhysicTerrain);
-            Components.Remove(terrain);
 
             //Console.WriteLine("Max {0}, Min {1}", terrain.PhysicTerrain.BoundingBox.Max, terrain.PhysicTerrain.BoundingBox.Min);
 
@@ -149,14 +140,6 @@ namespace ERoD
             ChaseCamera = new ChaseCamera(ship.Entity, new BEPUutilities.Vector3(0.0f, 0.7f, 0.0f), true, 4.0f, 0.1f, 1000.0f, this);
             ((ChaseCamera)ChaseCamera).Initialize();
 
-            //StaticObject sobj = LoadStaticObject(groundModel, groundTransform);
-            //sobj.Texture = Content.Load<Texture2D>("Textures/Ground/diffuse");
-            //sobj.SpecularMap = Content.Load<Texture2D>("Textures/Ground/specular");
-            //sobj.BumpMap = Content.Load<Texture2D>("Textures/Ground/normal");
-            //sobj.TextureEnabled = true;
-            //sobj.standardEffect = objEffect;
-            //Components.Add(sobj);
-            
             space.ForceUpdater.Gravity = new BVector3(0, -9.82f, 0);
 
             renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(50, 250, 250), Vector3.Zero, Color.LightYellow, 0.5f, true));
@@ -169,8 +152,6 @@ namespace ERoD
             renderer.PointLights.Add(new PointLight(new Vector3(130, 85, -172), Color.Goldenrod, 50.0f, 1.0f));
             renderer.PointLights.Add(new PointLight(new Vector3(90, 85, -160), Color.Goldenrod, 50.0f, 1.0f));
         }
-
-        //CollisionHandler.addTriggerGroup(entityObject);
 
         private Entity LoadEntityObject(Model model, Vector3 position, Vector3 scaling)
         {

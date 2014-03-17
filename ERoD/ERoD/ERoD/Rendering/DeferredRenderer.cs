@@ -163,7 +163,7 @@ namespace ERoD
                 {
                     if (component is IDeferredRender)
                     {
-                        if (component is CDLODTree)
+                        if (component is HeightTerrainCDLOD)
                         {
                             // Skip if CDLODTree for the moment.
                             continue;
