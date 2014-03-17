@@ -32,7 +32,6 @@ namespace ERoD
         Effect pointLightShader;
         Effect directionalLightShader;
         Effect deferredShader;
-        Effect deferredShadowShader;
 
         public List<IPointLight> PointLights = new List<IPointLight>();
         public List<IDirectionalLight> DirectionalLights = new List<IDirectionalLight>();
@@ -80,8 +79,7 @@ namespace ERoD
 
             pointLightShader = Game.Content.Load<Effect>("Shaders/PointLightShader");
             deferredShader = Game.Content.Load<Effect>("Shaders/DeferredRender");
-            deferredShadowShader = Game.Content.Load<Effect>("Shaders/DeferredShadowShader");
-
+            
             // Debug depth renderer
             DepthRender = Game.Content.Load<Effect>("Shaders/depthRender");
             w = GraphicsDevice.Viewport.Width / 5;
@@ -157,13 +155,11 @@ namespace ERoD
                 GraphicsDevice.SetRenderTarget(light.ShadowMap);
                 GraphicsDevice.Clear(Color.Transparent);
 
-                deferredShadowShader.Parameters["vp"].SetValue(light.View * light.Projection);
-
                 foreach (GameComponent component in Game.Components)
                 {
-                    if (component is IDeferredRender)
+                    if (component is ICastShadow)
                     {
-                        ((IDeferredRender)component).Draw(gameTime, deferredShadowShader);
+                        ((ICastShadow)component).DrawShadow(gameTime, light.View * light.Projection);
                     }
                 }
             }
@@ -291,7 +287,7 @@ namespace ERoD
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
 
             spriteBatch.Draw(colorMap, new Rectangle(1, 1, w, h), Color.White);
-            spriteBatch.Draw(SGRMap, new Rectangle((w * 4) + 4, 1, w, h), Color.White);
+            //spriteBatch.Draw(SGRMap, new Rectangle((w * 4) + 4, 1, w, h), Color.White);
             spriteBatch.Draw(normalMap, new Rectangle(w + 2, 1, w, h), Color.White);
 
             GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
@@ -304,6 +300,7 @@ namespace ERoD
             DepthRender.CurrentTechnique.Passes[0].Apply();
             GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
             spriteBatch.Draw(depthMap, new Rectangle((w * 2) + 3, 1, w, h), Color.White);
+            spriteBatch.Draw(DirectionalLights[0].ShadowMap, new Rectangle((w * 4) + 4, 1, w, h), Color.White);
             spriteBatch.End();
         }
     }
