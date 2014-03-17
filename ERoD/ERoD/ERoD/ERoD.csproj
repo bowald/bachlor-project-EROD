@@ -111,6 +111,7 @@
     <Compile Include="Light\BaseLight.cs" />
     <Compile Include="Light\PointLight.cs" />
     <Compile Include="Rendering\ScreenQuad.cs" />
+    <Compile Include="Rendering\Skybox.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Game.ico" />

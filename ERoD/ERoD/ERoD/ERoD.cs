@@ -47,6 +47,7 @@ namespace ERoD
         //Collision rules handler
         CollisionHandler CollisionHandler;
 
+        // GameLogic //
         GameLogic GameLogic;
 
         public Boolean DebugEnabled;
@@ -161,6 +162,7 @@ namespace ERoD
             renderer.PointLights.Add(new PointLight(new Vector3(170, 85, -175), Color.Goldenrod, 50.0f, 1.0f));
             renderer.PointLights.Add(new PointLight(new Vector3(130, 85, -172), Color.Goldenrod, 50.0f, 1.0f));
             renderer.PointLights.Add(new PointLight(new Vector3(90, 85, -160), Color.Goldenrod, 50.0f, 1.0f));
+
         }
 
         //CollisionHandler.addTriggerGroup(entityObject);
@@ -226,7 +228,6 @@ namespace ERoD
                     Services.AddService(typeof(ICamera), ChaseCamera);
                 }
                 else
-
                 {
                     FreeCameraActive = true;
                     Services.AddService(typeof(ICamera), FreeCamera);
@@ -266,7 +267,7 @@ namespace ERoD
             }
 
             renderer.Draw(gameTime);
-            GraphicsDevice.Clear(Color.CornflowerBlue);
+            GraphicsDevice.Clear(Color.Coral);
 
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque,
             SamplerState.PointClamp, DepthStencilState.Default,
@@ -275,6 +276,7 @@ namespace ERoD
             GraphicsDevice.Viewport.Height), Color.White);
             spriteBatch.End();
 
+            
             renderer.RenderDebug();
 
 
