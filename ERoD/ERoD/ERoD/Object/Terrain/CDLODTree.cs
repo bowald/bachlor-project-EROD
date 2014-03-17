@@ -285,7 +285,12 @@ namespace ERoD
             Color[] colors = new Color[tempHeight.Width * tempHeight.Height];
             tempHeight.GetData(colors);
 
-            // Get float height values in [-0.25, 0.25] from the colors.
+            foreach(Color col in colors)
+            {
+                Console.WriteLine((float)col.R);
+            }
+            
+            // Get float height values in [-0.125, 0.125] from the colors.
             float[] heights = colors.Select(c => (c.R / 255.0f - 0.5f) * 0.25f).ToArray();
 
             heightMap = new Texture2D(Game.GraphicsDevice, tempHeight.Width, tempHeight.Height, false, SurfaceFormat.Single);
