@@ -90,7 +90,7 @@ namespace ERoD
             Components.Add(terrain);
             Services.AddService(typeof(ITerrain), terrain);
 
-            FreeCamera = new FreeCamera(this, 0.1f, 1000.0f, new Vector3(0, 90.0f, 100), 90.0f);
+            FreeCamera = new FreeCamera(this, 0.1f, 1000.0f, new Vector3(25f, 50.0f, 25f), 70.0f);
             this.Services.AddService(typeof(ICamera), FreeCamera);
             FreeCameraActive = true;
 
@@ -120,7 +120,7 @@ namespace ERoD
             Vector3 shipPosition = new Vector3(-5, 70, -5);
 
             Effect objEffect = Content.Load<Effect>("Shaders/DeferredObjectRender");
-
+            Effect objShadow = Content.Load<Effect>("Shaders/DeferredShadowShader");
             space = new Space();
 
             space.Add(((ITerrain)Services.GetService(typeof(ITerrain))).PhysicTerrain);
@@ -135,6 +135,7 @@ namespace ERoD
             ship.SpecularMap = Content.Load<Texture2D>("Textures/Ship2/specular");
             ship.TextureEnabled = true;
             ship.standardEffect = objEffect;
+            ship.shadowEffect = objShadow;
             Components.Add(ship);
 
             ChaseCamera = new ChaseCamera(ship.Entity, new BEPUutilities.Vector3(0.0f, 0.7f, 0.0f), true, 4.0f, 0.1f, 1000.0f, this);
@@ -142,15 +143,15 @@ namespace ERoD
 
             space.ForceUpdater.Gravity = new BVector3(0, -9.82f, 0);
 
-            renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(50, 250, 250), Vector3.Zero, Color.LightYellow, 0.5f, true));
+            renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(50, 550, 450), Vector3.Zero, Color.LightYellow, 0.5f, true));
 
-            renderer.PointLights.Add(new PointLight(new Vector3(0, 85, 50), Color.Blue, 50.0f, 1.0f));
-            renderer.PointLights.Add(new PointLight(new Vector3(50, 85, 0), Color.Red, 50.0f, 1.0f));
-            renderer.PointLights.Add(new PointLight(new Vector3(-50, 85, 0), Color.Green, 50.0f, 1.0f));
+            renderer.PointLights.Add(new PointLight(new Vector3(0, 25, 50), Color.Blue, 50.0f, 1.0f));
+            renderer.PointLights.Add(new PointLight(new Vector3(50, 25, 0), Color.Red, 50.0f, 1.0f));
+            renderer.PointLights.Add(new PointLight(new Vector3(-50, 25, 0), Color.Green, 50.0f, 1.0f));
 
-            renderer.PointLights.Add(new PointLight(new Vector3(170, 85, -175), Color.Goldenrod, 50.0f, 1.0f));
-            renderer.PointLights.Add(new PointLight(new Vector3(130, 85, -172), Color.Goldenrod, 50.0f, 1.0f));
-            renderer.PointLights.Add(new PointLight(new Vector3(90, 85, -160), Color.Goldenrod, 50.0f, 1.0f));
+            renderer.PointLights.Add(new PointLight(new Vector3(170, 25, -175), Color.Goldenrod, 50.0f, 1.0f));
+            renderer.PointLights.Add(new PointLight(new Vector3(130, 25, -172), Color.Goldenrod, 50.0f, 1.0f));
+            renderer.PointLights.Add(new PointLight(new Vector3(90, 25, -160), Color.Goldenrod, 50.0f, 1.0f));
         }
 
         private Entity LoadEntityObject(Model model, Vector3 position, Vector3 scaling)

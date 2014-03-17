@@ -3,6 +3,8 @@ float4x4 View;
 float4x4 Projection;
 float4x4 WorldViewProjection;
 
+float4x4 LightViewProjection;
+
 float3 EyePosition;
 
 Texture2D HeightMap;
@@ -74,6 +76,41 @@ struct PixelShaderOutput
 	float4 SGR : COLOR3;
 };
 
+struct VertexShaderOutputShadow
+{
+	float4 Position : POSITION0;
+	float Depth : TEXCOORD0;
+};
+
+VertexShaderOutputShadow VertexShaderFunctionShadow(VertexShaderInput input)
+{
+	VertexShaderOutputShadow output;
+
+	float4 position = mul(input.position, transpose(input.instanceMatrix));
+	position.y = GET_HEIGHT(position);
+
+	input.morphTarget = mul(input.morphTarget, transpose(input.instanceMatrix));
+	input.morphTarget.y = GET_HEIGHT(input.morphTarget);
+
+	float cameraDistance = distance(EyePosition, position);
+	float morphFactor = MORPH_FACTOR(cameraDistance);
+	morphFactor = saturate((morphFactor - 0.25) / 0.25);
+
+	position = lerp(position, input.morphTarget, morphFactor);
+
+	float4 worldPos = mul(position, World);
+	output.Position = mul(worldPos, LightViewProjection);
+
+	output.Depth.x = 1 - (output.Position.z / output.Position.w);
+
+	return output;
+}
+
+float4 PixelShaderFunctionShadow(VertexShaderOutputShadow input) : COLOR0
+{
+	return float4(input.Depth.x, 0, 0, 1);
+}
+
 VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 {
 	VertexShaderOutput output;
@@ -135,12 +172,11 @@ Technique Deferred
 	}
 }
 
-Technique Shadow // TODO
+Technique Shadow
 {
 	pass pass0
 	{
-		//TODO change
-		VertexShader = compile vs_3_0 VertexShaderFunction();
-		PixelShader = compile ps_3_0 PixelShaderFunction();
+		VertexShader = compile vs_3_0 VertexShaderFunctionShadow();
+		PixelShader = compile ps_3_0 PixelShaderFunctionShadow();
 	}
 }

@@ -8,7 +8,7 @@ using System.Text;
 
 namespace ERoD
 {
-    public class HeightTerrainCDLOD : DrawableGameComponent, IDeferredRender, ITerrain
+    public class HeightTerrainCDLOD : DrawableGameComponent, IDeferredRender, ITerrain, ICastShadow
     {
         #region Patch buffers
 
@@ -352,13 +352,17 @@ namespace ERoD
             Draw(gameTime, baseEffect);
         }
 
+        DynamicVertexBuffer activePatchBuffer;
+        private int activePatchCount;
         public void Draw(GameTime gameTime, Effect effect)
         {
+            baseEffect.CurrentTechnique = baseEffect.Techniques["Deferred"];
+
             SetEffectParameters(gameTime, effect);
 
-            var activePatchBuffer = patchLists[activePatchBufferIndex];
+            activePatchBuffer = patchLists[activePatchBufferIndex];
 
-            int activePatchCount = UpdatePatchList(gameTime, ref activePatchBuffer);
+            activePatchCount = UpdatePatchList(gameTime, ref activePatchBuffer);
             ActivePatchCount = activePatchCount;
 
             // Swap active patchList buffer
@@ -376,6 +380,41 @@ namespace ERoD
                 GraphicsDevice.Indices = patchIndexBuffer;
 
                 foreach (EffectPass pass in effect.CurrentTechnique.Passes)
+                {
+                    pass.Apply();
+                    GraphicsDevice.DrawInstancedPrimitives(PrimitiveType.TriangleList
+                        , 0
+                        , 0
+                        , patchVertexBuffer.VertexCount
+                        , 0
+                        , patchIndexBuffer.IndexCount / 3
+                        , activePatchCount
+                        );
+                }
+            }
+
+            base.Draw(gameTime);
+        }
+
+        public void DrawShadow(GameTime gameTime, Matrix lightViewProjection)
+        {
+            baseEffect.CurrentTechnique = baseEffect.Techniques["Shadow"];
+
+            SetEffectParameters(gameTime, baseEffect);
+            baseEffect.Parameters["LightViewProjection"].SetValue(lightViewProjection);
+
+            if (activePatchCount > 0)
+            {
+                GraphicsDevice.SetVertexBuffers(
+                    new[] 
+                    { 
+                        new VertexBufferBinding(patchVertexBuffer, 0, 0),
+                        new VertexBufferBinding(activePatchBuffer, 0, 1) 
+                    }
+                );
+                GraphicsDevice.Indices = patchIndexBuffer;
+
+                foreach (EffectPass pass in baseEffect.CurrentTechnique.Passes)
                 {
                     pass.Apply();
                     GraphicsDevice.DrawInstancedPrimitives(PrimitiveType.TriangleList

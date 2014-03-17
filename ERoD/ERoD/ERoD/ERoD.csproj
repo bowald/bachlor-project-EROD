@@ -90,6 +90,7 @@
     <Compile Include="Collision\CollisionHandler.cs" />
     <Compile Include="Helper\OurHelper.cs" />
     <Compile Include="Interface\ICamera.cs" />
+    <Compile Include="Interface\ICastShadow.cs" />
     <Compile Include="Interface\ILight.cs" />
     <Compile Include="Interface\IObject.cs" />
     <Compile Include="Interface\IDeferredRender.cs" />
@@ -100,7 +101,7 @@
     <Compile Include="Object\BaseObject.cs" />
     <Compile Include="Object\EntityObject.cs" />
     <Compile Include="Object\Ground.cs" />
-    <Compile Include="Object\HeightTerrain.cs" />
+    <Compile Include="Object\HeightTerrainOld.cs" />
     <Compile Include="Object\ObjectConstants.cs" />
     <Compile Include="Object\Ship.cs" />
     <Compile Include="Object\StaticObject.cs" />

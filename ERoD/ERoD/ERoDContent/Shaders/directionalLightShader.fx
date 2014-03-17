@@ -47,7 +47,7 @@ sampler depthSampler = sampler_state
 	Mipfilter = POINT;
 };
 
-float shadowBias = 0.00000065f;
+float shadowBias = 0.00000055f;
 bool castShadow;
 texture shadowMap;
 sampler shadowSampler = sampler_state
@@ -144,7 +144,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 	diffuseLight += (specular * specularModifier * power);
 
 	//output the two lights
-	return float4(diffuseLight.rgb, 1);// *shading;
+	return float4(diffuseLight.rgb, 1) * shading;
 
 }
 
