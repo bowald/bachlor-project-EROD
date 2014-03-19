@@ -177,6 +177,7 @@ namespace ERoD
             bridge.BumpMap = Content.Load<Texture2D>("Textures/Bridge/normal");
             bridge.TextureEnabled = true;
             bridge.TexMult = 3f;
+            bridge.BumpConstant = 1f;
             bridge.standardEffect = objEffect;
             bridge.shadowEffect = objShadow;
 
@@ -188,7 +189,7 @@ namespace ERoD
 
             CreateCheckPoints(objEffect, cubeModel);
 
-            space.ForceUpdater.Gravity = new BVector3(0, -20.0f, 0);
+            space.ForceUpdater.Gravity = new BVector3(0, GameConstants.Gravity, 0);
 
             renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(50, 550, 450), Vector3.Zero, Color.LightYellow, 0.5f, true));
 

@@ -308,8 +308,6 @@ namespace ERoD
             float scaleX = ObjectConstants.WorldSize / (float)tempHeight.Width;
             float scaleZ = ObjectConstants.WorldSize / (float)tempHeight.Height;
 
-            Console.WriteLine(scaleX);
-
             cTerrain = new Terrain(physHeightData, new BEPUutilities.AffineTransform(
                         new BEPUutilities.Vector3(scaleX, 1, scaleZ),
                         BEPUutilities.Quaternion.Identity,

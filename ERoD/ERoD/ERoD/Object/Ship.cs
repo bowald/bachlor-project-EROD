@@ -136,12 +136,24 @@ namespace ERoD
         /// <param name="idealHeight">Ships hovering distance from the ground</param>
         private bool fly()
         {
-            float h = 0;
-            foreach(StaticCollidable c in Collidables)
+            if (Collidables.Count < 1)
             {
-                h = Math.Max(h, verticalDistance(c));
+                return false;
             }
-            if ((ObjectConstants.IdealHeight - h) > 0) {
+
+            float h = verticalDistance(Collidables[0]);
+            for (int i = 1; i < Collidables.Count; i++ )
+            {
+                float val = verticalDistance(Collidables[i]);
+                if (val <= 0)
+                {
+                    continue;
+                }
+
+                h = Math.Min(h, val);
+            }
+            if ((ObjectConstants.IdealHeight - h) > 0) 
+            {
                 Entity.Position = new BVector3(Entity.Position.X, Entity.Position.Y + (ObjectConstants.IdealHeight - h), Entity.Position.Z);
                 return false;
             }

@@ -23,6 +23,7 @@ namespace ERoD
         protected Texture2D specularMap;
         protected Texture2D bumpMap;
         protected Boolean textureEnabled;
+        protected float bumpConstant = 0f;
         Matrix[] boneTransforms;
 
         public Effect standardEffect;
@@ -42,6 +43,12 @@ namespace ERoD
         {
             get { return textureEnabled; }
             set { textureEnabled = value; }
+        }
+
+        public float BumpConstant
+        {
+            get { return bumpConstant; }
+            set { bumpConstant = value; }
         }
 
         public Matrix Transform
@@ -127,6 +134,10 @@ namespace ERoD
                     if (effect.Parameters["bumpMap"] != null)
                     {
                         effect.Parameters["bumpMap"].SetValue(bumpMap);
+                    }
+                    if (effect.Parameters["bumpConstant"] != null)
+                    {
+                        effect.Parameters["bumpConstant"].SetValue(bumpConstant);
                     }
                     if (effect.Parameters["texMult"] != null)
                     {

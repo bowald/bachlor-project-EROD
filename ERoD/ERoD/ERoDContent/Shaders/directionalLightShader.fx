@@ -7,7 +7,6 @@ float3 lightDirection;
 float3 cameraPosition;
 
 float power = 1;
-float specularModifier = 3;
 
 float2 halfPixel;
 
@@ -139,9 +138,9 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 
 	float dotProduct = dot(r, v);
 	
-	float4 specular = SGR.r * float4(color, 1) * max(pow(dotProduct, 20), 0);
+	float4 specular = SGR.r * float4(color, 1) * max(pow(dotProduct, 10), 0);
 
-	diffuseLight += (specular * specularModifier * power);
+	diffuseLight += (specular * power * 25);
 
 	//output the two lights
 	return float4(diffuseLight.rgb, 1) * shading;
