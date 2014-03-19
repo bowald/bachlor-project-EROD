@@ -21,7 +21,7 @@ namespace ERoD
         public const float EndAcceleration =   0.10f;   // Acceleration between SecondCase and MaxSpeed
 
         // *** Collision ***//
-        public const float RayLengthSide = 0.5f;
+        public const float RayLengthSide = 1.0f;
         public const float AngularSpeed = 0.5f;     //Rotationspeed of the ship when hitting a wall    
         public const float DirectionBump = 0.2f;    //Change of direction
         public const float SpeedDecrease = 0.9f;    //Amount of velocity that will be kept when coliding
@@ -29,15 +29,19 @@ namespace ERoD
         public const float ForwardCollideLength = 0.9f; 
 
         // *** Fly *** //
-        public const float IdealHeight = 1.0f;
+        public const float IdealHeight = 1.5f;
         public const float FallingSpeed = 15.0f;
         public const float ControllSpeed = 2.0f;    //Amount of speed the player is able to change in Y-direction
 
         // *** Turning *** //
         public const float RollSpeed = 0.3f;
         public const float StrafeSpeed = 5.0f;
-        public const float TurningSpeed = 0.9f;     //Angular speed when turning
-        public const float MaxRollAngle = 30.0f;
+        public const float TurningSpeed = 1.2f;     //Angular speed when turning
+        public const float MaxRollAngle = 20.0f;
+
+        // *** Chase Camera *** //
+        public static float ChaseCameraSpeedAngle = 0.1f;
+        public static float ChaseCameraBaseAngle = 0.25f;
             
     }
 }

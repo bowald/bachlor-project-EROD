@@ -178,8 +178,6 @@ namespace ERoD
 
             }
 
-            Console.WriteLine(root.BoundingBox);
-
             var tree = new QuadTree();
             tree.Root = root;
 

@@ -141,7 +141,7 @@ namespace ERoD
 
             Model shipModel = Content.Load<Model>("Models/space_frigate");
             Model shipModelT = Content.Load<Model>("Models/space_frigate_tangentOn");
-            Vector3 shipScale = new Vector3(0.01f, 0.01f, 0.01f);
+            Vector3 shipScale = new Vector3(0.06f, 0.06f, 0.06f);
             Vector3 shipPosition = new Vector3(150, 20, 300);
 
             Entity entity = LoadEntityObject(shipModel, shipPosition, shipScale);
@@ -159,7 +159,7 @@ namespace ERoD
 
             #endregion
 
-            ChaseCamera = new ChaseCamera(ship.Entity, new BEPUutilities.Vector3(0.0f, 0.7f, 0.0f), true, 4.0f, 0.1f, 4000.0f, this);
+            ChaseCamera = new ChaseCamera(ship.Entity, new BEPUutilities.Vector3(0.0f, 0.0f, 0.0f), true, 25.0f, 0.1f, 4000.0f, this);
             ((ChaseCamera)ChaseCamera).Initialize();
 
             #region Bridge
