@@ -16,8 +16,12 @@ namespace ERoD
             get { return ((ICamera)Game.Services.GetService(typeof(ICamera))); }
         }
 
-        protected Matrix world;
         protected Matrix transform;
+        
+        protected Vector3 position;
+        protected Vector3 scale;
+        protected Quaternion rotation;
+        
         protected Model model;
         protected Texture2D diffuseTexture;
         protected Texture2D specularMap;
@@ -51,16 +55,9 @@ namespace ERoD
             set { bumpConstant = value; }
         }
 
-        public Matrix Transform
-        {
-            get { return transform; }
-            set { transform = value; }
-        }
-
         public Matrix World
         {
-            get { return world; }
-            set { world = value; }
+            get { return Matrix.CreateScale(scale) * Matrix.CreateFromQuaternion(rotation) * Matrix.CreateTranslation(position); }
         }
 
         public Model Model
@@ -87,11 +84,11 @@ namespace ERoD
             set { bumpMap = value; }
         }
 
-        protected BaseObject(Model model, Matrix transform, Game game)
+        protected BaseObject(Model model, Matrix world, Game game)
             : base(game)
         {
             this.model = model;
-            this.transform = transform;
+            world.Decompose(out scale, out rotation, out position);
             boneTransforms = new Matrix[model.Bones.Count];
         }
 

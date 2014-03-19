@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using BMatrix = BEPUutilities.Matrix;
 
 
 namespace ERoD
@@ -14,7 +13,7 @@ namespace ERoD
     class EntityObject : BaseObject
     {
         public Entity Entity;
-
+        
         public EntityObject(Entity entity, Model model, Matrix world, Game game) 
             : base(model, world, game)
         {
@@ -23,7 +22,8 @@ namespace ERoD
 
         public override void Draw(GameTime gameTime, Effect effect)
         {
-            World = Transform * MathConverter.Convert(Entity.WorldTransform);
+            Vector3 ignore;
+            MathConverter.Convert(Entity.WorldTransform).Decompose(out ignore, out rotation, out position);
 
             base.Draw(gameTime, effect);
         }

@@ -25,8 +25,8 @@ namespace ERoD
         public const float AngularSpeed = 0.5f;     //Rotationspeed of the ship when hitting a wall    
         public const float DirectionBump = 0.2f;    //Change of direction
         public const float SpeedDecrease = 0.9f;    //Amount of velocity that will be kept when coliding
-        public const float SideCollideLength = 0.4f;
-        public const float ForwardCollideLength = 0.9f; 
+        public const float SideCollideLength = 1.8f;
+        public const float ForwardCollideLength = 2.4f; 
 
         // *** Fly *** //
         public const float IdealHeight = 1.5f;

@@ -12,7 +12,6 @@ namespace ERoD
         public StaticObject(Model model, Matrix transform, Game game) 
             : base(model, transform, game)
         {
-            World = Transform;
         }
 
         public override void Draw(GameTime gameTime)

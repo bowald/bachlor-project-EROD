@@ -47,14 +47,15 @@ namespace ERoD
         {
             get 
             {
+                // Find horizontal speed.
                 float x = ChasedEntity.LinearVelocity.X;
                 float z = ChasedEntity.LinearVelocity.Z;
                 float speed = Math.Min(ObjectConstants.MaxSpeed, (new BEPUutilities.Vector2(x, z)).Length());
-                Console.WriteLine(speed);
+                
+                // Use horizontal speed to apply different amounts of angle to the viewdirection
                 BEPUutilities.Vector3 result = ChasedEntity.OrientationMatrix.Forward;
                 result += ((((ObjectConstants.MaxSpeed - speed) / ObjectConstants.MaxSpeed) * ObjectConstants.ChaseCameraSpeedAngle + ObjectConstants.ChaseCameraBaseAngle) * BEPUutilities.Vector3.Down);
                 result.Normalize();
-                //BEPUutilities.Vector3.Add(ChasedEntity.OrientationMatrix.Forward, BEPUutilities.Vector3.Down, out result);
                 return result;
             }
         }
