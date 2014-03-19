@@ -8,7 +8,7 @@ namespace ERoD
     abstract class ObjectConstants
     {
         //World
-        public const float WorldSize = 512.0f;  // Size of the world in world size units
+        public const float WorldSize = 3000.0f;  // Size of the world in world size units
 
         //Ship
         // *** Velocity *** ///

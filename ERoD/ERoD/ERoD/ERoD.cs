@@ -99,7 +99,7 @@ namespace ERoD
             Components.Add(terrain);
             Services.AddService(typeof(ITerrain), terrain);
 
-            FreeCamera = new FreeCamera(this, 0.1f, 1000.0f, new Vector3(25f, 150.0f, 25f), 70.0f);
+            FreeCamera = new FreeCamera(this, 0.1f, 4000.0f, new Vector3(25f, 150.0f, 25f), 270.0f);
             this.Services.AddService(typeof(ICamera), FreeCamera);
             FreeCameraActive = true;
 
@@ -127,11 +127,6 @@ namespace ERoD
 
             Model cubeModel = Content.Load<Model>("Models/cube");
 
-            Model shipModel = Content.Load<Model>("Models/space_frigate");
-            Model shipModelT = Content.Load<Model>("Models/space_frigate_tangentOn");
-            Vector3 shipScale = new Vector3(0.01f, 0.01f, 0.01f);
-            Vector3 shipPosition = new Vector3(10, 20, 30);
-
             Effect objEffect = Content.Load<Effect>("Shaders/DeferredObjectRender");
             Effect objShadow = Content.Load<Effect>("Shaders/DeferredShadowShader");
             
@@ -142,7 +137,13 @@ namespace ERoD
 
             //Console.WriteLine("Max {0}, Min {1}", terrain.PhysicTerrain.BoundingBox.Max, terrain.PhysicTerrain.BoundingBox.Min);
 
-            // Fix ship loading
+            #region Ship loading
+
+            Model shipModel = Content.Load<Model>("Models/space_frigate");
+            Model shipModelT = Content.Load<Model>("Models/space_frigate_tangentOn");
+            Vector3 shipScale = new Vector3(0.01f, 0.01f, 0.01f);
+            Vector3 shipPosition = new Vector3(150, 20, 300);
+
             Entity entity = LoadEntityObject(shipModel, shipPosition, shipScale);
 
             Ship ship = new Ship(entity, shipModelT, Matrix.CreateScale(shipScale), this);
@@ -156,8 +157,34 @@ namespace ERoD
             Components.Add(ship);
             GameLogic.AddPlayer(ship, "Anton");
 
-            ChaseCamera = new ChaseCamera(ship.Entity, new BEPUutilities.Vector3(0.0f, 0.7f, 0.0f), true, 4.0f, 0.1f, 1000.0f, this);
+            #endregion
+
+            ChaseCamera = new ChaseCamera(ship.Entity, new BEPUutilities.Vector3(0.0f, 0.7f, 0.0f), true, 4.0f, 0.1f, 4000.0f, this);
             ((ChaseCamera)ChaseCamera).Initialize();
+
+            #region Bridge
+
+            // Load the bridge model
+            Model bridgeModel = Content.Load<Model>("Models/bridge");
+            AffineTransform bridgeTransform = new AffineTransform(
+                new BVector3(6f, 6f, 6f), 
+                BQuaternion.CreateFromAxisAngle(new BVector3(0, 1, 0), BEPUutilities.MathHelper.ToRadians(0f)), 
+                new BVector3(130, -65, -140));
+            var bridgeMesh = LoadStaticObject(bridgeModel, bridgeTransform);
+            StaticObject bridge = new StaticObject(bridgeModel, MathConverter.Convert(bridgeMesh.WorldTransform.Matrix), this);
+            bridge.SpecularMap  = Content.Load<Texture2D>("Textures/Bridge/specular");
+            bridge.Texture = Content.Load<Texture2D>("Textures/Bridge/diffuse");
+            bridge.BumpMap = Content.Load<Texture2D>("Textures/Bridge/normal");
+            bridge.TextureEnabled = true;
+            bridge.TexMult = 3f;
+            bridge.standardEffect = objEffect;
+            bridge.shadowEffect = objShadow;
+
+            space.Add(bridgeMesh);
+            Components.Add(bridge);
+            ship.AddCollidable(bridgeMesh);
+
+            #endregion
 
             CreateCheckPoints(objEffect, cubeModel);
 
@@ -210,14 +237,12 @@ namespace ERoD
             return entity;
         }
 
-        private StaticObject LoadStaticObject(Model model, AffineTransform transform) 
+        private StaticMesh LoadStaticObject(Model model, AffineTransform transform) 
         {
             BVector3[] vertices;
             int[] indices;
             ModelDataExtractor.GetVerticesAndIndicesFromModel(model, out vertices, out indices);
-            var mesh = new StaticMesh(vertices, indices, transform);
-            space.Add(mesh);
-            return new StaticObject(model, MathConverter.Convert(mesh.WorldTransform.Matrix), this);
+            return new StaticMesh(vertices, indices, transform);
         }
 
         /// <summary>

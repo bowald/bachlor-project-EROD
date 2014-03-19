@@ -2,6 +2,7 @@ float4x4 World;
 float4x4 wvp : WorldViewProjection;
 
 float3 color = 1;
+float3 texMult = 1;
 
 bool textureEnabled;
 texture diffuseTexture;
@@ -87,7 +88,7 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 
 	output.TexCoord = input.TexCoord;
 
-	output.Depth = 1 - (output.Position.z / output.Position.w);
+	output.Depth = saturate(1 - (output.Position.z / output.Position.w)); // Saturate to get rid of bug when objects are closer than near clip plane, ask Uffe
 
 	output.Normal = mul(input.Normal, World);
 
@@ -109,6 +110,8 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input)
 {
 	PixelShaderOutput output = (PixelShaderOutput)0;
 
+	input.TexCoord *= (1 / texMult);
+
 	if (textureEnabled)
 	{
 		output.Color = tex2D(diffuseSampler, input.TexCoord) * float4(color, 1);
@@ -118,7 +121,7 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input)
 		output.Color = float4(color, 1);
 	}
 
-	float3 bumpValue = bumpConstant * tex2D(BumpMapSampler, input.TexCoord);
+	float3 bumpValue = bumpConstant * (tex2D(BumpMapSampler, input.TexCoord) * 2.0f - 1.0f);
 
 	float3 bumpNormal = input.Normal + (bumpValue.x * input.Tangent + bumpValue.y * input.Binormal);
 

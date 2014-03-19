@@ -27,6 +27,16 @@ namespace ERoD
 
         public Effect standardEffect;
         public Effect shadowEffect;
+        
+        /// <summary>
+        ///  Increases the "size" of tiled textures.
+        /// </summary>
+        private float texMult = 1f;
+        public float TexMult
+        { 
+            get { return texMult; } 
+            set { texMult = value;  } 
+        }
 
         public bool TextureEnabled
         {
@@ -117,6 +127,10 @@ namespace ERoD
                     if (effect.Parameters["bumpMap"] != null)
                     {
                         effect.Parameters["bumpMap"].SetValue(bumpMap);
+                    }
+                    if (effect.Parameters["texMult"] != null)
+                    {
+                        effect.Parameters["texMult"].SetValue(TexMult);
                     }
                 }
                 mesh.Draw();

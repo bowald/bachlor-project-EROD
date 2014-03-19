@@ -15,16 +15,20 @@ using BVector3 = BEPUutilities.Vector3;
 namespace ERoD
 {
     class Ship : EntityObject
-    {        
-        private StaticCollidable Terrain
-        {
-            get { return ((ITerrain)Game.Services.GetService(typeof(ITerrain))).PhysicTerrain; }
-        }
+    {
+
+        List<StaticCollidable> Collidables = new List<StaticCollidable>();
 
         public Ship(Entity entity, Model model, Matrix world, Game game) 
             : base(entity, model, world, game)
         {
             entity.BecomeKinematic();
+            AddCollidable(((ITerrain)Game.Services.GetService(typeof(ITerrain))).PhysicTerrain);
+        }
+
+        public void AddCollidable(StaticCollidable c)
+        {
+            Collidables.Add(c);
         }
 
         /// <summary>
@@ -49,11 +53,11 @@ namespace ERoD
         /// <summary>
         /// Returns the distance from the ship to the ground.
         /// </summary>
-        private float distancefromGround()
+        private float verticalDistance(StaticCollidable staticObject)
         {
             BEPUutilities.RayHit hit;
             BRay ray = new BRay(Entity.Position, BVector3.Down);
-            Terrain.RayCast(ray, 100.0f, out hit);
+            staticObject.RayCast(ray, 100.0f, out hit);
             return hit.T;
         }
         /// <summary>
@@ -73,18 +77,19 @@ namespace ERoD
                 return "Down";
             return "no match";
         }
-        private void dontCollide(BRay ray, float rayLength, float gamePadDirection)
+
+        private void dontCollide(BRay ray, float rayLength, float gamePadDirection, StaticCollidable staticObject)
         {
             BEPUutilities.RayHit hit;
-            if (Terrain.RayCast(ray, rayLength, out hit))
+            if (staticObject.RayCast(ray, rayLength, out hit))
             {
                 BRay rayRight = new BRay(Entity.Position, Entity.OrientationMatrix.Forward - 0.3f * ray.Direction);
                 BRay rayLeft = new BRay(Entity.Position, Entity.OrientationMatrix.Forward + 0.3f * ray.Direction);
                 BEPUutilities.RayHit hitRight;
                 BEPUutilities.RayHit hitLeft;
 
-                Boolean rayCastHitRight = Terrain.RayCast(rayRight, ObjectConstants.RayLengthSide, out hitRight);
-                Boolean rayCastHitLeft = Terrain.RayCast(rayLeft, ObjectConstants.RayLengthSide, out hitLeft);
+                Boolean rayCastHitRight = staticObject.RayCast(rayRight, ObjectConstants.RayLengthSide, out hitRight);
+                Boolean rayCastHitLeft = staticObject.RayCast(rayLeft, ObjectConstants.RayLengthSide, out hitLeft);
                 float angularspeed = ObjectConstants.AngularSpeed;
                 float directionBump = ObjectConstants.DirectionBump;
 
@@ -129,8 +134,13 @@ namespace ERoD
         /// Returns true if its above the ideal heigth
         /// </summary>
         /// <param name="idealHeight">Ships hovering distance from the ground</param>
-        private bool fly(){
-            float h = distancefromGround();
+        private bool fly()
+        {
+            float h = 0;
+            foreach(StaticCollidable c in Collidables)
+            {
+                h = Math.Max(h, verticalDistance(c));
+            }
             if ((ObjectConstants.IdealHeight - h) > 0) {
                 Entity.Position = new BVector3(Entity.Position.X, Entity.Position.Y + (ObjectConstants.IdealHeight - h), Entity.Position.Z);
                 return false;
@@ -263,9 +273,13 @@ namespace ERoD
 
 
             // Checks for collitions
-            dontCollide(new BRay(Entity.Position, Entity.OrientationMatrix.Forward), ObjectConstants.ForwardCollideLength, gamePadState.ThumbSticks.Left.X);
-            dontCollide(new BRay(Entity.Position, Entity.OrientationMatrix.Left), ObjectConstants.SideCollideLength, gamePadState.ThumbSticks.Left.X);
-            dontCollide(new BRay(Entity.Position, Entity.OrientationMatrix.Right), ObjectConstants.SideCollideLength, gamePadState.ThumbSticks.Left.X);
+            foreach(StaticCollidable c in Collidables)
+            {
+                dontCollide(new BRay(Entity.Position, Entity.OrientationMatrix.Forward), ObjectConstants.ForwardCollideLength, gamePadState.ThumbSticks.Left.X, c);
+                dontCollide(new BRay(Entity.Position, Entity.OrientationMatrix.Left), ObjectConstants.SideCollideLength, gamePadState.ThumbSticks.Left.X, c);
+                dontCollide(new BRay(Entity.Position, Entity.OrientationMatrix.Right), ObjectConstants.SideCollideLength, gamePadState.ThumbSticks.Left.X, c);
+            }
+
             base.Update(gameTime);
         }
     }
