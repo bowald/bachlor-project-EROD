@@ -91,7 +91,7 @@ namespace ERoD
             Subdivide(vertices, indices, true);
             Subdivide(vertices, indices, true);
             Subdivide(vertices, indices, true);
-            Subdivide(vertices, indices, true);
+            //Subdivide(vertices, indices, true);
 
             vertexBuffer = new VertexBuffer(Game.GraphicsDevice, VertexPositionNormalTexture.VertexDeclaration, vertices.Count, BufferUsage.WriteOnly);
             vertexBuffer.SetData(vertices.ToArray());
@@ -337,7 +337,7 @@ namespace ERoD
 
             effect.Parameters["View"].SetValue(Camera.View);
             effect.Parameters["Projection"].SetValue(Camera.Projection);
-            effect.Parameters["WorldViewProjection"].SetValue(WorldMatrix * Camera.View * Camera.Projection);
+            effect.Parameters["farPlane"].SetValue(Camera.FarPlane);
 
             effect.Parameters["HeightMap"].SetValue(heightMap);
             effect.Parameters["NormalMap"].SetValue(normalMap);

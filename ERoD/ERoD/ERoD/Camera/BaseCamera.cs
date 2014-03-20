@@ -52,6 +52,16 @@ namespace ERoD
             set { viewport = value; }
         }
 
+        public float NearPlane
+        {
+            get { return nearPlane; }
+        }
+
+        public float FarPlane
+        {
+            get { return farPlane; }
+        }
+
         protected BaseCamera(Game game, float nearPlane, float farPlane) : base(game)
         {
             this.nearPlane = nearPlane;
@@ -80,5 +90,8 @@ namespace ERoD
         //    base.Dispose();
         //    Game.Components.Remove(this);
         //}
+
+
+        
     }
 }

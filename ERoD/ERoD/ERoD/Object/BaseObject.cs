@@ -99,7 +99,6 @@ namespace ERoD
             foreach (ModelMesh mesh in model.Meshes)
             {
                 Matrix meshWorld = boneTransforms[mesh.ParentBone.Index] * World;
-                Matrix wvp = meshWorld * Camera.View * Camera.Projection;
 
                 foreach (ModelMeshPart part in mesh.MeshParts)
                 {
@@ -108,9 +107,17 @@ namespace ERoD
                     {
                         effect.Parameters["World"].SetValue(meshWorld);
                     }
-                    if (effect.Parameters["wvp"] != null)
+                    if (effect.Parameters["View"] != null)
                     {
-                        effect.Parameters["wvp"].SetValue(wvp);
+                        effect.Parameters["View"].SetValue(Camera.View);
+                    }
+                    if (effect.Parameters["Projection"] != null)
+                    {
+                        effect.Parameters["Projection"].SetValue(Camera.Projection);
+                    }
+                    if (effect.Parameters["farPlane"] != null)
+                    {
+                        effect.Parameters["farPlane"].SetValue(Camera.FarPlane);
                     }
                     if (effect.Parameters["color"] != null)
                     {

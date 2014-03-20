@@ -15,5 +15,7 @@ namespace ERoD
         Quaternion Rotation { get; set; }
         Matrix World { get; }
         Viewport Viewport { get; set; }
+        float NearPlane { get; }
+        float FarPlane { get; }
     }
 }

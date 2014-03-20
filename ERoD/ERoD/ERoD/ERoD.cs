@@ -76,8 +76,8 @@ namespace ERoD
         public ERoD()
         {
             graphics = new GraphicsDeviceManager(this);
-            graphics.PreferredBackBufferHeight = 768;
-            graphics.PreferredBackBufferWidth = 1366;
+            graphics.PreferredBackBufferHeight = 550;
+            graphics.PreferredBackBufferWidth = 900;
             //graphics.IsFullScreen = true;
 
             Content.RootDirectory = "Content";

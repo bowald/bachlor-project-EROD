@@ -192,7 +192,7 @@ namespace ERoD
                 // compares current angle to up angle, could compare current to ground angle as well
                 float dot = BEPUutilities.Vector3.Dot(Entity.OrientationMatrix.Up, BEPUutilities.Vector3.Up);
 
-                Console.WriteLine((1 - dot));
+                //Console.WriteLine((1 - dot));
 
                 angularVelocity = Entity.OrientationMatrix.Right * (-rad / 0.5235988f) * ((1 / 0.15f) * Math.Max(0, (0.15f - (1 - dot))));
             }
