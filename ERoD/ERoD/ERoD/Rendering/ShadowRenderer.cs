@@ -165,8 +165,7 @@ namespace ERoD
         /// </summary>
         public void RenderShadowOcclusion(ICamera camera, IDirectionalLight light)
         {
-            // Set the device to render to our shadow occlusion texture, and to use
-            // the original DepthStencilSurface
+            // Set the device to render to our shadow occlusion texture
             renderer.GraphicsDevice.SetRenderTarget(shadowOcclusion);
             renderer.GraphicsDevice.Clear(Color.White);
             renderer.GraphicsDevice.BlendState = BlendState.Opaque;

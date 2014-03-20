@@ -106,6 +106,10 @@ namespace ERoD
             {
                 effect.Parameters["World"].SetValue(worldMatrix);
             }
+            if (effect.Parameters["farPlane"] != null)
+            {
+                effect.Parameters["farPlane"].SetValue(Camera.FarPlane);
+            }
 
             foreach (EffectPass pass in effect.CurrentTechnique.Passes)
             {

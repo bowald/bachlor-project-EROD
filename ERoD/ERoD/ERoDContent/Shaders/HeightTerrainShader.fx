@@ -2,6 +2,7 @@
 float4x4 View;
 float4x4 Projection;
 float4x4 World;
+float farPlane;
 
 //------- Texture Samplers --------
 
@@ -56,7 +57,12 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 
 	output.Normal = mul(input.Normal, World);
 
-	output.Depth = 1 - (output.Position.z / output.Position.w);
+	float4x4 WorldView = mul(World, View);
+	float4 PositionVS = mul(input.Position, WorldView);
+	output.Position = mul(PositionVS, Projection);
+	output.Depth = PositionVS.z;
+
+	//output.Depth = 1 - (output.Position.z / output.Position.w);
 
 	return output;
 }
@@ -70,7 +76,11 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input)
 	output.Normal.xyz = (normalize(input.Normal).xyz / 2) + 0.5f;
 	output.Normal.a = 1;
 
-	output.Depth = float4(input.Depth.x, 0, 0, 1);
+	// Negate and divide by distance to far clip (so that depth is in range [0,1])
+	float fDepth = -input.Depth / farPlane;
+	output.Depth = float4(fDepth, 1.0f, 1.0f, 1.0f);
+	
+	//output.Depth = float4(input.Depth.x, 0, 0, 1);
 
 	output.SGR.r = 1;//tex2D(SpecularSampler, input.TexCoord);
 	output.SGR.g = 0;//tex2D(GlowSampler, input.TexCoord);
