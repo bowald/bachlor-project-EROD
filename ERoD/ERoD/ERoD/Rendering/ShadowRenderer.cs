@@ -24,10 +24,17 @@ namespace ERoD
         private const int NUM_CSM_SPLITS = 3;
 
         //temporary variables to help on cascade shadow maps
-        float[] splitDepthsTmp = new float[NUM_CSM_SPLITS + 1];
+        float[] splitDepths = new float[NUM_CSM_SPLITS + 1];
         Vector3[] frustumCornersWS = new Vector3[8];
         Vector3[] frustumCornersVS = new Vector3[8];
         Vector3[] splitFrustumCornersVS = new Vector3[8];
+        Vector2[] lightClipPlanes = new Vector2[NUM_CSM_SPLITS];
+        Vector3[] farFrustumCornersVS = new Vector3[4];
+
+        public RenderTarget2D[] shadowMaps = new RenderTarget2D[3];
+        public RenderTarget2D shadowOcclusion;
+
+        private DeferredRenderer renderer;
 
         private List<CascadeShadowMapEntry> cascadeShadowMaps = new List<CascadeShadowMapEntry>();
         private const int NUM_CSM_SHADOWS = 1;
@@ -36,6 +43,7 @@ namespace ERoD
 
         public ShadowRenderer(DeferredRenderer renderer)
         {
+            this.renderer = renderer;
             for (int i = 0; i < NUM_CSM_SHADOWS; i++)
             {
                 CascadeShadowMapEntry entry = new CascadeShadowMapEntry();
@@ -43,7 +51,21 @@ namespace ERoD
                                                    CASCADE_SHADOW_RESOLUTION, false, SurfaceFormat.Single,
                                                    DepthFormat.Depth24Stencil8, 0, RenderTargetUsage.DiscardContents);
                 cascadeShadowMaps.Add(entry);
+
             }
+            for (int i = 0; i < shadowMaps.Length; i++)
+            {
+                shadowMaps[i] = new RenderTarget2D(renderer.GraphicsDevice, CASCADE_SHADOW_RESOLUTION,
+                                                   CASCADE_SHADOW_RESOLUTION, false, SurfaceFormat.Single,
+                                                   DepthFormat.Depth24Stencil8, 0, RenderTargetUsage.DiscardContents);
+
+            }
+
+            // Create the shadow occlusion texture using the same dimensions as the backbuffer
+            shadowOcclusion = new RenderTarget2D(renderer.GraphicsDevice, renderer.GraphicsDevice.PresentationParameters.BackBufferWidth,
+                                                 renderer.GraphicsDevice.PresentationParameters.BackBufferHeight, false,
+                                                 SurfaceFormat.Color, DepthFormat.Depth24Stencil8, 
+                                                 0, RenderTargetUsage.DiscardContents);
         }
 
         public void InitFrame()
@@ -72,7 +94,7 @@ namespace ERoD
         /// <param name="light"></param>
         /// <param name="cascadeShadowMap"></param>
         /// <param name="camera"></param>
-        public void GenerateShadowTextureDirectionalLight(DeferredRenderer renderer, Game game, ILight light, ICamera camera, GameTime gameTime)
+        public void GenerateShadowTextureDirectionalLight(Game game, IDirectionalLight light, ICamera camera, GameTime gameTime)
         {
             //bind the render target
             renderer.GraphicsDevice.SetRenderTarget(light.CascadedShadowMap.Texture);
@@ -85,32 +107,39 @@ namespace ERoD
             camera.Frustum.GetCorners(frustumCornersWS);
             Matrix eyeTransform = camera.View;
             Vector3.Transform(frustumCornersWS, ref eyeTransform, frustumCornersVS);
+            for (int i = 0; i < 4; i++)
+            {
+                farFrustumCornersVS[i] = frustumCornersVS[i + 4];
+            }
 
+            float near = camera.NearPlane;
+            float far = MathHelper.Min(camera.FarPlane, 1000.0f);//light.ShadowDistance);
 
-            float near = camera.NearPlane, far = MathHelper.Min(camera.FarPlane, 1000.0f);//light.ShadowDistance);
-
-            splitDepthsTmp[0] = near;
-            splitDepthsTmp[NUM_CSM_SPLITS] = far;
+            splitDepths[0] = near;
+            splitDepths[NUM_CSM_SPLITS] = far;
 
             //compute each distance the way you like...
-            for (int i = 1; i < splitDepthsTmp.Length - 1; i++)
-                splitDepthsTmp[i] = near + (far - near) * (float)Math.Pow((i / (float)NUM_CSM_SPLITS), 2);
+            for (int i = 1; i < NUM_CSM_SPLITS; i++)
+            {
+                splitDepths[i] = near + (far - near) * (float)Math.Pow((i / (float)NUM_CSM_SPLITS), 2);
+            }
 
 
             Viewport splitViewport = new Viewport();
-            Vector3 lightDir = -Vector3.Normalize(light.View.Forward);
-
-            BoundingFrustum frustum = new BoundingFrustum(Matrix.Identity);
-
-            renderer.DeferredShadowShader.Parameters["vp"].SetValue(light.View * light.Projection);
+            Vector3 lightDir = Vector3.Normalize(light.Direction);
 
             for (int i = 0; i < NUM_CSM_SPLITS; i++)
             {
-                light.CascadedShadowMap.LightClipPlanes[i].X = -splitDepthsTmp[i];
-                light.CascadedShadowMap.LightClipPlanes[i].Y = -splitDepthsTmp[i + 1];
 
-                light.CascadedShadowMap.LightViewProjectionMatrices[i] = CreateLightViewProjectionMatrix(lightDir, far, camera, splitDepthsTmp[i], splitDepthsTmp[i + 1], i);
+                light.CascadedShadowMap.LightClipPlanes[i].X = -splitDepths[i];
+                light.CascadedShadowMap.LightClipPlanes[i].Y = -splitDepths[i + 1];
+
+                light.CascadedShadowMap.LightViewProjectionMatrices[i] = CreateLightViewProjectionMatrix(lightDir, far, camera, splitDepths[i], splitDepths[i + 1], i);
                 Matrix viewProj = light.CascadedShadowMap.LightViewProjectionMatrices[i];
+
+                renderer.DeferredShadowShader.CurrentTechnique = renderer.DeferredShadowShader.Techniques["GenerateShadowMap"];
+                renderer.DeferredShadowShader.Parameters["vp"].SetValue(viewProj);
+
                 Console.WriteLine(i);
                 // Set the viewport for the current split     
                 splitViewport.MinDepth = 0;
@@ -121,8 +150,6 @@ namespace ERoD
                 splitViewport.Y = 0;
                 renderer.GraphicsDevice.Viewport = splitViewport;
 
-                frustum.Matrix = viewProj;
-
                 foreach (GameComponent component in game.Components)
                 {
                     if (component is IDeferredRender)
@@ -130,9 +157,50 @@ namespace ERoD
                         ((IDeferredRender)component).Draw(gameTime, renderer.DeferredShadowShader);
                     }
                 }
-
             }
+        }
 
+        /// <summary>
+        /// Renders a texture containing the final shadow occlusion
+        /// </summary>
+        public void RenderShadowOcclusion(ICamera camera, IDirectionalLight light)
+        {
+            // Set the device to render to our shadow occlusion texture, and to use
+            // the original DepthStencilSurface
+            renderer.GraphicsDevice.SetRenderTarget(shadowOcclusion);
+            renderer.GraphicsDevice.Clear(Color.White);
+            renderer.GraphicsDevice.BlendState = BlendState.Opaque;
+            renderer.GraphicsDevice.DepthStencilState = DepthStencilState.Default;
+
+            // Setup the Effect
+            renderer.DeferredShadowShader.CurrentTechnique = renderer.DeferredShadowShader.Techniques["GenerateShadowOcclusion"];
+            renderer.DeferredShadowShader.Parameters["lightDirection"].SetValue(light.Direction);
+            renderer.DeferredShadowShader.Parameters["halfPixel"].SetValue(renderer.halfPixel);
+            renderer.DeferredShadowShader.Parameters["DepthTexture"].SetValue(renderer.depthMap);
+
+            Vector2 shadowMapPixelSize = new Vector2(0.5f / light.CascadedShadowMap.Texture.Width, 0.5f / light.CascadedShadowMap.Texture.Height);
+            renderer.DeferredShadowShader.Parameters["ShadowMapPixelSize"].SetValue(shadowMapPixelSize);
+            renderer.DeferredShadowShader.Parameters["ShadowMapSize"].SetValue(new Vector2(light.CascadedShadowMap.Texture.Width, light.CascadedShadowMap.Texture.Height));
+            renderer.DeferredShadowShader.Parameters["ShadowMap"].SetValue(light.CascadedShadowMap.Texture);
+
+            renderer.DeferredShadowShader.Parameters["ClipPlanes"].SetValue(light.CascadedShadowMap.LightClipPlanes);
+            renderer.DeferredShadowShader.Parameters["MatLightViewProj"].SetValue(light.CascadedShadowMap.LightViewProjectionMatrices);
+            renderer.DeferredShadowShader.Parameters["cameraPosition"].SetValue(camera.Position);
+            renderer.DeferredShadowShader.Parameters["cameraTransform"].SetValue(camera.World);
+
+            Vector3 cascadeDistances = Vector3.Zero;
+            cascadeDistances.X = light.CascadedShadowMap.LightClipPlanes[0].X;
+            cascadeDistances.Y = light.CascadedShadowMap.LightClipPlanes[1].X;
+            cascadeDistances.Z = light.CascadedShadowMap.LightClipPlanes[2].X;
+            renderer.DeferredShadowShader.Parameters["CascadeDistances"].SetValue(cascadeDistances);
+
+            renderer.DeferredShadowShader.Parameters["g_vShadowMapSize"].SetValue(new Vector2(light.CascadedShadowMap.Texture.Width, light.CascadedShadowMap.Texture.Height));
+            renderer.DeferredShadowShader.Parameters["g_bShowSplitColors"].SetValue(false);
+
+            renderer.DeferredShadowShader.CurrentTechnique.Passes[0].Apply();
+
+            // Draw the full screen quad		
+            renderer.sceneQuad.Draw(-Vector2.One, Vector2.One);
 
         }
 
@@ -150,7 +218,7 @@ namespace ERoD
             for (int i = 4; i < 8; i++)
                 splitFrustumCornersVS[i] = frustumCornersVS[i] * (maxZ / camera.FarPlane);
 
-            Matrix cameraMat = camera.View;
+            Matrix cameraMat = camera.World;
             Vector3.Transform(splitFrustumCornersVS, ref cameraMat, frustumCornersWS);
 
             // Matrix with that will rotate in points the direction of the light
@@ -158,10 +226,7 @@ namespace ERoD
             if (Math.Abs(Vector3.Dot(cameraUpVector, lightDir)) > 0.9f)
                 cameraUpVector = Vector3.Forward;
 
-            Matrix lightRotation = Matrix.CreateLookAt(Vector3.Zero,
-                                                       -lightDir,
-                                                       cameraUpVector);
-
+            Matrix lightRotation = Matrix.CreateLookAt(Vector3.Zero, -lightDir, cameraUpVector);
 
             // Transform the positions of the corners into the direction of the light
             for (int i = 0; i < frustumCornersWS.Length; i++)
@@ -228,7 +293,9 @@ namespace ERoD
 
             Vector3 boxSize = _lightBox.Max - _lightBox.Min;
             if (boxSize.X == 0 || boxSize.Y == 0 || boxSize.Z == 0)
+            {
                 boxSize = Vector3.One;
+            }
             Vector3 halfBoxSize = boxSize * 0.5f;
 
             // The position of the light should be in the center of the back
@@ -238,18 +305,14 @@ namespace ERoD
 
             // We need the position back in world coordinates so we transform 
             // the light position by the inverse of the lights rotation
-            lightPosition = Vector3.Transform(lightPosition,
-                                              Matrix.Invert(lightRotation));
+            lightPosition = Vector3.Transform(lightPosition, Matrix.Invert(lightRotation));
 
             // Create the view matrix for the light
-            Matrix lightView = Matrix.CreateLookAt(lightPosition,
-                                                   lightPosition - lightDir,
-                                                   cameraUpVector);
+            Matrix lightView = Matrix.CreateLookAt(lightPosition, lightPosition - lightDir, cameraUpVector);
 
             // Create the projection matrix for the light
             // The projection is orthographic since we are using a directional light
-            Matrix lightProjection = Matrix.CreateOrthographic(boxSize.X, boxSize.Y,
-                                                               -boxSize.Z, 0);
+            Matrix lightProjection = Matrix.CreateOrthographic(boxSize.X, boxSize.Y, -boxSize.Z, 0);
 
 
             return lightView * lightProjection;

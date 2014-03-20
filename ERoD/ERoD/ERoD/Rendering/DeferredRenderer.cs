@@ -18,6 +18,21 @@ namespace ERoD
 
         public ShadowRenderer shadowRenderer;
 
+        /// <summary>
+        /// Our frustum corners in world space
+        /// </summary>
+        private Vector3[] cornersWorldSpace = new Vector3[8];
+
+        /// <summary>
+        /// Our frustum corners in view space
+        /// </summary>
+        private Vector3[] cornersViewSpace = new Vector3[8];
+
+        /// <summary>
+        /// Our final corners, the 4 farthest points on the view space frustum
+        /// </summary>
+        private Vector3[] currentFrustumCorners = new Vector3[4];
+
         public RenderTarget2D depthMap;
         public RenderTarget2D colorMap;
         public RenderTarget2D normalMap;
@@ -44,10 +59,10 @@ namespace ERoD
         public List<IPointLight> PointLights = new List<IPointLight>();
         public List<IDirectionalLight> DirectionalLights = new List<IDirectionalLight>();
 
-        Vector2 halfPixel;
+        public Vector2 halfPixel;
         private int shadowMapSize = 2048;
 
-        ScreenQuad sceneQuad;
+        public ScreenQuad sceneQuad;
 
         public DeferredRenderer(Game game) : base(game)
         {
@@ -119,6 +134,8 @@ namespace ERoD
 
         private void RenderDeferred(GameTime gameTime)
         {
+            ComputeFrustumCorners(Camera);
+
             GraphicsDevice.SetRenderTargets(colorMap, normalMap, depthMap, SGRMap);
 
             GraphicsDevice.Clear(Color.Black);
@@ -147,10 +164,11 @@ namespace ERoD
 
         private void DeferredShadows(GameTime gameTime)
         {
+            ApplyFrustumCorners(deferredShadowShader, -Vector2.One, Vector2.One);
+
             List<ILight> lights = new List<ILight>(DirectionalLights.Where(entity => entity.Intensity > 0 && entity.Color != Color.Black && entity.CastShadow));
 
-            List<ILight> needShadowMaps = new List<ILight>(lights.Where(entity => entity.CascadedShadowMap == null));
-
+            List<ILight> needShadowMaps = new List<ILight>(lights.Where(entity => entity.CascadedShadowMap.Texture == null));
             foreach (ILight light in needShadowMaps)
             {
                 light.CascadedShadowMap = shadowRenderer.GetFreeCascadeShadowMap();
@@ -160,9 +178,13 @@ namespace ERoD
                 //light.SoftShadowMap = new RenderTarget2D(GraphicsDevice, width, height, false, SurfaceFormat.Color, DepthFormat.None);
             }
 
-            foreach (ILight light in lights)
+            foreach (IDirectionalLight light in lights)
             {
-                shadowRenderer.GenerateShadowTextureDirectionalLight(this, Game, light, Camera, gameTime);
+                if (light.CastShadow)
+                {
+                    shadowRenderer.GenerateShadowTextureDirectionalLight(Game, light, Camera, gameTime);
+                    shadowRenderer.RenderShadowOcclusion(Camera, light);
+                }
             }
         }
 
@@ -192,6 +214,8 @@ namespace ERoD
 
         private void RenderDirectionalLight(IDirectionalLight directionalLight)
         {
+            //ApplyFrustumCorners(directionalLightShader, -Vector2.One, Vector2.One);
+
             // Load Light Params
             directionalLightShader.Parameters["halfPixel"].SetValue(halfPixel);
             directionalLightShader.Parameters["lightDirection"].SetValue(directionalLight.Direction);
@@ -202,25 +226,28 @@ namespace ERoD
             directionalLightShader.Parameters["depthMap"].SetValue(depthMap);
             directionalLightShader.Parameters["power"].SetValue(directionalLight.Intensity);
 
-            Vector2 shadowMapPixelSize = new Vector2(0.5f / directionalLight.CascadedShadowMap.Texture.Width, 0.5f / directionalLight.CascadedShadowMap.Texture.Height);
-            directionalLightShader.Parameters["ShadowMapPixelSize"].SetValue(shadowMapPixelSize);
-            directionalLightShader.Parameters["ShadowMapSize"].SetValue(new Vector2(directionalLight.CascadedShadowMap.Texture.Width, directionalLight.CascadedShadowMap.Texture.Height));
-            directionalLightShader.Parameters["shadowMap"].SetValue(directionalLight.CascadedShadowMap.Texture);
+            //Vector2 shadowMapPixelSize = new Vector2(0.5f / directionalLight.CascadedShadowMap.Texture.Width, 0.5f / directionalLight.CascadedShadowMap.Texture.Height);
+            //directionalLightShader.Parameters["ShadowMapPixelSize"].SetValue(shadowMapPixelSize);
+            //directionalLightShader.Parameters["ShadowMapSize"].SetValue(new Vector2(directionalLight.CascadedShadowMap.Texture.Width, directionalLight.CascadedShadowMap.Texture.Height));
+            //directionalLightShader.Parameters["shadowMap"].SetValue(directionalLight.CascadedShadowMap.Texture);
 
-            directionalLightShader.Parameters["ClipPlanes"].SetValue(directionalLight.CascadedShadowMap.LightClipPlanes);
-            directionalLightShader.Parameters["MatLightViewProj"].SetValue(directionalLight.CascadedShadowMap.LightViewProjectionMatrices);
+            //directionalLightShader.Parameters["ClipPlanes"].SetValue(directionalLight.CascadedShadowMap.LightClipPlanes);
+            //directionalLightShader.Parameters["MatLightViewProj"].SetValue(directionalLight.CascadedShadowMap.LightViewProjectionMatrices);
 
-            Vector3 cascadeDistances = Vector3.Zero;
-            cascadeDistances.X = directionalLight.CascadedShadowMap.LightClipPlanes[0].X;
-            cascadeDistances.Y = directionalLight.CascadedShadowMap.LightClipPlanes[1].X;
-            cascadeDistances.Z = directionalLight.CascadedShadowMap.LightClipPlanes[2].X;
-            directionalLightShader.Parameters["CascadeDistances"].SetValue(cascadeDistances);
+            //Vector3 cascadeDistances = Vector3.Zero;
+            //cascadeDistances.X = directionalLight.CascadedShadowMap.LightClipPlanes[0].X;
+            //cascadeDistances.Y = directionalLight.CascadedShadowMap.LightClipPlanes[1].X;
+            //cascadeDistances.Z = directionalLight.CascadedShadowMap.LightClipPlanes[2].X;
+            //directionalLightShader.Parameters["CascadeDistances"].SetValue(cascadeDistances);
 
             directionalLightShader.Parameters["cameraPosition"].SetValue(Camera.Position);
+            directionalLightShader.Parameters["cameraTransform"].SetValue(Camera.World);
             directionalLightShader.Parameters["viewProjectionInv"].SetValue(Matrix.Invert(Camera.View 
                 * Camera.Projection));
             directionalLightShader.Parameters["lightViewProjection"].SetValue(directionalLight.View
                 * directionalLight.Projection);
+
+            directionalLightShader.Parameters["ShadowOcclusion"].SetValue(shadowRenderer.shadowOcclusion);
 
             directionalLightShader.Techniques[0].Passes[0].Apply();
 
@@ -270,6 +297,61 @@ namespace ERoD
             
         }
 
+        /// <summary>
+        /// Compute the frustum corners for a camera.
+        /// Its used to reconstruct the pixel position using only the depth value.
+        /// Read here for more information
+        /// http://mynameismjp.wordpress.com/2009/03/10/reconstructing-position-from-depth/
+        /// </summary>
+        /// <param name="camera"> Current rendering camera </param>
+        private void ComputeFrustumCorners(ICamera camera)
+        {
+            camera.Frustum.GetCorners(cornersWorldSpace);
+            Matrix matView = camera.View; //this is the inverse of our camera transform
+            Vector3.Transform(cornersWorldSpace, ref matView, cornersViewSpace); //put the frustum into view space
+            for (int i = 0; i < 4; i++) //take only the 4 farthest points
+            {
+                currentFrustumCorners[i] = cornersViewSpace[i + 4];
+            }
+            Vector3 temp = currentFrustumCorners[3];
+            currentFrustumCorners[3] = currentFrustumCorners[2];
+            currentFrustumCorners[2] = temp;
+        }
+
+        /// <summary>
+        /// This method computes the frustum corners applied to a quad that can be smaller than
+        /// our screen. This is useful because instead of drawing a full-screen quad for each
+        /// point light, we can draw smaller quads that fit the light's bounding sphere in screen-space,
+        /// avoiding unecessary pixel shader operations
+        /// </summary>
+        /// <param name="effect">The effect we want to apply those corners</param>
+        /// <param name="topLeftVertex"> The top left vertex, in screen space [-1..1]</param>
+        /// <param name="bottomRightVertex">The bottom right vertex, in screen space [-1..1]</param>
+        private void ApplyFrustumCorners(Effect effect, Vector2 topLeftVertex, Vector2 bottomRightVertex)
+        {
+            float dx = currentFrustumCorners[1].X - currentFrustumCorners[0].X;
+            float dy = currentFrustumCorners[0].Y - currentFrustumCorners[2].Y;
+
+            Vector3[] _localFrustumCorners = new Vector3[4];
+            _localFrustumCorners[0] = currentFrustumCorners[2];
+            _localFrustumCorners[0].X += dx * (topLeftVertex.X * 0.5f + 0.5f);
+            _localFrustumCorners[0].Y += dy * (bottomRightVertex.Y * 0.5f + 0.5f);
+
+            _localFrustumCorners[1] = currentFrustumCorners[2];
+            _localFrustumCorners[1].X += dx * (bottomRightVertex.X * 0.5f + 0.5f);
+            _localFrustumCorners[1].Y += dy * (bottomRightVertex.Y * 0.5f + 0.5f);
+
+            _localFrustumCorners[2] = currentFrustumCorners[2];
+            _localFrustumCorners[2].X += dx * (topLeftVertex.X * 0.5f + 0.5f);
+            _localFrustumCorners[2].Y += dy * (topLeftVertex.Y * 0.5f + 0.5f);
+
+            _localFrustumCorners[3] = currentFrustumCorners[2];
+            _localFrustumCorners[3].X += dx * (bottomRightVertex.X * 0.5f + 0.5f);
+            _localFrustumCorners[3].Y += dy * (topLeftVertex.Y * 0.5f + 0.5f);
+
+            effect.Parameters["FrustumCorners"].SetValue(_localFrustumCorners);
+        }
+
         private void DrawDeferred()
         {
             GraphicsDevice.Clear(Color.White);
@@ -295,20 +377,23 @@ namespace ERoD
         {
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
 
-            spriteBatch.Draw(colorMap, new Rectangle(1, 1, w, h), Color.White);
-            spriteBatch.Draw(SGRMap, new Rectangle((w * 4) + 4, 1, w, h), Color.White);
-            spriteBatch.Draw(normalMap, new Rectangle(w + 2, 1, w, h), Color.White);
+            //spriteBatch.Draw(colorMap, new Rectangle(1, 1, w, h), Color.White);
+            //spriteBatch.Draw(SGRMap, new Rectangle((w * 4) + 4, 1, w, h), Color.White);
+            //spriteBatch.Draw(normalMap, new Rectangle(w + 2, 1, w, h), Color.White);
 
             GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
 
-            spriteBatch.Draw(lightMap, new Rectangle((w * 3) + 4, 1, w, h), Color.White);
+            //spriteBatch.Draw(lightMap, new Rectangle((w * 4) + 5, 1, w, h), Color.White);
             
             spriteBatch.End();
             
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
             DepthRender.CurrentTechnique.Passes[0].Apply();
             GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
-            spriteBatch.Draw(depthMap, new Rectangle((w * 2) + 3, 1, w, h), Color.White);
+            spriteBatch.Draw(depthMap, new Rectangle((w * 3) + 4, 1, w, h), Color.White);
+            spriteBatch.Draw(DirectionalLights[0].CascadedShadowMap.Texture, new Rectangle((w * 0) + 1, 1, w*3, h), Color.White);
+            //spriteBatch.Draw(shadowRenderer.shadowOcclusion, new Rectangle((w * 2) + 3, 1, w, h), Color.White);
+            //spriteBatch.Draw(depthMap, new Rectangle((w * 3) + 4, 1, w, h), Color.White);
             spriteBatch.End();
         }
     }

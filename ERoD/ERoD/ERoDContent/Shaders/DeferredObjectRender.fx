@@ -1,5 +1,10 @@
-float4x4 World;
+float4x4 world;
 float4x4 wvp : WorldViewProjection;
+
+float4x4 view;
+float4x4 proj;
+
+float farPlane;
 
 float3 color = 1;
 
@@ -87,12 +92,17 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 
 	output.TexCoord = input.TexCoord;
 
-	output.Depth = 1 - (output.Position.z / output.Position.w);
+	float4x4 WorldView = mul(world, view);
+	float4 PositionVS = mul(input.Position, WorldView);
+	output.Position = mul(PositionVS, proj);
+	output.Depth = PositionVS.z;
 
-	output.Normal = mul(input.Normal, World);
+	//output.Depth = 1 - (output.Position.z / output.Position.w);
 
-	output.Tangent = mul(input.Tangent, World);
-	output.Binormal = mul(input.Binormal, World);
+	output.Normal = mul(input.Normal, world);
+
+	output.Tangent = mul(input.Tangent, world);
+	output.Binormal = mul(input.Binormal, world);
 
     return output;
 }
@@ -125,7 +135,9 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input) : COLOR0
 	output.Normal.xyz = (normalize(bumpNormal).xyz / 2) + 0.5f;
 	output.Normal.a = 1;
 
-	output.Depth = float4(input.Depth.x, 0, 0, 1);
+	// Negate and divide by distance to far clip (so that depth is in range [0,1])
+	float fDepth = -input.Depth / farPlane;
+	output.Depth = float4(fDepth, 1.0f, 1.0f, 1.0f);
 
 	output.SGR.r = tex2D(SpecularSampler, input.TexCoord);
 	output.SGR.g = 0;//tex2D(GlowSampler, input.TexCoord);

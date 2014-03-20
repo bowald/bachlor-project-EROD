@@ -68,8 +68,8 @@ namespace ERoD
         public ERoD()
         {
             graphics = new GraphicsDeviceManager(this);
-            graphics.PreferredBackBufferHeight = 480;
-            graphics.PreferredBackBufferWidth = 800;
+            graphics.PreferredBackBufferHeight = 720;
+            graphics.PreferredBackBufferWidth = 1280;
 
             Content.RootDirectory = "Content";
 
@@ -156,13 +156,13 @@ namespace ERoD
 
             renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(50, 250, 250), Vector3.Zero, Color.LightYellow, 0.5f, true));
 
-            renderer.PointLights.Add(new PointLight(new Vector3(0, 85, 50), Color.Blue, 50.0f, 1.0f));
-            renderer.PointLights.Add(new PointLight(new Vector3(50, 85, 0), Color.Red, 50.0f, 1.0f));
-            renderer.PointLights.Add(new PointLight(new Vector3(-50, 85, 0), Color.Green, 50.0f, 1.0f));
+            //renderer.PointLights.Add(new PointLight(new Vector3(0, 85, 50), Color.Blue, 50.0f, 1.0f));
+            //renderer.PointLights.Add(new PointLight(new Vector3(50, 85, 0), Color.Red, 50.0f, 1.0f));
+            //renderer.PointLights.Add(new PointLight(new Vector3(-50, 85, 0), Color.Green, 50.0f, 1.0f));
 
-            renderer.PointLights.Add(new PointLight(new Vector3(170, 85, -175), Color.Goldenrod, 50.0f, 1.0f));
-            renderer.PointLights.Add(new PointLight(new Vector3(130, 85, -172), Color.Goldenrod, 50.0f, 1.0f));
-            renderer.PointLights.Add(new PointLight(new Vector3(90, 85, -160), Color.Goldenrod, 50.0f, 1.0f));
+            //renderer.PointLights.Add(new PointLight(new Vector3(170, 85, -175), Color.Goldenrod, 50.0f, 1.0f));
+            //renderer.PointLights.Add(new PointLight(new Vector3(130, 85, -172), Color.Goldenrod, 50.0f, 1.0f));
+            //renderer.PointLights.Add(new PointLight(new Vector3(90, 85, -160), Color.Goldenrod, 50.0f, 1.0f));
         }
 
         //CollisionHandler.addTriggerGroup(entityObject);

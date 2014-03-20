@@ -14,7 +14,7 @@ namespace ERoD
         protected Color color;
         protected float intensity;
         protected bool castShadow;
-        protected RenderTarget2D shadowMap;
+        protected RenderTarget2D shadowOcclusion;
         protected ShadowRenderer.CascadeShadowMapEntry cascadedShadowMap;
         protected Game Game;
 
@@ -57,10 +57,10 @@ namespace ERoD
             set { castShadow = value; }
         }
 
-        public RenderTarget2D ShadowMap
+        public RenderTarget2D ShadowOcclusion
         {
-            get { return shadowMap; }
-            set { shadowMap = value; }
+            get { return shadowOcclusion; }
+            set { shadowOcclusion = value; }
         }
 
         public ShadowRenderer.CascadeShadowMapEntry CascadedShadowMap

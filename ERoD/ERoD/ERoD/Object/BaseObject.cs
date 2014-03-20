@@ -89,13 +89,21 @@ namespace ERoD
                 foreach (ModelMeshPart part in mesh.MeshParts)
                 {
                     part.Effect = effect;
-                    if (effect.Parameters["World"] != null)
+                    if (effect.Parameters["world"] != null)
                     {
-                        effect.Parameters["World"].SetValue(meshWorld);
+                        effect.Parameters["world"].SetValue(meshWorld);
                     }
                     if (effect.Parameters["wvp"] != null)
                     {
                         effect.Parameters["wvp"].SetValue(wvp);
+                    }
+                    if (effect.Parameters["view"] != null)
+                    {
+                        effect.Parameters["view"].SetValue(Camera.View);
+                    }
+                    if (effect.Parameters["proj"] != null)
+                    {
+                        effect.Parameters["proj"].SetValue(Camera.Projection);
                     }
                     if (effect.Parameters["color"] != null)
                     {
@@ -116,6 +124,10 @@ namespace ERoD
                     if (effect.Parameters["bumpMap"] != null)
                     {
                         effect.Parameters["bumpMap"].SetValue(bumpMap);
+                    }
+                    if (effect.Parameters["farPlane"] != null)
+                    {
+                        effect.Parameters["farPlane"].SetValue(Camera.FarPlane);
                     }
                 }
                 mesh.Draw();
