@@ -15,6 +15,7 @@ namespace ERoD
         protected Quaternion rotation;
         protected Matrix world;
         protected Viewport viewport;
+        protected BoundingFrustum frustum;
         protected float nearPlane;
         protected float farPlane;
 
@@ -27,6 +28,11 @@ namespace ERoD
         public Matrix Projection
         {
             get { return projection; }
+        }
+
+        public BoundingFrustum Frustum
+        {
+            get { return frustum; }
         }
 
         public Vector3 Position
@@ -52,6 +58,16 @@ namespace ERoD
             set { viewport = value; }
         }
 
+        public float NearPlane
+        {
+            get { return nearPlane; }
+        }
+
+        public float FarPlane
+        {
+            get { return farPlane; }
+        }
+
         protected BaseCamera(Game game, float nearPlane, float farPlane) : base(game)
         {
             this.nearPlane = nearPlane;
@@ -68,6 +84,8 @@ namespace ERoD
 
             projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4
                 , viewport.AspectRatio, viewport.MinDepth, viewport.MaxDepth);
+
+            frustum = new BoundingFrustum(View * Projection);
         }
 
         public override void Update(GameTime gameTime)

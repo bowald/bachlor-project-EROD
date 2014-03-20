@@ -85,7 +85,6 @@ namespace ERoD
             foreach (ModelMesh mesh in model.Meshes)
             {
                 Matrix meshWorld = boneTransforms[mesh.ParentBone.Index] * World;
-                Matrix wvp = meshWorld * Camera.View * Camera.Projection;
 
                 foreach (ModelMeshPart part in mesh.MeshParts)
                 {
@@ -94,9 +93,17 @@ namespace ERoD
                     {
                         effect.Parameters["World"].SetValue(meshWorld);
                     }
-                    if (effect.Parameters["wvp"] != null)
+                    if (effect.Parameters["View"] != null)
                     {
-                        effect.Parameters["wvp"].SetValue(wvp);
+                        effect.Parameters["View"].SetValue(Camera.View);
+                    }
+                    if (effect.Parameters["Projection"] != null)
+                    {
+                        effect.Parameters["Projection"].SetValue(Camera.Projection);
+                    }
+                    if (effect.Parameters["farPlane"] != null)
+                    {
+                        effect.Parameters["farPlane"].SetValue(Camera.FarPlane);
                     }
                     if (effect.Parameters["color"] != null)
                     {
@@ -128,7 +135,7 @@ namespace ERoD
             Draw(gameTime, standardEffect);
         }
 
-        public void DrawShadow(GameTime gameTime, Matrix lightViewProjection)
+        public void DrawShadow(GameTime gameTime, Matrix lightView, Matrix lightProjection)
         {
             model.CopyAbsoluteBoneTransformsTo(boneTransforms);
 
@@ -143,9 +150,13 @@ namespace ERoD
                     {
                         shadowEffect.Parameters["World"].SetValue(meshWorld);
                     }
-                    if (shadowEffect.Parameters["vp"] != null)
+                    if (shadowEffect.Parameters["lightView"] != null)
                     {
-                        shadowEffect.Parameters["vp"].SetValue(lightViewProjection);
+                        shadowEffect.Parameters["lightView"].SetValue(lightView);
+                    }
+                    if (shadowEffect.Parameters["lightProjection"] != null)
+                    {
+                        shadowEffect.Parameters["lightProjection"].SetValue(lightProjection);
                     }
                 }
                 mesh.Draw();

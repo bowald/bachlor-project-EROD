@@ -171,13 +171,25 @@ namespace ERoD
                 {
                     if (component is ICastShadow)
                     {
-                        ((ICastShadow)component).DrawShadow(gameTime, light.View * light.Projection);
+                        ((ICastShadow)component).DrawShadow(gameTime, light.View, light.Projection);
                     }
                 }
             }
         }
 
-              
+        Vector3[] farFrustumCornersVS = new Vector3[4];
+
+        private void getFrustumCorners(out Vector3[] corners)
+        {
+            corners = new Vector3[4];
+
+            Vector3[] temp = Camera.Frustum.GetCorners();
+            for (int i = 0; i < 4; i++)
+            {
+                corners[i] = Vector3.Transform(temp[i + 4], Camera.View);
+            }
+        }
+
         private void DeferredLightning(GameTime gameTime)
         {
             GraphicsDevice.SetRenderTarget(lightMap);
@@ -186,6 +198,16 @@ namespace ERoD
             GraphicsDevice.BlendState = BlendState.Additive;
             GraphicsDevice.DepthStencilState = DepthStencilState.None;
             GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
+
+            getFrustumCorners(out farFrustumCornersVS);
+
+            //Console.WriteLine("----");
+            //for (int i = 0; i < 4; i++ )
+            //{
+            //    Console.Write(i);
+            //    Console.Write(": ");
+            //    Console.WriteLine(farFrustumCornersVS[i]);
+            //}
 
             foreach (IDirectionalLight dirLight in DirectionalLights)
             {
@@ -214,13 +236,16 @@ namespace ERoD
             directionalLightShader.Parameters["power"].SetValue(directionalLight.Intensity);
 
             directionalLightShader.Parameters["cameraPosition"].SetValue(Camera.Position);
-            directionalLightShader.Parameters["viewProjectionInv"].SetValue(Matrix.Invert(Camera.View 
-                * Camera.Projection));
-            directionalLightShader.Parameters["lightViewProjection"].SetValue(directionalLight.View
-                * directionalLight.Projection);
+            directionalLightShader.Parameters["viewInv"].SetValue(Matrix.Invert(Camera.View));
+
+            directionalLightShader.Parameters["g_vFrustumCornersVS"].SetValue(farFrustumCornersVS);
+            directionalLightShader.Parameters["camWorld"].SetValue(Camera.World);
+
+            directionalLightShader.Parameters["lightView"].SetValue(directionalLight.View);
+            directionalLightShader.Parameters["lightProj"].SetValue(directionalLight.Projection);
 
             directionalLightShader.Parameters["castShadow"].SetValue(directionalLight.CastShadow);
-            if (directionalLight.CastShadow)
+            //if (directionalLight.CastShadow)
             {
                 directionalLightShader.Parameters["shadowMap"].SetValue(directionalLight.ShadowMap);
             }

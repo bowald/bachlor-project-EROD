@@ -1,7 +1,9 @@
 float4x4 World;
-float4x4 wvp : WorldViewProjection;
+float4x4 View;
+float4x4 Projection;
 
 float3 color = 1;
+float farPlane;
 
 bool textureEnabled;
 texture diffuseTexture;
@@ -83,11 +85,13 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 {
     VertexShaderOutput output;
 
-    output.Position = mul(input.Position, wvp);
-
+    float4 worldPos = mul(input.Position, World);
+	float4 viewPos = mul(worldPos, View);
+	output.Position = mul(viewPos, Projection); 
+		
 	output.TexCoord = input.TexCoord;
 
-	output.Depth = 1 - (output.Position.z / output.Position.w);
+	output.Depth = viewPos.z;
 
 	output.Normal = mul(input.Normal, World);
 
@@ -125,7 +129,8 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input)
 	output.Normal.xyz = (normalize(bumpNormal).xyz / 2) + 0.5f;
 	output.Normal.a = 1;
 
-	output.Depth = float4(input.Depth.x, 0, 0, 1);
+	float depth = 1 - (-input.Depth / farPlane);
+	output.Depth = float4(depth, 0, 0, 1);
 
 	output.SGR.r = tex2D(SpecularSampler, input.TexCoord);
 	output.SGR.g = 0;//tex2D(GlowSampler, input.TexCoord);

@@ -1,16 +1,21 @@
-float4x4 viewProjectionInv;
-float4x4 lightViewProjection;
+float4x4 viewInv;
+float4x4 lightView;
+float4x4 lightProj;
 
 //direction of the light
 float3 lightDirection;
 
 float3 cameraPosition;
+float4x4 camWorld;
 
 float power = 1;
 float specularModifier = 3;
 
 float2 halfPixel;
 
+float4 g_vFrustumCornersVS [4];
+
+float BIAS = 0.00f;
 //color of the light 
 float3 color;
 
@@ -47,7 +52,6 @@ sampler depthSampler = sampler_state
 	Mipfilter = POINT;
 };
 
-float shadowBias = 0.00000055f;
 bool castShadow;
 texture shadowMap;
 sampler shadowSampler = sampler_state
@@ -63,13 +67,14 @@ sampler shadowSampler = sampler_state
 struct VertexShaderInput
 {
 	float3 Position : POSITION0;
-	float2 TexCoord : TEXCOORD0;
+	float3 TexCoordAndCornerInfo : TEXCOORD0;
 };
 
 struct VertexShaderOutput
 {
     float4 Position : POSITION0;
 	float2 TexCoord : TEXCOORD0;
+	float3 frustumRay : TEXCOORD1;
 };
 
 VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
@@ -77,9 +82,34 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
     VertexShaderOutput output;
 
 	output.Position = float4(input.Position, 1);
-	output.TexCoord = input.TexCoord - halfPixel;
+	output.TexCoord = input.TexCoordAndCornerInfo.xy - halfPixel;
+	float3 frustumCornersVS = g_vFrustumCornersVS[input.TexCoordAndCornerInfo.z];
+	output.frustumRay = frustumCornersVS;
+    
+	return output;
+}
 
-    return output;
+float CalcShadowTermPCF(float fLightDepth, float2 vShadowTexCoord)
+{
+	float fShadowTerm = 0.0f;
+
+	// transform to texel space
+	float2 vShadowMapCoord = float2(2048.0f, 2048.0) * vShadowTexCoord;
+
+		// Determine the lerp amounts           
+	float2 vLerps = frac(vShadowMapCoord);
+
+	// Read in the 4 samples, doing a depth check for each
+	float fSamples[4];
+	fSamples[0] = (1-tex2D(shadowSampler, vShadowTexCoord).x + BIAS < fLightDepth) ? 0.0f : 1.0f;
+	fSamples[1] = (1-tex2D(shadowSampler, vShadowTexCoord + float2(1.0 / 2048.0, 0)).x + BIAS < fLightDepth) ? 0.0f : 1.0f;
+	fSamples[2] = (1-tex2D(shadowSampler, vShadowTexCoord + float2(0, 1.0 / 2048.0)).x + BIAS < fLightDepth) ? 0.0f : 1.0f;
+	fSamples[3] = (1-tex2D(shadowSampler, vShadowTexCoord + float2(1.0 / 2048.0, 1.0 / 2048.0)).x + BIAS < fLightDepth) ? 0.0f : 1.0f;
+
+	// lerp between the shadow values to calculate our light amount
+	fShadowTerm = lerp(lerp(fSamples[0], fSamples[1], vLerps.x), lerp(fSamples[2], fSamples[3], vLerps.x), vLerps.y);
+
+	return fShadowTerm;
 }
 
 float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
@@ -88,39 +118,36 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 	float3 normal = 2.0f * normalData.xyz - 1.0f;
 
 	float depth = 1 - tex2D(depthSampler, input.TexCoord).r;
+	float4 positionWS = float4(cameraPosition + depth * input.frustumRay, 1.0f);
 
-	float4 screenPos;
-	screenPos.x = input.TexCoord.x * 2.0f - 1.0f;
-	screenPos.y = -(input.TexCoord.y * 2.0f - 1.0f);
+	//float4x4 viewToLightViewProj = mul(viewInv, mul(lightView, lightProj));
+	float4 positionLightCS = mul(positionWS, mul(lightView, lightProj));
 
-	screenPos.z = depth;
-	screenPos.w = 1.0f;
+	//float4 pos = mul(positionVS, mul(viewInv, lightView));
 
-	float4 worldPos = mul(screenPos, viewProjectionInv);
-	worldPos /= worldPos.w;
+	float lightDepth = positionLightCS.z / positionLightCS.w;
 
-	float4 lightScreenPos = mul(worldPos, lightViewProjection);
-	lightScreenPos /= lightScreenPos.w;
-
-	//find sample position in shadow map
-	float2 lightSamplePos;
-	lightSamplePos.x = lightScreenPos.x / 2.0f + 0.5f;
-	lightSamplePos.y = (-lightScreenPos.y / 2.0f + 0.5f);
+	float2 shadowTexCoord = 0.5 * positionLightCS.xy / positionLightCS.w + float2(0.5, 0.5);
+	shadowTexCoord.y = 1 - shadowTexCoord.y;
+	shadowTexCoord += (0.5f / float2(2048, 2048));
 
 	//determine shadowing criteria
-	float realDistanceToLight = lightScreenPos.z;
-	float distanceStoredInDepthMap = 1 - tex2D(shadowSampler, lightSamplePos).r;
+	//float realDistanceToLight = lightDepth;
+	//float distanceStoredInDepthMap = 1 - tex2D(shadowSampler, shadowTexCoord).r;
 
 	// add bias
-	realDistanceToLight -= shadowBias;
+	//realDistanceToLight -= shadowBias;
 
-	bool shadowCondition = distanceStoredInDepthMap <= realDistanceToLight;
+	//float shading = (tex2D(shadowSampler, shadowTexCoord).x < 0.1) ? 0.0f : 1.0f;
+	float shading = CalcShadowTermPCF(lightDepth, shadowTexCoord);
+
+	/*bool shadowCondition = distanceStoredInDepthMap <= realDistanceToLight;
 
 	float shading = 0.5;
 	if (!castShadow || !shadowCondition)
 	{
 		shading = 1;
-	}
+	}*/
 
 	//surface-to-light vector
 	float3 lightVector = normalize(-lightDirection);
@@ -135,7 +162,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 	float3 r = normalize(2 * dot(lightVector, normal) * normal - lightVector);
 
 	//view vector
-	float3 v = normalize(cameraPosition - worldPos);
+	float3 v = normalize(cameraPosition - positionWS);//Get worldpos from viewpos
 
 	float dotProduct = dot(r, v);
 	
@@ -144,8 +171,10 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 	diffuseLight += (specular * specularModifier * power);
 
 	//output the two lights
-	return float4(diffuseLight.rgb, 1) * shading;
-
+	//return float4(diffuseLight.rgb, 1) * shading;
+	//return float4(1, 1, 1, 1) * shading;
+	//return float4(1 - tex2D(shadowSampler, shadowTexCoord).x, 0, 0, 1);
+	return float4(input.frustumRay,1);
 }
 
 technique Technique1

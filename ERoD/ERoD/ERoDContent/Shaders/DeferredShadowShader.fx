@@ -1,6 +1,9 @@
 // Global Variables
 float4x4 World;
-float4x4 vp : ViewProjection;
+float4x4 lightView;
+float4x4 lightProjection;
+
+float farPlane;
 
 struct VertexShaderInput
 {
@@ -19,15 +22,17 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 	VertexShaderOutput output;
 
 	float4 worldPos = mul(input.Position, World);
-	output.Position = mul(worldPos, vp);
-	output.Depth.x = 1 - (output.Position.z / output.Position.w);
+	float4 viewPos = mul(worldPos, lightView);
+	output.Position = mul(viewPos, lightProjection);
+	output.Depth.x = viewPos.z;
 
 	return output;
 }
 
 float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 {
-	return float4(input.Depth.x, 0, 0, 1);
+	float depth = 1 - (-input.Depth / farPlane);
+	return float4(depth, 0, 0, 1);
 }
 
 technique ShadowMap
