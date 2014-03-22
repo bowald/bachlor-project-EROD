@@ -16,8 +16,6 @@ namespace ERoD
             get { return ((ICamera)Game.Services.GetService(typeof(ICamera))); }
         }
 
-        protected Matrix transform;
-        
         protected Vector3 position;
         protected Vector3 scale;
         protected Quaternion rotation;
@@ -84,11 +82,10 @@ namespace ERoD
             set { bumpMap = value; }
         }
 
-        protected BaseObject(Model model, Matrix world, Game game)
+        protected BaseObject(Model model, Game game)
             : base(game)
         {
             this.model = model;
-            world.Decompose(out scale, out rotation, out position);
             boneTransforms = new Matrix[model.Bones.Count];
         }
 

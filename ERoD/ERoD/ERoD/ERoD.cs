@@ -51,8 +51,8 @@ namespace ERoD
         GameLogic GameLogic;
 
         public Boolean DebugEnabled;
-        public StaticMesh testVarGround;
-
+        StaticMesh rockMesh;
+        
         HeightTerrainCDLOD terrain;
 
         public Space Space
@@ -146,11 +146,11 @@ namespace ERoD
 
             Entity entity = LoadEntityObject(shipModel, shipPosition, shipScale);
 
-            Ship ship = new Ship(entity, shipModelT, Matrix.CreateScale(shipScale), this);
+            Ship ship = new Ship(entity, shipModelT, shipScale, this);
 
             space.Add(entity);
-            ship.Texture = Content.Load<Texture2D>("Textures/Ship2/diffuse");
-            ship.SpecularMap = Content.Load<Texture2D>("Textures/Ship2/specular");
+            ship.Texture = Content.Load<Texture2D>("Textures/Ship/diffuse");
+            ship.SpecularMap = Content.Load<Texture2D>("Textures/Ship/specular");
             ship.TextureEnabled = true;
             ship.standardEffect = objEffect;
             ship.shadowEffect = objShadow;
@@ -168,10 +168,10 @@ namespace ERoD
             Model bridgeModel = Content.Load<Model>("Models/bridge");
             AffineTransform bridgeTransform = new AffineTransform(
                 new BVector3(6f, 6f, 6f), 
-                BQuaternion.CreateFromAxisAngle(new BVector3(0, 1, 0), BEPUutilities.MathHelper.ToRadians(0f)), 
+                BQuaternion.Identity, 
                 new BVector3(138.5f, -71, -145));
             var bridgeMesh = LoadStaticObject(bridgeModel, bridgeTransform);
-            StaticObject bridge = new StaticObject(bridgeModel, MathConverter.Convert(bridgeMesh.WorldTransform.Matrix), this);
+            StaticObject bridge = new StaticObject(bridgeModel, bridgeMesh, this);
             bridge.SpecularMap  = Content.Load<Texture2D>("Textures/Bridge/specular");
             bridge.Texture = Content.Load<Texture2D>("Textures/Bridge/diffuse");
             bridge.BumpMap = Content.Load<Texture2D>("Textures/Bridge/normal");
@@ -184,6 +184,30 @@ namespace ERoD
             space.Add(bridgeMesh);
             Components.Add(bridge);
             ship.AddCollidable(bridgeMesh);
+
+            #endregion
+
+            #region Rock
+
+            Model rockModel = Content.Load<Model>("Models/rock");
+            AffineTransform rockTransform = new AffineTransform(
+                new BVector3(10, 10, 10),
+                BQuaternion.Identity,
+                new BVector3(150, -40, 300));
+            //var rockMesh
+            rockMesh = LoadStaticObject(rockModel, rockTransform);
+            StaticObject rock = new StaticObject(rockModel, rockMesh, this);
+            rock.SpecularMap = Content.Load<Texture2D>("Textures/Rock/specular");
+            rock.Texture = Content.Load<Texture2D>("Textures/Rock/diffuse");
+            rock.BumpMap = Content.Load<Texture2D>("Textures/Rock/normal");
+            rock.TextureEnabled = true;
+            rock.BumpConstant = 1f;
+            rock.standardEffect = objEffect;
+            rock.shadowEffect = objShadow;
+
+            space.Add(rockMesh);
+            Components.Add(rock);
+            //ship.AddCollidable(bridgeMesh);
 
             #endregion
 
@@ -292,9 +316,54 @@ namespace ERoD
 
             space.Update();
 
+            PlaceRockUpdate();
+
             LastGamePadState = GamePadState;
             base.Update(gameTime);
         }
+
+        private void PlaceRockUpdate()
+        {
+            KeyboardState keyState = Keyboard.GetState();
+            BVector3 translation = rockMesh.WorldTransform.Translation;
+            if (keyState.IsKeyDown(Keys.W))
+            {
+                //+z
+                translation.Z += 1;
+            }
+            if (keyState.IsKeyDown(Keys.S))
+            {
+                //-z
+                translation.Z -= 1;
+            }
+            if (keyState.IsKeyDown(Keys.A))
+            {
+                //-x
+                translation.X += 1;
+            }
+            if (keyState.IsKeyDown(Keys.D))
+            {
+                //+x
+                translation.X -= 1;
+            }
+            if (keyState.IsKeyDown(Keys.Q))
+            {
+                //+y
+                translation.Y += 1;
+            }
+            if (keyState.IsKeyDown(Keys.E))
+            {
+                //-y
+                translation.Y -= 1;
+            }
+            if (keyState.IsKeyDown(Keys.R))
+            {
+                Console.WriteLine("X: {0}, Y: {1}, Z: {2}", translation.X, translation.Y, translation.Z);
+            }
+            rockMesh.WorldTransform = new AffineTransform(new BVector3(10,10,10), BQuaternion.Identity, translation);
+        }
+
+        #region Message and FPS
 
         SpriteFont font;
         Microsoft.Xna.Framework.Vector2 fontPos;
@@ -310,41 +379,9 @@ namespace ERoD
             Console.WriteLine("---");
         }
 
-        int x = 0;
-        double totTime = 0;
-        double time2 = 0;
-
-        /// <summary>
-        /// This is called when the game should draw itself.
-        /// </summary>
-        /// <param name="gameTime">Provides a snapshot of timing values.</param>
-        protected override void Draw(GameTime gameTime)
+        private void PrintMessage()
         {
-
-            float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
-            startTime = (float)gameTime.TotalGameTime.TotalSeconds; 
-            totTime += dt;
-            if (totTime > 2)
-            {
-                time2 += dt;
-                x++;
-            }
-            if (time2 > 5)
-            {
-                //Console.WriteLine(x / time2);
-            }
-
-            renderer.Draw(gameTime);
-            GraphicsDevice.Clear(Color.Coral);
-
-            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque,
-            SamplerState.PointClamp, DepthStencilState.Default,
-            RasterizerState.CullCounterClockwise);
-            spriteBatch.Draw(renderer.finalBackBuffer, new Rectangle(0, 0, GraphicsDevice.Viewport.Width,
-            GraphicsDevice.Viewport.Height), Color.White);
-            spriteBatch.End();
-
-            if (startTime < endTime) 
+            if (startTime < endTime)
             {
 
                 spriteBatch.Begin();
@@ -355,7 +392,48 @@ namespace ERoD
 
                 spriteBatch.End();
             }
+        }
 
+        int x = 0;
+        double totTime = 0;
+        double time2 = 0;
+        private void logFPS(GameTime gameTime)
+        {
+            float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
+            startTime = (float)gameTime.TotalGameTime.TotalSeconds;
+            totTime += dt;
+            if (totTime > 2)
+            {
+                time2 += dt;
+                x++;
+            }
+            if (time2 > 5)
+            {
+                //Console.WriteLine(x / time2);
+            }
+        }
+
+        #endregion
+
+        /// <summary>
+        /// This is called when the game should draw itself.
+        /// </summary>
+        /// <param name="gameTime">Provides a snapshot of timing values.</param>
+        protected override void Draw(GameTime gameTime)
+        {
+            renderer.Draw(gameTime);
+            GraphicsDevice.Clear(Color.Coral);
+
+            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque,
+            SamplerState.PointClamp, DepthStencilState.Default,
+            RasterizerState.CullCounterClockwise);
+            spriteBatch.Draw(renderer.finalBackBuffer, new Rectangle(0, 0, GraphicsDevice.Viewport.Width,
+            GraphicsDevice.Viewport.Height), Color.White);
+            spriteBatch.End();
+
+            logFPS(gameTime);
+
+            PrintMessage();
 
             foreach (PostProcess postProcess in postProcesses)
             {

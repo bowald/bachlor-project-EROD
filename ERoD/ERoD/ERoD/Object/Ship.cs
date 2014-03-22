@@ -20,18 +20,12 @@ namespace ERoD
         List<StaticCollidable> Collidables = new List<StaticCollidable>();
         BVector3 angularVelocity;
         
-        private Matrix baseTransform;
-        Matrix BaseTransform
-        {
-            get { return baseTransform; }
-        }
 
-        public Ship(Entity entity, Model model, Matrix world, Game game) 
-            : base(entity, model, world, game)
+        public Ship(Entity entity, Model model, Vector3 scale, Game game) 
+            : base(entity, model, scale, game)
         {
             entity.BecomeKinematic();
             AddCollidable(((ITerrain)Game.Services.GetService(typeof(ITerrain))).PhysicTerrain);
-            baseTransform = world;
         }
 
         public void AddCollidable(StaticCollidable c)
@@ -342,7 +336,5 @@ namespace ERoD
             angularVelocity = BVector3.Zero;
             base.Update(gameTime);
         }
-
-        public Matrix GroundRotation { get; set; }
     }
 }
