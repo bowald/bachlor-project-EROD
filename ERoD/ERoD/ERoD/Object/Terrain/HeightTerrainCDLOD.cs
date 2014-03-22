@@ -287,7 +287,7 @@ namespace ERoD
 
 
             // Load heightdata
-            Texture2D tempHeight = Game.Content.Load<Texture2D>("HeightMap/2/height");
+            Texture2D tempHeight = Game.Content.Load<Texture2D>("HeightMap/height");
 
             Microsoft.Xna.Framework.Graphics.PackedVector.Rgba64[] heightValues = new Microsoft.Xna.Framework.Graphics.PackedVector.Rgba64[tempHeight.Width * tempHeight.Height];
             tempHeight.GetData(heightValues);
@@ -317,8 +317,8 @@ namespace ERoD
             heightMap = new Texture2D(Game.GraphicsDevice, tempHeight.Width, tempHeight.Height, false, SurfaceFormat.Single);
             heightMap.SetData(heights);
 
-            normalMap = Game.Content.Load<Texture2D>("HeightMap/2/normal");
-            texture = Game.Content.Load<Texture2D>("HeightMap/2/color");
+            normalMap = Game.Content.Load<Texture2D>("HeightMap/normal");
+            texture = Game.Content.Load<Texture2D>("HeightMap/color");
 
             // generate morph ranges (can be done in shaders??)
             var ranges = Enumerable.Range(0, levels + 1).Select(i => (float)Math.Pow(2, i - 1)/1.5f).ToList();

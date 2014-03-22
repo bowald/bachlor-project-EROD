@@ -12,7 +12,7 @@ namespace ERoD
 
         //Ship
         // *** Velocity *** ///
-        public const float MaxSpeed = 60.0f;
+        public const float MaxSpeed = 90.0f;
         public const float Decceleration = 0.98f;   // must be less then 1.0f
         public const float FirstCase = 0.7f;        // Acceleration case, obs 0.1 < FirstCase < SecondCase < 1.0f
         public const float SecondCase = 0.9f;   
@@ -26,7 +26,8 @@ namespace ERoD
         public const float DirectionBump = 0.2f;    //Change of direction
         public const float SpeedDecrease = 0.9f;    //Amount of velocity that will be kept when coliding
         public const float SideCollideLength = 1.8f;
-        public const float ForwardCollideLength = 2.4f; 
+        public const float ForwardCollideLength = 2.0f;
+        public const float OrientationRayLength = 2.5f;
 
         // *** Fly *** //
         public const float IdealHeight = 1.5f;
@@ -35,13 +36,13 @@ namespace ERoD
 
         // *** Turning *** //
         public const float RollSpeed = 0.3f;
-        public const float StrafeSpeed = 5.0f;
-        public const float TurningSpeed = 1.2f;     //Angular speed when turning
+        public const float StrafeSpeed = 4.0f;
+        public const float TurningSpeed = 1.8f;     //Angular speed when turning
         public const float MaxRollAngle = 20.0f;
 
         // *** Chase Camera *** //
-        public static float ChaseCameraSpeedAngle = 0.1f;
-        public static float ChaseCameraBaseAngle = 0.25f;
+        public static float ChaseCameraSpeedAngle = 0.12f;
+        public static float ChaseCameraBaseAngle = 0.18f;
             
     }
 }

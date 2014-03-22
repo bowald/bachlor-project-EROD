@@ -160,8 +160,8 @@ namespace ERoD
             // Check a little in front and to the back to check rotation
             float front = 0f, back = 0f;
 
-            front = verticalDistance(Collidables[0], Entity.OrientationMatrix.Forward * 0.5f);
-            back = verticalDistance(Collidables[0], Entity.OrientationMatrix.Forward * -0.5f);
+            front = verticalDistance(Collidables[0], Entity.OrientationMatrix.Forward * ObjectConstants.OrientationRayLength);
+            back = verticalDistance(Collidables[0], Entity.OrientationMatrix.Forward * -ObjectConstants.OrientationRayLength);
 
 
             for (int i = 1; i < Collidables.Count; i++ )
@@ -177,8 +177,8 @@ namespace ERoD
                 if (h == val)
                 {
                     // Update front and back as well
-                    front = verticalDistance(Collidables[i], Entity.OrientationMatrix.Forward * 0.5f);
-                    back = verticalDistance(Collidables[i], Entity.OrientationMatrix.Forward * -0.5f);
+                    front = verticalDistance(Collidables[i], Entity.OrientationMatrix.Forward * ObjectConstants.OrientationRayLength);
+                    back = verticalDistance(Collidables[i], Entity.OrientationMatrix.Forward * -ObjectConstants.OrientationRayLength);
                 }
             }
 
@@ -186,7 +186,7 @@ namespace ERoD
             {
                 float diff = front - back;
                 // experimental values
-                float rad = (float)Math.Atan(diff / 1.0f);
+                float rad = (float)Math.Atan(diff / (2 * ObjectConstants.OrientationRayLength));
                 rad = Math.Max(Math.Min(rad, 0.5235988f), -0.5235988f); // +-30deg
 
                 // compares current angle to up angle, could compare current to ground angle as well

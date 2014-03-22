@@ -76,8 +76,8 @@ namespace ERoD
         public ERoD()
         {
             graphics = new GraphicsDeviceManager(this);
-            graphics.PreferredBackBufferHeight = 550;
-            graphics.PreferredBackBufferWidth = 900;
+            graphics.PreferredBackBufferHeight = 768;
+            graphics.PreferredBackBufferWidth = 1360;
             //graphics.IsFullScreen = true;
 
             Content.RootDirectory = "Content";
@@ -169,14 +169,14 @@ namespace ERoD
             AffineTransform bridgeTransform = new AffineTransform(
                 new BVector3(6f, 6f, 6f), 
                 BQuaternion.CreateFromAxisAngle(new BVector3(0, 1, 0), BEPUutilities.MathHelper.ToRadians(0f)), 
-                new BVector3(130, -65, -140));
+                new BVector3(138.5f, -71, -145));
             var bridgeMesh = LoadStaticObject(bridgeModel, bridgeTransform);
             StaticObject bridge = new StaticObject(bridgeModel, MathConverter.Convert(bridgeMesh.WorldTransform.Matrix), this);
             bridge.SpecularMap  = Content.Load<Texture2D>("Textures/Bridge/specular");
             bridge.Texture = Content.Load<Texture2D>("Textures/Bridge/diffuse");
             bridge.BumpMap = Content.Load<Texture2D>("Textures/Bridge/normal");
             bridge.TextureEnabled = true;
-            bridge.TexMult = 3f;
+            bridge.TexMult = 3f; // make the texture cover 3x more area before repeating.
             bridge.BumpConstant = 1f;
             bridge.standardEffect = objEffect;
             bridge.shadowEffect = objShadow;
