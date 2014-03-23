@@ -69,7 +69,7 @@ struct PS_OUTPUT
 
 float3 getPosition(in float2 uv)
 {
-	float depth = 1 - tex2D(depthSampler, uv).r;
+	float depth = tex2D(depthSampler, uv).r;
 
 	float4 screenPos;
 	screenPos.x = uv.x * 2.0f - 1.0f;
@@ -115,10 +115,10 @@ PS_OUTPUT main(PS_INPUT i)
 	i.uv -= halfPixel;
 
 	float3 p = getPosition(i.uv);
-		float3 n = getNormal(i.uv);
-		float2 rand = getRandom(i.uv);
+	float3 n = getNormal(i.uv);
+	float2 rand = getRandom(i.uv);
 
-		n = mul(n, View);
+	n = mul(n, View);
 
 	float ao = 0.0f;
 	float rad = g_sample_rad / p.z;
@@ -129,8 +129,8 @@ PS_OUTPUT main(PS_INPUT i)
 	for (int j = 0; j < iterations; ++j)
 	{
 		float2 coord1 = reflect(vec[j], rand)*rad;
-			float2 coord2 = float2(coord1.x*0.707 - coord1.y*0.707,
-			coord1.x*0.707 + coord1.y*0.707);
+		float2 coord2 = float2(coord1.x*0.707 - coord1.y*0.707,
+		coord1.x*0.707 + coord1.y*0.707);
 
 		ao += doAmbientOcclusion(i.uv, coord1*0.25, p, n);
 		ao += doAmbientOcclusion(i.uv, coord2*0.5, p, n);

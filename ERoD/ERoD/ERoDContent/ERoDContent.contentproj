@@ -334,7 +334,11 @@
   <ItemGroup>
     <Compile Include="Shaders\PostProcessing\BiliteradBlur.fx">
       <Name>BiliteradBlur</Name>
-    </Compile>
+      <Importer>EffectImporter</Importer>
+      <Processor>EffectProcessor</Processor>
+   </Compile>
+ </ItemGroup>
+ <ItemGroup>
     <Compile Include="Shaders\CDLODTerrain.fx">
       <Name>CDLODTerrain</Name>
       <Importer>EffectImporter</Importer>
@@ -347,6 +351,13 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <ProcessorParameters_TextureFormat>NoChange</ProcessorParameters_TextureFormat>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Shaders\PostProcessing\Blend.fx">
+      <Name>Blend</Name>
+      <Importer>EffectImporter</Importer>
+      <Processor>EffectProcessor</Processor>
     </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\XNA Game Studio\$(XnaFrameworkVersion)\Microsoft.Xna.GameStudio.ContentPipeline.targets" />

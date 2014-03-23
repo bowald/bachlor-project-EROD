@@ -51,12 +51,13 @@ float4 GaussianBlurPS(float2 texCoord : TEXCOORD0) : COLOR0
 		// Combine a number of weighted image filter taps.
 	for (int i = 0; i < SAMPLE_COUNT; i++)
 	{
-		float weight = SampleWeights[i]
-		float3 SampleNormal = getNormal(saturate(texCoord + SampleOffsets[i].xy);
-		float SampleDepth = getDepth(saturate(texCoord + SampleOffsets[i].xy);
-		if (dot(SampleNormal, centerNormal) < 0.9f ||
-			abs(centerDepth – SampleDepth) > 0.01f)
+		float weight = SampleWeights[i];
+		float3 SampleNormal = getNormal(saturate(texCoord + SampleOffsets[i].xy));
+			float SampleDepth = getDepth(saturate(texCoord + SampleOffsets[i].xy));
+		//|| abs(centerDepth – SampleDepth) > 0.01f skall vara i IF-satsen
+		if (dot(SampleNormal, centerNormal) < 0.9f){
 			weight = 0.0f;
+		}	
 
 		c += tex2D(TextureSampler, saturate(texCoord + SampleOffsets[i].xy)) * weight;
 	}
@@ -65,11 +66,11 @@ float4 GaussianBlurPS(float2 texCoord : TEXCOORD0) : COLOR0
 }
 
 
-technique GaussianBlur
+technique BiliteradBlur
 {
 	pass P0
 	{
-		PixelShader = compile ps_2_0 GaussianBlurPS();
+		PixelShader = compile ps_3_0 GaussianBlurPS();
 
 	}
 }

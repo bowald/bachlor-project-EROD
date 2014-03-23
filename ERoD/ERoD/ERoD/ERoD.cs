@@ -67,7 +67,7 @@ namespace ERoD
         }
 
         protected List<PostProcess> postProcesses = new List<PostProcess>();
-        protected PostProcessingManager manager;
+        protected PostProcessingManager2 manager;
 
 
         public ModelDrawer modelDrawer;  //Used to draw entities for debug.
@@ -105,7 +105,7 @@ namespace ERoD
             this.Services.AddService(typeof(ICamera), FreeCamera);
             FreeCameraActive = true;
 
-            manager = new PostProcessingManager(this);
+            manager = new PostProcessingManager2(this);
 
             GameLogic = new GameLogic(this);
             this.Services.AddService(typeof(GameLogic), GameLogic);
@@ -168,8 +168,9 @@ namespace ERoD
 
             space.ForceUpdater.Gravity = new BVector3(0, -20.0f, 0);
 
-            manager.AddEffect(new MotionBlur(this));
-            manager.AddEffect(new SSAO(this,0.2f,1.0f,1.5f,1f));
+            //manager.AddEffect(new MotionBlur(this));
+            manager.AddEffect(new FullSSAO(this,0.2f,1.0f,1.5f,1f));
+            
 
             renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(50, 550, 450), Vector3.Zero, Color.LightYellow, 0.5f, true));
             renderer.PointLights.Add(new PointLight(new Vector3(0, 25, 50), Color.Blue, 50.0f, 1.0f));
@@ -315,7 +316,8 @@ namespace ERoD
             }
 
             renderer.Draw(gameTime);
-            GraphicsDevice.Clear(Color.Coral);
+
+            //GraphicsDevice.Clear(Color.Coral);
 
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque,
             SamplerState.PointClamp, DepthStencilState.Default,
@@ -341,7 +343,8 @@ namespace ERoD
             {
             //    postProcess.Draw(gameTime);
             }
-            manager.Draw(gameTime);
+            manager.Draw(gameTime, renderer.finalBackBuffer);
+            //manager.Draw(gameTime);
 
             if (RenderDebug)
             {

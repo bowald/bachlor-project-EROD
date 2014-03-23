@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace ERoD
 {
-    public class SSAO : PostProcess
+    public class BasicSSAO : PostProcess
     {
         public float rad = .1f;
         public float intensity = 1;//2.5f;
@@ -16,7 +16,7 @@ namespace ERoD
         public float bias = 1f;
         private Texture2D randomTexture;
 
-        public SSAO(ERoD game, float radius, float intensity, float scale, float bias)
+        public BasicSSAO(ERoD game, float radius, float intensity, float scale, float bias)
             : base(game)
         {
             rad = radius;
@@ -60,6 +60,7 @@ namespace ERoD
             effect.Parameters["g_scale"].SetValue(scale);
             effect.Parameters["g_bias"].SetValue(bias);
 
+            //Game.GraphicsDevice.BlendState = BlendState.Opaque;
             base.Draw(gameTime);
 
         }
