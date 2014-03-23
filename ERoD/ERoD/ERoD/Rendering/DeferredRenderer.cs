@@ -22,6 +22,7 @@ namespace ERoD
         public RenderTarget2D SGRMap;
         public RenderTarget2D lightMap;
         public RenderTarget2D SSAOMap;
+        public RenderTarget2D SSAOBlurMap;
         public RenderTarget2D finalBackBuffer;
         //public RenderTarget2D blendedDepthBuffer;
 
@@ -35,6 +36,7 @@ namespace ERoD
         Effect deferredShader;
         Effect deferredShadowShader;
         Effect SSAOShader;
+        Effect SSAOBlur;
 
         Texture2D randomTexture;
 
@@ -76,6 +78,8 @@ namespace ERoD
 
             SSAOMap = new RenderTarget2D(GraphicsDevice, width, height, false,
                 SurfaceFormat.Color, DepthFormat.None);
+            SSAOBlurMap = new RenderTarget2D(GraphicsDevice, width, height, false,
+                SurfaceFormat.Color, DepthFormat.None);
 
             finalBackBuffer = new RenderTarget2D(GraphicsDevice, width, height, false,
                 SurfaceFormat.Color, DepthFormat.None);
@@ -89,6 +93,8 @@ namespace ERoD
             deferredShader = Game.Content.Load<Effect>("Shaders/DeferredRender");
             deferredShadowShader = Game.Content.Load<Effect>("Shaders/DeferredShadowShader");
             SSAOShader = Game.Content.Load<Effect>("Shaders/SSAO");
+            //SSAOBlur = Game.Content.Load<Effect>("Shaders/Postprocessing/PDBlur");
+            SSAOBlur = Game.Content.Load<Effect>("Shaders/Postprocessing/PDBlur");
 
             randomTexture = Game.Content.Load<Texture2D>("Textures/random");
 
@@ -207,9 +213,9 @@ namespace ERoD
 
         private void RenderSSAO()
         {
-            float rad = .1f;
+            float rad = .2f;
             float intensity = 1.0f;//2.5f;
-            float scale = .5f;//5;
+            float scale = 1.5f;//5;
             float bias = 1f;
 
             SSAOShader.Parameters["halfPixel"].SetValue(halfPixel);
@@ -224,10 +230,37 @@ namespace ERoD
             SSAOShader.Parameters["g_intensity"].SetValue(intensity);
             SSAOShader.Parameters["g_scale"].SetValue(scale);
             SSAOShader.Parameters["g_bias"].SetValue(bias);
+
             SSAOShader.Techniques[0].Passes[0].Apply();
+            sceneQuad.Draw(-Vector2.One, Vector2.One);
+
+            BlurSSAO();
+        }
+
+        private void BlurSSAO()
+        {
+
+            Vector2[] taps = new Vector2[]{ 
+                    new Vector2(-0.326212f,-0.40581f),new Vector2(-0.840144f,-0.07358f),
+                    new Vector2(-0.695914f,0.457137f),new Vector2(-0.203345f,0.620716f),
+                    new Vector2(0.96234f,-0.194983f),new Vector2(0.473434f,-0.480026f),
+                    new Vector2(0.519456f,0.767022f),new Vector2(0.185461f,-0.893124f),
+                    new Vector2(0.507431f,0.064425f),new Vector2(0.89642f,0.412458f),
+                    new Vector2(-0.32194f,-0.932615f),new Vector2(-0.791559f,-0.59771f)};
+
+            GraphicsDevice.SetRenderTarget(SSAOBlurMap);
+            GraphicsDevice.Clear(Color.Transparent);
+            GraphicsDevice.SamplerStates[0] = SamplerState.AnisotropicClamp;
+            GraphicsDevice.Textures[0] = SSAOMap;
+
+            SSAOBlur.Parameters["halfPixel"].SetValue(halfPixel);
+            SSAOBlur.Parameters["Taps"].SetValue(taps);
+            SSAOBlur.Parameters["DiscRadius"].SetValue(8);
+            SSAOBlur.Parameters["TexelSize"].SetValue(halfPixel);
+            SSAOBlur.Techniques[0].Passes[0].Apply();
 
             sceneQuad.Draw(-Vector2.One, Vector2.One);
-            
+            GraphicsDevice.SetRenderTarget(null);
         }
 
         private void RenderDirectionalLight(IDirectionalLight directionalLight)
@@ -309,7 +342,7 @@ namespace ERoD
             deferredShader.Parameters["halfPixel"].SetValue(halfPixel);
             deferredShader.Parameters["colorMap"].SetValue(colorMap);
             deferredShader.Parameters["lightMap"].SetValue(lightMap);
-            deferredShader.Parameters["SSAOMap"].SetValue(SSAOMap);
+            deferredShader.Parameters["SSAOMap"].SetValue(SSAOBlurMap);
 
             deferredShader.CurrentTechnique.Passes[0].Apply();
 
@@ -328,21 +361,11 @@ namespace ERoD
         {
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
 
-            spriteBatch.Draw(colorMap, new Rectangle(1, 1, w, h), Color.White);
-            spriteBatch.Draw(SGRMap, new Rectangle((w * 4) + 4, 1, w, h), Color.White);
-            spriteBatch.Draw(SSAOMap, new Rectangle((w * 5) + 4, 1, w, h), Color.White);
-            spriteBatch.Draw(normalMap, new Rectangle(w + 2, 1, w, h), Color.White);
+            spriteBatch.Draw(SSAOMap, new Rectangle((w) + 2, 1, w*2, h*2), Color.White);
+            spriteBatch.Draw(SSAOBlurMap, new Rectangle((w * 3) + 4, 1, w*2, h*2), Color.White);
 
             GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
 
-            spriteBatch.Draw(lightMap, new Rectangle((w * 3) + 4, 1, w, h), Color.White);
-            
-            spriteBatch.End();
-            
-            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
-            DepthRender.CurrentTechnique.Passes[0].Apply();
-            GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
-            spriteBatch.Draw(depthMap, new Rectangle((w * 2) + 3, 1, w, h), Color.White);
             spriteBatch.End();
         }
     }

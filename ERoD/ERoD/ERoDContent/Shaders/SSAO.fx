@@ -85,6 +85,7 @@ float3 getPosition(in float2 uv)
 
 }
 
+
 float3 getNormal(in float2 uv)
 {
 	return normalize(tex2D(normalSampler, uv).xyz * 2.0f - 1.0f);
@@ -124,7 +125,7 @@ PS_OUTPUT main(PS_INPUT i)
 
 	//**SSAO Calculation**//
 	int iterations = 3;
-	//int iterations = lerp(6.0,2.0,p.z/g_far_clip); 
+
 	for (int j = 0; j < iterations; ++j)
 	{
 		float2 coord1 = reflect(vec[j], rand)*rad;
@@ -138,6 +139,7 @@ PS_OUTPUT main(PS_INPUT i)
 	}
 
 	ao /= (float)iterations * 4.0;
+
 	//**END**//
 
 	//o.color = float4(p,1);
