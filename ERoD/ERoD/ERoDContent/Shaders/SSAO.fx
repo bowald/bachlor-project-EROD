@@ -152,9 +152,9 @@ PS_OUTPUT main(PS_INPUT i)
 	return o;
 }
 
-technique Technique1
+technique SSAO
 {
-	pass Pass1
+	pass p0
 	{
 		VertexShader = compile vs_3_0 VertexShaderFunction();
 		PixelShader = compile ps_3_0 main();

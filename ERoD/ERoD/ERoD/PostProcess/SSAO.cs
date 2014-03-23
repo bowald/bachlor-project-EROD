@@ -33,14 +33,15 @@ namespace ERoD
         {
             if (effect == null)
             {
-                effect = Game.Content.Load<Effect>("Shaders/PostProcessing/SSAO");
+                effect = Game.Content.Load<Effect>("Shaders/SSAO");
+                
             }
             if (randomTexture == null)
             { 
                 randomTexture = Game.Content.Load<Texture2D>("Textures/random");
             }
-            effect.CurrentTechnique = effect.Techniques["ssao"];
 
+            effect.CurrentTechnique = effect.Techniques["SSAO"];
             float rad = .2f;
             float intensity = 1.0f;//2.5f;
             float scale = 1.5f;//5;
