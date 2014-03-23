@@ -22,7 +22,7 @@ namespace ERoD
         {
             get
             {
-                return Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4,
+                return Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver2,
                     camera.Viewport.AspectRatio,
                     camera.Viewport.MinDepth,
                     camera.Viewport.MaxDepth);

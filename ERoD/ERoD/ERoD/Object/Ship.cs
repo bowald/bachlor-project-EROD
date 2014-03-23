@@ -20,7 +20,6 @@ namespace ERoD
         {
             get { return ((ITerrain)Game.Services.GetService(typeof(ITerrain))).PhysicTerrain; }
         }
-
         public Ship(Entity entity, Model model, Matrix world, Game game) 
             : base(entity, model, world, game)
         {
@@ -73,6 +72,7 @@ namespace ERoD
                 return "Down";
             return "no match";
         }
+
         private void dontCollide(BRay ray, float rayLength, float gamePadDirection)
         {
             BEPUutilities.RayHit hit;

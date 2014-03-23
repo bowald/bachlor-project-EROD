@@ -45,13 +45,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Shaders\PostProcessing\PostSample.fx">
-      <Name>PostSample</Name>
-      <Importer>EffectImporter</Importer>
-      <Processor>EffectProcessor</Processor>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="Models\ground.FBX">
       <Name>ground</Name>
       <Importer>FbxImporter</Importer>
