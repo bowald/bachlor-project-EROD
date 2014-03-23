@@ -24,9 +24,13 @@ namespace ERoD
         public RenderTarget2D SSAOMap;
         public RenderTarget2D SSAOBlurMap;
         public RenderTarget2D finalBackBuffer;
+        public RenderTarget2D skyMap;
         //public RenderTarget2D blendedDepthBuffer;
 
         SpriteBatch spriteBatch;
+
+        // Skybox //
+        Skybox skybox;
 
         Model pointLightMesh;
         Matrix[] boneTransforms;
@@ -34,11 +38,13 @@ namespace ERoD
         Effect pointLightShader;
         Effect directionalLightShader;
         Effect deferredShader;
+
         Effect deferredShadowShader;
         Effect SSAOShader;
         Effect SSAOBlur;
 
         Texture2D randomTexture;
+
 
         public List<IPointLight> PointLights = new List<IPointLight>();
         public List<IDirectionalLight> DirectionalLights = new List<IDirectionalLight>();
@@ -81,19 +87,26 @@ namespace ERoD
             SSAOBlurMap = new RenderTarget2D(GraphicsDevice, width, height, false,
                 SurfaceFormat.Color, DepthFormat.None);
 
+            skyMap = new RenderTarget2D(GraphicsDevice, width, height, false,
+                SurfaceFormat.Color, DepthFormat.Depth24Stencil8);
+
             finalBackBuffer = new RenderTarget2D(GraphicsDevice, width, height, false,
                 SurfaceFormat.Color, DepthFormat.None);
 
             //blendedDepthBuffer = new RenderTarget2D(GraphicsDevice, width, height, false,
             //    SurfaceFormat.Rg32, DepthFormat.None);
 
+            skybox = new Skybox("Skyboxes/skybox", Game.Content);
+
             directionalLightShader = Game.Content.Load<Effect>("Shaders/DirectionalLightShader");
 
             pointLightShader = Game.Content.Load<Effect>("Shaders/PointLightShader");
             deferredShader = Game.Content.Load<Effect>("Shaders/DeferredRender");
+
             deferredShadowShader = Game.Content.Load<Effect>("Shaders/DeferredShadowShader");
+
             SSAOShader = Game.Content.Load<Effect>("Shaders/SSAO");
-            //SSAOBlur = Game.Content.Load<Effect>("Shaders/Postprocessing/PDBlur");
+
             SSAOBlur = Game.Content.Load<Effect>("Shaders/Postprocessing/PDBlur");
 
             randomTexture = Game.Content.Load<Texture2D>("Textures/random");
@@ -147,6 +160,9 @@ namespace ERoD
             DeferredShadows(gameTime);
             DeferredLightning(gameTime);
 
+            GraphicsDevice.SetRenderTarget(skyMap);
+            DrawSkybox();
+
             GraphicsDevice.SetRenderTargets(finalBackBuffer);
             DrawDeferred();
 
@@ -175,13 +191,11 @@ namespace ERoD
                 GraphicsDevice.SetRenderTarget(light.ShadowMap);
                 GraphicsDevice.Clear(Color.Transparent);
 
-                deferredShadowShader.Parameters["vp"].SetValue(light.View * light.Projection);
-
                 foreach (GameComponent component in Game.Components)
                 {
-                    if (component is IDeferredRender)
+                    if (component is ICastShadow)
                     {
-                        ((IDeferredRender)component).Draw(gameTime, deferredShadowShader);
+                        ((ICastShadow)component).DrawShadow(gameTime, light.View * light.Projection);
                     }
                 }
             }
@@ -335,6 +349,13 @@ namespace ERoD
             
         }
 
+        private void DrawSkybox()
+        {
+            GraphicsDevice.RasterizerState = RasterizerState.CullClockwise;
+            skybox.Draw(Camera.View, Camera.Projection, Camera.Position);
+            GraphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+        }
+
         private void DrawDeferred()
         {
             GraphicsDevice.Clear(Color.White);
@@ -343,6 +364,8 @@ namespace ERoD
             deferredShader.Parameters["colorMap"].SetValue(colorMap);
             deferredShader.Parameters["lightMap"].SetValue(lightMap);
             deferredShader.Parameters["SSAOMap"].SetValue(SSAOBlurMap);
+            deferredShader.Parameters["depthMap"].SetValue(depthMap);
+            deferredShader.Parameters["skyMap"].SetValue(skyMap);
 
             deferredShader.CurrentTechnique.Passes[0].Apply();
 
@@ -361,11 +384,26 @@ namespace ERoD
         {
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
 
+
             spriteBatch.Draw(SSAOMap, new Rectangle((w) + 2, 1, w*2, h*2), Color.White);
             spriteBatch.Draw(SSAOBlurMap, new Rectangle((w * 3) + 4, 1, w*2, h*2), Color.White);
 
             GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
+            //spriteBatch.Draw(colorMap, new Rectangle(1, 1, w, h), Color.White);
+            ////spriteBatch.Draw(SGRMap, new Rectangle((w * 4) + 4, 1, w, h), Color.White);
+            //spriteBatch.Draw(normalMap, new Rectangle(w + 2, 1, w, h), Color.White);
 
+            //GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
+
+            //spriteBatch.Draw(lightMap, new Rectangle((w * 3) + 4, 1, w, h), Color.White);
+            
+            //spriteBatch.End();
+            
+            //spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
+            //DepthRender.CurrentTechnique.Passes[0].Apply();
+            //GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
+            //spriteBatch.Draw(depthMap, new Rectangle((w * 2) + 3, 1, w, h), Color.White);
+            //spriteBatch.Draw(DirectionalLights[0].ShadowMap, new Rectangle((w * 4) + 4, 1, w, h), Color.White);
             spriteBatch.End();
         }
     }

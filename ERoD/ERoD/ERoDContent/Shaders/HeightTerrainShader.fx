@@ -65,7 +65,7 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input)
 {
 	PixelShaderOutput output = (PixelShaderOutput)0;
 
-	output.Color = tex2D(TextureSampler, input.TexCoords);
+	output.Color = float4(0,1,1,1);// tex2D(TextureSampler, input.TexCoords);
 	
 	output.Normal.xyz = (normalize(input.Normal).xyz / 2) + 0.5f;
 	output.Normal.a = 1;

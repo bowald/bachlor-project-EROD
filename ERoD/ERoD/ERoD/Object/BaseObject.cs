@@ -8,7 +8,7 @@ using System.Text;
 
 namespace ERoD
 {
-    public class BaseObject : DrawableGameComponent, IObject, IDeferredRender
+    public class BaseObject : DrawableGameComponent, IObject, IDeferredRender, ICastShadow
     {
 
         public ICamera Camera
@@ -26,6 +26,7 @@ namespace ERoD
         Matrix[] boneTransforms;
 
         public Effect standardEffect;
+        public Effect shadowEffect;
 
         public bool TextureEnabled
         {
@@ -125,6 +126,30 @@ namespace ERoD
         public override void Draw(GameTime gameTime)
         {
             Draw(gameTime, standardEffect);
+        }
+
+        public void DrawShadow(GameTime gameTime, Matrix lightViewProjection)
+        {
+            model.CopyAbsoluteBoneTransformsTo(boneTransforms);
+
+            foreach (ModelMesh mesh in model.Meshes)
+            {
+                Matrix meshWorld = boneTransforms[mesh.ParentBone.Index] * World;
+
+                foreach (ModelMeshPart part in mesh.MeshParts)
+                {
+                    part.Effect = shadowEffect;
+                    if (shadowEffect.Parameters["World"] != null)
+                    {
+                        shadowEffect.Parameters["World"].SetValue(meshWorld);
+                    }
+                    if (shadowEffect.Parameters["vp"] != null)
+                    {
+                        shadowEffect.Parameters["vp"].SetValue(lightViewProjection);
+                    }
+                }
+                mesh.Draw();
+            }
         }
     }
 }
