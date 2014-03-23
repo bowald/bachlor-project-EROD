@@ -1,26 +1,27 @@
+// Pixel shader applies a one dimensional gaussian blur filter.
+// This is used twice by the bloom postprocess, first to
+// blur horizontally, and then again to blur vertically.
+
+#define SAMPLE_COUNT 11
+
+uniform extern float4 SampleOffsets[SAMPLE_COUNT];
+uniform extern float SampleWeights[SAMPLE_COUNT];
+//uniform extern texture SceneTex;
 
 float2 halfPixel;
-#define RADIUS  6
-#define KERNEL_SIZE (RADIUS * 2 + 1)
-float weights[KERNEL_SIZE];
-float2 offsets[KERNEL_SIZE];
 
-float blurDepthFalloff;
-
-texture2D ssaoMap;
-sampler2D ssaoSampler = sampler_state
+sampler TextureSampler : register(s0);
+/* = sampler_state
 {
-	Texture = <ssaoMap>;
-	MinFilter = Anisotropic;
-	MagFilter = Anisotropic;
-	MaxAnisotropy = 8;
-	MipFilter = POINT;
-	MinFilter = POINT;
-	MagFilter = POINT;
-	MipFilter = POINT;
-
-	AddressU = CLAMP;
-	AddressV = CLAMP;
+Texture = <SceneTex>;
+MinFilter = LINEAR;
+MagFilter = LINEAR;
+MipFilter = LINEAR;
+};*/
+texture normalMap;
+sampler normalSampler = sampler_state
+{
+	Texture = (normalMap);
 };
 texture depthMap;
 sampler depthSampler = sampler_state
@@ -32,53 +33,43 @@ sampler depthSampler = sampler_state
 	MinFilter = POINT;
 	Mipfilter = POINT;
 };
-struct VertexShaderInput
+float3 getNormal(in float2 uv)
 {
-	float3 Position : POSITION0;
-	float2 TexCoord : TEXCOORD0;
-};
-
-struct VertexShaderOutput
-{
-	float4 Position : POSITION0;
-	float2 TexCoord : TEXCOORD0;
-};
-
-VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
-{
-	VertexShaderOutput output;
-
-	output.Position = float4(input.Position, 1);
-	output.TexCoord = input.TexCoord - halfPixel;
-
-	return output;
+	return normalize(tex2D(normalSampler, uv).xyz * 2.0f - 1.0f);
+}
+float getDepth(in float2 uv){
+	return 1 - tex2D(depthSampler, uv).r;
 }
 
-float4 PS_GaussianBlurTriple(float4 texCoord : TEXCOORD0) : COLOR0
+float4 GaussianBlurPS(float2 texCoord : TEXCOORD0) : COLOR0
 {
-	float3 color = 0;
+	texCoord -= halfPixel;
+	float4 c = 0;
 
-	float depth = tex2D(depthSampler, texCoord.xy).x;
-
-	float s = 0;
-	for (int i = 0; i < KERNEL_SIZE; ++i)
+	float3 centerNormal = getNormal(texCoord);
+	float centerDepth = getDepth(texCoord);
+		// Combine a number of weighted image filter taps.
+	for (int i = 0; i < SAMPLE_COUNT; i++)
 	{
-		float3 im = tex2D(ssaoSampler, texCoord.zw + offsets[i]);
-			float d = tex2D(depthSampler, texCoord.xy + offsets[i]).x;
-		float r2 = abs(depth - d) * blurDepthFalloff;
-		float g = exp(-r2*r2);
-		color += im* weights[i] * g;
-		s += g* weights[i];
+		float weight = SampleWeights[i]
+		float3 SampleNormal = getNormal(saturate(texCoord + SampleOffsets[i].xy);
+		float SampleDepth = getDepth(saturate(texCoord + SampleOffsets[i].xy);
+		if (dot(SampleNormal, centerNormal) < 0.9f ||
+			abs(centerDepth – SampleDepth) > 0.01f)
+			weight = 0.0f;
+
+		c += tex2D(TextureSampler, saturate(texCoord + SampleOffsets[i].xy)) * weight;
 	}
-	color = color / s;
-	return float4(color, 1);
+
+	return c;
 }
 
-technique GAUSSTriple
+
+technique GaussianBlur
 {
-	pass p0
+	pass P0
 	{
-		VertexShader = compile vs_3_0 VertexShaderFunction();
-		PixelShader = compile ps_3_0 PS_GaussianBlurTriple();
+		PixelShader = compile ps_2_0 GaussianBlurPS();
+
 	}
 }
