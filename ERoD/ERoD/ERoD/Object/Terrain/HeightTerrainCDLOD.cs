@@ -319,7 +319,7 @@ namespace ERoD
             texture = Game.Content.Load<Texture2D>("HeightMap/color");
 
             // generate morph ranges (can be done in shaders??)
-            var ranges = Enumerable.Range(0, levels + 1).Select(i => (float)Math.Pow(2, i - 1)/1.5f).ToList();
+            var ranges = Enumerable.Range(0, levels + 1).Select(i => (float)Math.Pow(2, i - 1)/2f).ToList();
             ranges.Add(0);
             ranges.Sort((a, b) => a.CompareTo(b));
             
