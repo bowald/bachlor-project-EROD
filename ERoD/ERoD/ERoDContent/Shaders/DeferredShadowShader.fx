@@ -1,9 +1,9 @@
 // Global Variables
 float4x4 World;
-float4x4 lightView;
-float4x4 lightProjection;
+float4x4 LightView;
+float4x4 LightProjection;
 
-float farPlane;
+float FarPlane;
 
 struct VertexShaderInput
 {
@@ -22,8 +22,8 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 	VertexShaderOutput output;
 
 	float4 worldPos = mul(input.Position, World);
-	float4 viewPos = mul(worldPos, lightView);
-	output.Position = mul(viewPos, lightProjection);
+	float4 viewPos = mul(worldPos, LightView);
+	output.Position = mul(viewPos, LightProjection);
 	output.Depth.x = viewPos.z;
 
 	return output;
@@ -31,7 +31,7 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 
 float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 {
-	float depth = 1 - (-input.Depth / farPlane);
+	float depth = 1 - (-input.Depth / FarPlane);
 	return float4(depth, 0, 0, 1);
 }
 

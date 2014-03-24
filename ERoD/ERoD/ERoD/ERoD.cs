@@ -140,8 +140,6 @@ namespace ERoD
 
             space.Add(((ITerrain)Services.GetService(typeof(ITerrain))).PhysicTerrain);
 
-            //Console.WriteLine("Max {0}, Min {1}", terrain.PhysicTerrain.BoundingBox.Max, terrain.PhysicTerrain.BoundingBox.Min);
-
             // Fix ship loading
             Entity entity = LoadEntityObject(shipModel, shipPosition, shipScale);
 

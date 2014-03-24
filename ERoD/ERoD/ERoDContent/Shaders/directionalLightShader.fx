@@ -1,27 +1,39 @@
-float4x4 viewInv;
-float4x4 lightView;
-float4x4 lightProj;
+float4x4 ViewInv;
+float4x4 LightView;
+float4x4 LightProj;
 
 //direction of the light
-float3 lightDirection;
+float3 LightDirection;
 
-float3 cameraPosition;
+float3 CameraPosition;
 
-float power = 1;
-float specularModifier = 3;
+float Power = 1;
+float SpecularModifier = 3;
 
-float2 halfPixel;
-float farPlane;
-float2 TanAspect;
+float2 HalfPixel;
 
+// Vector size of the shadow map in use.
+float2 ShadowMapSize;
+
+// Length of the x and y sides of the far plane in view space from depth.
+float2 SidesLengthVS;
+
+// Distance to the far plane.
+float FarPlane;
+
+// Bias term for shadows.
 float BIAS = 0.001f;
-//color of the light 
-float3 color;
 
-texture normalMap;
-sampler normalSampler = sampler_state
+// color of the light 
+float3 Color;
+
+// true if the light casts shadows.
+bool CastShadow;
+
+texture NormalMap;
+sampler NormalSampler = sampler_state
 {
-	Texture = <normalMap>;
+	Texture = <NormalMap>;
 	AddressU = CLAMP;
 	AddressV = CLAMP;
 	MagFilter = POINT;
@@ -29,10 +41,10 @@ sampler normalSampler = sampler_state
 	Mipfilter = POINT;
 };
 
-texture sgrMap;
-sampler sgrSampler = sampler_state
+texture SGRMap;
+sampler SGRSampler = sampler_state
 {
-	Texture = (sgrMap);
+	Texture = (SGRMap);
 	AddressU = CLAMP;
 	AddressV = CLAMP;
 	MagFilter = LINEAR;
@@ -40,10 +52,10 @@ sampler sgrSampler = sampler_state
 	Mipfilter = LINEAR;
 };
 
-texture depthMap;
-sampler depthSampler = sampler_state
+texture DepthMap;
+sampler DepthSampler = sampler_state
 {
-	Texture = <depthMap>;
+	Texture = <DepthMap>;
 	AddressU = CLAMP;
 	AddressV = CLAMP;
 	MagFilter = POINT;
@@ -51,11 +63,10 @@ sampler depthSampler = sampler_state
 	Mipfilter = POINT;
 };
 
-bool castShadow;
-texture shadowMap;
-sampler shadowSampler = sampler_state
+texture ShadowMap;
+sampler ShadowSampler = sampler_state
 {
-	Texture = <shadowMap>;
+	Texture = <ShadowMap>;
 	AddressU = CLAMP;
 	AddressV = CLAMP;
 	MagFilter = POINT;
@@ -66,7 +77,7 @@ sampler shadowSampler = sampler_state
 struct VertexShaderInput
 {
 	float3 Position : POSITION0;
-	float3 TexCoordAndCornerInfo : TEXCOORD0;
+	float2 TexCoord : TEXCOORD0;
 };
 
 struct VertexShaderOutput
@@ -80,152 +91,148 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
     VertexShaderOutput output;
 
 	output.Position = float4(input.Position, 1);
-	output.TexCoord = input.TexCoordAndCornerInfo.xy - halfPixel;
+	output.TexCoord = input.TexCoord - HalfPixel;
 
 	return output;
 }
 
-float CalcShadowTermPCF(float fLightDepth, float2 vShadowTexCoord)
+float CalcShadowTermPCF(float lightDepth, float2 shadowTexCoord)
 {
-	float fShadowTerm = 0.0f;
+	float shadowTerm = 0.0f;
 
 	// transform to texel space
-	float2 vShadowMapCoord = float2(2048.0f, 2048.0) * vShadowTexCoord;
+	float2 shadowMapCoord = ShadowMapSize * shadowTexCoord;
 
-		// Determine the lerp amounts           
-	float2 vLerps = frac(vShadowMapCoord);
+	// Determine the lerp amounts           
+	float2 lerps = frac(shadowMapCoord);
 
 	// Read in the 4 samples, doing a depth check for each
-	float fSamples[4];
-	fSamples[0] = (1-tex2D(shadowSampler, vShadowTexCoord).x + BIAS < fLightDepth) ? 0.0f : 1.0f;
-	fSamples[1] = (1-tex2D(shadowSampler, vShadowTexCoord + float2(1.0 / 2048.0, 0)).x + BIAS < fLightDepth) ? 0.0f : 1.0f;
-	fSamples[2] = (1-tex2D(shadowSampler, vShadowTexCoord + float2(0, 1.0 / 2048.0)).x + BIAS < fLightDepth) ? 0.0f : 1.0f;
-	fSamples[3] = (1-tex2D(shadowSampler, vShadowTexCoord + float2(1.0 / 2048.0, 1.0 / 2048.0)).x + BIAS < fLightDepth) ? 0.0f : 1.0f;
+	float samples[4];
+	samples[0] = (1-tex2D(ShadowSampler, shadowTexCoord).x + BIAS < lightDepth) ? 0.0f : 1.0f;
+	samples[1] = (1 - tex2D(ShadowSampler, shadowTexCoord + float2(1.0 / ShadowMapSize.x, 0)).x + BIAS < lightDepth) ? 0.0f : 1.0f;
+	samples[2] = (1 - tex2D(ShadowSampler, shadowTexCoord + float2(0, 1.0 / ShadowMapSize.y)).x + BIAS < lightDepth) ? 0.0f : 1.0f;
+	samples[3] = (1 - tex2D(ShadowSampler, shadowTexCoord + float2(1.0 / ShadowMapSize.x, 1.0 / ShadowMapSize.y)).x + BIAS < lightDepth) ? 0.0f : 1.0f;
 
 	// lerp between the shadow values to calculate our light amount
-	fShadowTerm = lerp(lerp(fSamples[0], fSamples[1], vLerps.x), lerp(fSamples[2], fSamples[3], vLerps.x), vLerps.y);
+	shadowTerm = lerp(lerp(samples[0], samples[1], lerps.x), lerp(samples[2], samples[3], lerps.x), lerps.y);
 
-	return fShadowTerm;
+	return shadowTerm;
 }
 
 // Calculates the shadow term using PCF soft-shadowing
-float CalcShadowTermSoftPCF(float fLightDepth, float2 vShadowTexCoord, int iSqrtSamples)
+// sqrtSamples = number of samples, higher number -> better quality [1..7]
+float CalcShadowTermSoftPCF(float lightDepth, float2 shadowTexCoord, int sqrtSamples)
 {
-	float fShadowTerm = 0.0f;
+	float shadowTerm = 0.0f;
 
-	float fRadius = (iSqrtSamples - 1.0f) / 2;
-	float fWeightAccum = 0.0f;
+	float radius = (sqrtSamples - 1.0f) / 2;
+	float weightAccum = 0.0f;
 
-	for (float y = -fRadius; y <= fRadius; y++)
+	for (float y = -radius; y <= radius; y++)
 	{
-		for (float x = -fRadius; x <= fRadius; x++)
+		for (float x = -radius; x <= radius; x++)
 		{
-			float2 vOffset = 0;
-				float2 g_vShadowMapSize = float2(2048, 2048);
-			vOffset = float2(x, y);
-			vOffset /= g_vShadowMapSize;
-			float2 vSamplePoint = vShadowTexCoord + vOffset;
-			float fDepth = 1 - tex2D(shadowSampler, vSamplePoint).x;
-			float fSample = (fLightDepth <= fDepth + BIAS);
+			float2 offset = 0;
+			offset = float2(x, y);
+			offset /= ShadowMapSize;
+			float2 samplePoint = shadowTexCoord + offset;
+			float depth = 1 - tex2D(ShadowSampler, samplePoint).x;
+			float sampleVal = (lightDepth <= depth + BIAS);
 
 			// Edge tap smoothing
 			float xWeight = 1;
 			float yWeight = 1;
 
-			if (x == -fRadius)
-				xWeight = 1 - frac(vShadowTexCoord.x * g_vShadowMapSize.x);
-			else if (x == fRadius)
-				xWeight = frac(vShadowTexCoord.x * g_vShadowMapSize.x);
+			if (x == -radius)
+			{
+				xWeight = 1 - frac(shadowTexCoord.x * ShadowMapSize.x);
+			}
+			else if (x == radius)
+			{
+				xWeight = frac(shadowTexCoord.x * ShadowMapSize.x);
+			}
 
-			if (y == -fRadius)
-				yWeight = 1 - frac(vShadowTexCoord.y * g_vShadowMapSize.y);
-			else if (y == fRadius)
-				yWeight = frac(vShadowTexCoord.y * g_vShadowMapSize.y);
+			if (y == -radius)
+			{
+				yWeight = 1 - frac(shadowTexCoord.y * ShadowMapSize.y);
+			}
+			else if (y == radius)
+			{
+				yWeight = frac(shadowTexCoord.y * ShadowMapSize.y);
+			}
 
-			fShadowTerm += fSample * xWeight * yWeight;
-			fWeightAccum = xWeight * yWeight;
+			shadowTerm += sampleVal * xWeight * yWeight;
+			weightAccum = xWeight * yWeight;
 		}
 	}
 
-	fShadowTerm /= (iSqrtSamples * iSqrtSamples);
-	fShadowTerm *= 1.55f;
+	shadowTerm /= (sqrtSamples * sqrtSamples);
+	shadowTerm *= 1.55f;
 
-	return fShadowTerm;
+	return shadowTerm;
 }
 
 float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 {
-	float4 normalData = tex2D(normalSampler, input.TexCoord);
-	float3 normal = 2.0f * normalData.xyz - 1.0f;
-
-	float depth = 1-tex2D(depthSampler, input.TexCoord).r;
+	// Reconstruct position
+	float depth = 1-tex2D(DepthSampler, input.TexCoord).r;
 
 	float2 screenPos = input.TexCoord * 2.0f - 1.0f;
 
-	depth *= farPlane;
+	depth *= FarPlane;
 
-	float4 positionCVS = float4(float3(TanAspect * screenPos * depth, -depth), 1);
-	float4 positionWS = mul(positionCVS, viewInv);
+	// Camera View Space
+	float4 positionCVS = float4(float3(SidesLengthVS * screenPos * depth, -depth), 1);
+	// World Space
+	float4 positionWS = mul(positionCVS, ViewInv);
 
-	float4 positionLightVS = mul(positionWS, lightView);
-	float4 positionLightCS = mul(positionLightVS, lightProj);
+	float shading = 1.0f;
 
-	//float4 pos = mul(positionVS, mul(viewInv, lightView));
-
-	float lightDepth = -positionLightVS.z / farPlane;
-
-	float2 shadowTexCoord = 0.5f * positionLightCS.xy / positionLightCS.w + float2(0.5f, 0.5f);
-	shadowTexCoord.y = 1 - shadowTexCoord.y;
-	//shadowTexCoord += (0.5f / float2(2048, 2048));
-
-	//determine shadowing criteria
-	//float realDistanceToLight = lightDepth;
-	//float distanceStoredInDepthMap = 1 - tex2D(shadowSampler, shadowTexCoord).r;
-
-	// add bias
-	//realDistanceToLight -= shadowBias;
-
-	//float shading = (tex2D(shadowSampler, shadowTexCoord).x < 0.1) ? 0.0f : 1.0f;
-	float shading = CalcShadowTermSoftPCF(lightDepth, shadowTexCoord, 7);
-
-	/*bool shadowCondition = distanceStoredInDepthMap <= realDistanceToLight;
-
-	float shading = 0.5;
-	if (!castShadow || !shadowCondition)
+	if (CastShadow)
 	{
-		shading = 1;
-	}*/
+		// Get position in light viewspace and light clip-space.
+		float4 positionLightVS = mul(positionWS, LightView);
+		float4 positionLightCS = mul(positionLightVS, LightProj);
 
-	//surface-to-light vector
-	float3 lightVector = normalize(-lightDirection);
+		// Get the distance from the camera in light viewspace depth
+		float lightDepth = -positionLightVS.z / FarPlane;
 
-	//compute diffuse light
+		// Get the coordinates for sampling the shadowmap.
+		float2 shadowTexCoord = 0.5f * positionLightCS.xy / positionLightCS.w + float2(0.5f, 0.5f);
+		shadowTexCoord.y = 1 - shadowTexCoord.y;
+
+		// Get soft shadows
+		shading = CalcShadowTermSoftPCF(lightDepth, shadowTexCoord, 7);
+	}
+
+	// Light calculation
+	// Get normals
+	float4 normalData = tex2D(NormalSampler, input.TexCoord);
+	float3 normal = 2.0f * normalData.xyz - 1.0f;
+
+	// surface-to-light vector
+	float3 lightVector = normalize(-LightDirection);
+
+	// compute diffuse light
 	float NdL = saturate(dot(normal, lightVector));
-	float3 diffuseLight = (NdL * color.rgb) * power;
+	float3 diffuseLight = (NdL * Color.rgb) * Power;
 
-	float4 SGR = tex2D(sgrSampler, input.TexCoord);
+	// Specular, Glow, Reflection map.
+	float4 SGR = tex2D(SGRSampler, input.TexCoord);
 
-	//reflection vector
+	// reflection vector
 	float3 r = normalize(2 * dot(lightVector, normal) * normal - lightVector);
 
-	//view vector
-	float3 v = normalize(cameraPosition - positionWS);//Get worldpos from viewpos
+	// view vector
+	float3 v = normalize(CameraPosition - positionWS);//Get worldpos from viewpos
 
-	float dotProduct = dot(r, v);
-	
-	float4 specular = SGR.r * float4(color, 1) * max(pow(dotProduct, 20), 0);
+	// Calculate specular using phong shading
+	float4 specular = SGR.r * float4(Color, 1) * max(pow(dot(r, v), 20), 0);
 
-	diffuseLight += (specular * specularModifier * power);
+	// Add specular to the Diffuse Light
+	diffuseLight += (specular * SpecularModifier * Power);
 
-	//output the two lights
 	return float4(diffuseLight.rgb, 1) * shading;
-	//return float4(1, 1, 1, 1) * shading;
-	//return float4(tex2D(shadowSampler, shadowTexCoord).x, 0, 0, 1);
-	//return float4(shadowTexCoord.x, 0, 0, 1);
-	//return float4(-positionCVS.z/farPlane, 0, 0, 1);
-	//return float4(0.5 * positionCVS.x / (TanAspect.x * depth) + 0.5, 0.5 * positionCVS.y / (TanAspect.y * depth) + 0.5, 1 - (-positionCVS.z / (farPlane)), 1);
-	//return float4(0.5 * positionWS.x + 0.5, 0,0,1);//positionWS.y, 1 - (-positionWS.z / (farPlane)), 1);
-	//return float4(1-lightDepth, 0, 0, 1);
 }
 
 technique Technique1

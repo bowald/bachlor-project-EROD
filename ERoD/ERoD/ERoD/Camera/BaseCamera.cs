@@ -88,9 +88,6 @@ namespace ERoD
             this.fieldOfView = MathHelper.PiOver4;
             this.tanFovy = (float)Math.Tan(fieldOfView / 2);
 
-            Console.WriteLine(tanFovy);
-            Console.WriteLine(AspectRatio);
-
             game.Components.Add(this);
         }
 

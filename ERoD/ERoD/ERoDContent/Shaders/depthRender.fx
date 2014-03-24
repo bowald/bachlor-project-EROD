@@ -1,3 +1,5 @@
+// Helper shader to draw depth maps for debug.
+
 uniform extern texture sceneMap;
 sampler screen = sampler_state
 {

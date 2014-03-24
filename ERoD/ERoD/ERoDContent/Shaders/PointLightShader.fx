@@ -1,29 +1,28 @@
 float4x4 World;
 float4x4 View;
 float4x4 Projection;
-float4x4 viewInv;
+float4x4 ViewInv;
 
 float3 Color;
 
-float3 CameraPosition;
+float3 LightPosition;
 
-float4x4 InvertViewProjection;
+float LightRadius;
 
-float3 lightPosition;
+float LightIntensity = 1.0f;
 
-float lightRadius;
+float2 HalfPixel;
 
-float lightIntensity = 1.0f;
+// Length of the x and y sides of the far plane in view space from depth.
+float2 SidesLengthVS;
 
-float2 halfPixel;
+// Distance to the far plane.
+float FarPlane;
 
-float2 TanAspect;
-float farPlane;
-
-texture colorMap;
-sampler colorSampler = sampler_state
+texture ColorMap;
+sampler ColorSampler = sampler_state
 {
-	Texture = <colorMap>;
+	Texture = <ColorMap>;
 	AddressU = CLAMP;
 	AddressV = CLAMP;
 	MagFilter = LINEAR;
@@ -31,10 +30,10 @@ sampler colorSampler = sampler_state
 	Mipfilter = LINEAR;
 };
 
-texture normalMap;
-sampler normalSampler = sampler_state
+texture NormalMap;
+sampler NormalSampler = sampler_state
 {
-	Texture = (normalMap);
+	Texture = (NormalMap);
 	AddressU = CLAMP;
 	AddressV = CLAMP;
 	MagFilter = POINT;
@@ -42,10 +41,10 @@ sampler normalSampler = sampler_state
 	Mipfilter = POINT;
 };
 
-texture depthMap;
-sampler depthSampler = sampler_state
+texture DepthMap;
+sampler DepthSampler = sampler_state
 {
-	Texture = (depthMap);
+	Texture = (DepthMap);
 	AddressU = CLAMP;
 	AddressV = CLAMP;
 	MagFilter = POINT;
@@ -82,28 +81,28 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 	input.ScreenPosition.xy /= input.ScreenPosition.w;
 
 	float2 texCoord = 0.5f * (float2(input.ScreenPosition.x, -input.ScreenPosition.y) + 1);
-	texCoord -= halfPixel;
+	texCoord -= HalfPixel;
 
-	float depthVal = 1 - tex2D(depthSampler, texCoord).r;
+	float depthVal = 1 - tex2D(DepthSampler, texCoord).r;
 
-	float4 normalData = tex2D(normalSampler, texCoord);
+	float4 normalData = tex2D(NormalSampler, texCoord);
 	float3 normal = 2.0f * normalData.xyz - 1.0f;
 
-	depthVal *= farPlane;
+	depthVal *= FarPlane;
 
-	float4 positionCVS = float4(float3(TanAspect * (2 * texCoord - 1) * depthVal, -depthVal), 1);
-	float4 positionWS = mul(positionCVS, viewInv);
+	float4 positionCVS = float4(float3(SidesLengthVS * (2 * texCoord - 1) * depthVal, -depthVal), 1);
+	float4 positionWS = mul(positionCVS, ViewInv);
 
-	float3 lightVector = lightPosition - positionWS;
+	float3 lightVector = LightPosition - positionWS;
 
-	float attenuation = saturate(1.0f - length(lightVector) / lightRadius);
+	float attenuation = saturate(1.0f - length(lightVector) / LightRadius);
 
 	lightVector = normalize(lightVector);
 
 	float NdotL = saturate(dot(normal, lightVector));
 	float3 diffuseLight = NdotL * Color.rgb;
 
-	return (attenuation * lightIntensity * float4(diffuseLight.rgb, 1));// +specular * att *ligtI;
+	return (attenuation * LightIntensity * float4(diffuseLight.rgb, 1));// +specular * att *ligtI;
 }
 
 technique Technique1
