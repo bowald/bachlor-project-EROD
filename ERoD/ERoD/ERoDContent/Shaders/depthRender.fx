@@ -1,3 +1,5 @@
+// Helper shader to draw depth maps for debug.
+
 uniform extern texture sceneMap;
 sampler screen = sampler_state
 {
@@ -14,7 +16,7 @@ struct PS_INPUT
 float4 Invert(PS_INPUT Input) : COLOR0
 {
 	float4 color = 0;
-	color.r = tex2D(screen, Input.TexCoord).r * 300;
+	color.r = tex2D(screen, Input.TexCoord).r;
 	color.a = 1;
 
 	return color;

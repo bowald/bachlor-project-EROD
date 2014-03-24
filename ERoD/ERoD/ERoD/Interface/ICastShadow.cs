@@ -8,6 +8,6 @@ namespace ERoD
 {
     public interface ICastShadow
     {
-        void DrawShadow(GameTime gameTime, Matrix lightViewProjection);
+        void DrawShadow(GameTime gameTime, Matrix lightView, Matrix lightProjection);
     }
 }

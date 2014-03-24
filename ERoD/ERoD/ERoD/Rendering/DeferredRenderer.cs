@@ -23,7 +23,6 @@ namespace ERoD
         public RenderTarget2D lightMap;
         public RenderTarget2D finalBackBuffer;
         public RenderTarget2D skyMap;
-        //public RenderTarget2D blendedDepthBuffer;
 
         SpriteBatch spriteBatch;
 
@@ -78,9 +77,6 @@ namespace ERoD
 
             finalBackBuffer = new RenderTarget2D(GraphicsDevice, width, height, false,
                 SurfaceFormat.Color, DepthFormat.None);
-
-            //blendedDepthBuffer = new RenderTarget2D(GraphicsDevice, width, height, false,
-            //    SurfaceFormat.Rg32, DepthFormat.None);
 
             skybox = new Skybox("Skyboxes/skybox", Game.Content);
 
@@ -147,6 +143,7 @@ namespace ERoD
 
         private void DeferredShadows(GameTime gameTime)
         {
+            GraphicsDevice.DepthStencilState = DepthStencilState.Default;
             List<ILight> lights = new List<ILight>(DirectionalLights.Where(entity => entity.Intensity > 0 && entity.Color != Color.Black && entity.CastShadow));
 
             List<ILight> needShadowMaps = new List<ILight>(lights.Where(entity => entity.ShadowMap == null));
@@ -158,7 +155,6 @@ namespace ERoD
             {
                 light.ShadowMap = new RenderTarget2D(GraphicsDevice, shadowMapSize, shadowMapSize,
                     false, SurfaceFormat.Single, DepthFormat.Depth24Stencil8);
-                //light.SoftShadowMap = new RenderTarget2D(GraphicsDevice, width, height, false, SurfaceFormat.Color, DepthFormat.None);
             }
 
             foreach (ILight light in lights)
@@ -171,13 +167,13 @@ namespace ERoD
                 {
                     if (component is ICastShadow)
                     {
-                        ((ICastShadow)component).DrawShadow(gameTime, light.View * light.Projection);
+                        ((ICastShadow)component).DrawShadow(gameTime, light.View, light.Projection);
                     }
                 }
             }
         }
 
-              
+        // Render all lights to a texture.
         private void DeferredLightning(GameTime gameTime)
         {
             GraphicsDevice.SetRenderTarget(lightMap);
@@ -187,12 +183,13 @@ namespace ERoD
             GraphicsDevice.DepthStencilState = DepthStencilState.None;
             GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
 
+            // Render all directional lights
             foreach (IDirectionalLight dirLight in DirectionalLights)
             {
                 RenderDirectionalLight(dirLight);
             }
 
-            // for all lights, render lights
+            // Render all point-lights
             foreach (IPointLight pointLight in PointLights) 
             {
                 RenderPointLight(pointLight);
@@ -204,25 +201,29 @@ namespace ERoD
         private void RenderDirectionalLight(IDirectionalLight directionalLight)
         {
             // Load Light Params
-            directionalLightShader.Parameters["halfPixel"].SetValue(halfPixel);
-            directionalLightShader.Parameters["lightDirection"].SetValue(directionalLight.Direction);
-            directionalLightShader.Parameters["color"].SetValue(directionalLight.Color.ToVector3());
+            directionalLightShader.Parameters["HalfPixel"].SetValue(halfPixel);
+            directionalLightShader.Parameters["LightDirection"].SetValue(directionalLight.Direction);
+            directionalLightShader.Parameters["Color"].SetValue(directionalLight.Color.ToVector3());
 
-            directionalLightShader.Parameters["normalMap"].SetValue(normalMap);
-            directionalLightShader.Parameters["sgrMap"].SetValue(SGRMap);
-            directionalLightShader.Parameters["depthMap"].SetValue(depthMap);
-            directionalLightShader.Parameters["power"].SetValue(directionalLight.Intensity);
+            directionalLightShader.Parameters["NormalMap"].SetValue(normalMap);
+            directionalLightShader.Parameters["SGRMap"].SetValue(SGRMap);
+            directionalLightShader.Parameters["DepthMap"].SetValue(depthMap);
+            directionalLightShader.Parameters["Power"].SetValue(directionalLight.Intensity);
 
-            directionalLightShader.Parameters["cameraPosition"].SetValue(Camera.Position);
-            directionalLightShader.Parameters["viewProjectionInv"].SetValue(Matrix.Invert(Camera.View 
-                * Camera.Projection));
-            directionalLightShader.Parameters["lightViewProjection"].SetValue(directionalLight.View
-                * directionalLight.Projection);
+            directionalLightShader.Parameters["CameraPosition"].SetValue(Camera.Position);
+            directionalLightShader.Parameters["ViewInv"].SetValue(Matrix.Invert(Camera.View));
 
-            directionalLightShader.Parameters["castShadow"].SetValue(directionalLight.CastShadow);
+            directionalLightShader.Parameters["SidesLengthVS"].SetValue(new Vector2(Camera.TanFovy * Camera.AspectRatio, -Camera.TanFovy));
+            directionalLightShader.Parameters["FarPlane"].SetValue(Camera.FarPlane);
+
+            directionalLightShader.Parameters["LightView"].SetValue(directionalLight.View);
+            directionalLightShader.Parameters["LightProj"].SetValue(directionalLight.Projection);
+
+            directionalLightShader.Parameters["CastShadow"].SetValue(directionalLight.CastShadow);
             if (directionalLight.CastShadow)
             {
-                directionalLightShader.Parameters["shadowMap"].SetValue(directionalLight.ShadowMap);
+                directionalLightShader.Parameters["ShadowMapSize"].SetValue(new Vector2(directionalLight.ShadowMap.Width, directionalLight.ShadowMap.Height));
+                directionalLightShader.Parameters["ShadowMap"].SetValue(directionalLight.ShadowMap);
             }
 
             directionalLightShader.Techniques[0].Passes[0].Apply();
@@ -232,10 +233,10 @@ namespace ERoD
 
         private void RenderPointLight(IPointLight pointLight)
         {
-            pointLightShader.Parameters["halfPixel"].SetValue(halfPixel);
-            pointLightShader.Parameters["colorMap"].SetValue(colorMap);
-            pointLightShader.Parameters["normalMap"].SetValue(normalMap);
-            pointLightShader.Parameters["depthMap"].SetValue(depthMap);
+            pointLightShader.Parameters["HalfPixel"].SetValue(halfPixel);
+            pointLightShader.Parameters["ColorMap"].SetValue(colorMap);
+            pointLightShader.Parameters["NormalMap"].SetValue(normalMap);
+            pointLightShader.Parameters["DepthMap"].SetValue(depthMap);
 
             Matrix sphereWorldMatrix = Matrix.CreateScale(pointLight.Radius) 
                 * Matrix.CreateTranslation(pointLight.Position);
@@ -243,16 +244,16 @@ namespace ERoD
             pointLightShader.Parameters["World"].SetValue(sphereWorldMatrix);
             pointLightShader.Parameters["View"].SetValue(Camera.View);
             pointLightShader.Parameters["Projection"].SetValue(Camera.Projection);
+            pointLightShader.Parameters["ViewInv"].SetValue(Matrix.Invert(Camera.View));
 
-            pointLightShader.Parameters["lightPosition"].SetValue(pointLight.Position);
+            pointLightShader.Parameters["LightPosition"].SetValue(pointLight.Position);
+
+            pointLightShader.Parameters["SidesLengthVS"].SetValue(new Vector2(Camera.TanFovy * Camera.AspectRatio, -Camera.TanFovy));
+            pointLightShader.Parameters["FarPlane"].SetValue(Camera.FarPlane);
 
             pointLightShader.Parameters["Color"].SetValue(pointLight.Color.ToVector3());
-            pointLightShader.Parameters["lightRadius"].SetValue(pointLight.Radius);
-            pointLightShader.Parameters["lightIntensity"].SetValue(pointLight.Intensity);
-
-            pointLightShader.Parameters["CameraPosition"].SetValue(Camera.Position);
-            pointLightShader.Parameters["InvertViewProjection"].SetValue(Matrix.Invert(Camera.View * 
-                Camera.Projection));
+            pointLightShader.Parameters["LightRadius"].SetValue(pointLight.Radius);
+            pointLightShader.Parameters["LightIntensity"].SetValue(pointLight.Intensity);
 
             float dist = Vector3.Distance(Camera.Position, pointLight.Position);
 
@@ -284,11 +285,11 @@ namespace ERoD
         {
             GraphicsDevice.Clear(Color.White);
 
-            deferredShader.Parameters["halfPixel"].SetValue(halfPixel);
-            deferredShader.Parameters["colorMap"].SetValue(colorMap);
-            deferredShader.Parameters["lightMap"].SetValue(lightMap);
-            deferredShader.Parameters["depthMap"].SetValue(depthMap);
-            deferredShader.Parameters["skyMap"].SetValue(skyMap);
+            deferredShader.Parameters["HalfPixel"].SetValue(halfPixel);
+            deferredShader.Parameters["ColorMap"].SetValue(colorMap);
+            deferredShader.Parameters["LightMap"].SetValue(lightMap);
+            deferredShader.Parameters["DepthMap"].SetValue(depthMap);
+            deferredShader.Parameters["SkyMap"].SetValue(skyMap);
 
             deferredShader.CurrentTechnique.Passes[0].Apply();
 
