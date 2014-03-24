@@ -6,16 +6,15 @@ float4x4 lightProj;
 float3 lightDirection;
 
 float3 cameraPosition;
-float4x4 camWorld;
 
 float power = 1;
 float specularModifier = 3;
 
 float2 halfPixel;
+float farPlane;
+float2 TanAspect;
 
-float4 g_vFrustumCornersVS [4];
-
-float BIAS = 0.00f;
+float BIAS = 0.001f;
 //color of the light 
 float3 color;
 
@@ -74,7 +73,6 @@ struct VertexShaderOutput
 {
     float4 Position : POSITION0;
 	float2 TexCoord : TEXCOORD0;
-	float3 frustumRay : TEXCOORD1;
 };
 
 VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
@@ -83,9 +81,7 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 
 	output.Position = float4(input.Position, 1);
 	output.TexCoord = input.TexCoordAndCornerInfo.xy - halfPixel;
-	float3 frustumCornersVS = g_vFrustumCornersVS[input.TexCoordAndCornerInfo.z];
-	output.frustumRay = frustumCornersVS;
-    
+
 	return output;
 }
 
@@ -117,19 +113,25 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 	float4 normalData = tex2D(normalSampler, input.TexCoord);
 	float3 normal = 2.0f * normalData.xyz - 1.0f;
 
-	float depth = 1 - tex2D(depthSampler, input.TexCoord).r;
-	float4 positionWS = float4(cameraPosition + depth * input.frustumRay, 1.0f);
+	float depth = 1-tex2D(depthSampler, input.TexCoord).r;
 
-	//float4x4 viewToLightViewProj = mul(viewInv, mul(lightView, lightProj));
-	float4 positionLightCS = mul(positionWS, mul(lightView, lightProj));
+	float2 screenPos = input.TexCoord * 2.0f - 1.0f;
+
+	depth *= farPlane;
+
+	float4 positionCVS = float4(float3(TanAspect * screenPos * depth, -depth), 1);
+	float4 positionWS = mul(positionCVS, viewInv);
+
+	float4 positionLightVS = mul(positionWS, lightView);
+	float4 positionLightCS = mul(positionLightVS, lightProj);
 
 	//float4 pos = mul(positionVS, mul(viewInv, lightView));
 
-	float lightDepth = positionLightCS.z / positionLightCS.w;
+	float lightDepth = -positionLightVS.z / farPlane;
 
-	float2 shadowTexCoord = 0.5 * positionLightCS.xy / positionLightCS.w + float2(0.5, 0.5);
+	float2 shadowTexCoord = 0.5f * positionLightCS.xy / positionLightCS.w + float2(0.5f, 0.5f);
 	shadowTexCoord.y = 1 - shadowTexCoord.y;
-	shadowTexCoord += (0.5f / float2(2048, 2048));
+	//shadowTexCoord += (0.5f / float2(2048, 2048));
 
 	//determine shadowing criteria
 	//float realDistanceToLight = lightDepth;
@@ -171,10 +173,14 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 	diffuseLight += (specular * specularModifier * power);
 
 	//output the two lights
-	//return float4(diffuseLight.rgb, 1) * shading;
+	return float4(diffuseLight.rgb, 1) * shading;
 	//return float4(1, 1, 1, 1) * shading;
-	//return float4(1 - tex2D(shadowSampler, shadowTexCoord).x, 0, 0, 1);
-	return float4(input.frustumRay,1);
+	//return float4(tex2D(shadowSampler, shadowTexCoord).x, 0, 0, 1);
+	//return float4(shadowTexCoord.x, 0, 0, 1);
+	//return float4(-positionCVS.z/farPlane, 0, 0, 1);
+	//return float4(0.5 * positionCVS.x / (TanAspect.x * depth) + 0.5, 0.5 * positionCVS.y / (TanAspect.y * depth) + 0.5, 1 - (-positionCVS.z / (farPlane)), 1);
+	//return float4(0.5 * positionWS.x + 0.5, 0,0,1);//positionWS.y, 1 - (-positionWS.z / (farPlane)), 1);
+	//return float4(1-lightDepth, 0, 0, 1);
 }
 
 technique Technique1

@@ -238,8 +238,11 @@ namespace ERoD
             directionalLightShader.Parameters["cameraPosition"].SetValue(Camera.Position);
             directionalLightShader.Parameters["viewInv"].SetValue(Matrix.Invert(Camera.View));
 
-            directionalLightShader.Parameters["g_vFrustumCornersVS"].SetValue(farFrustumCornersVS);
-            directionalLightShader.Parameters["camWorld"].SetValue(Camera.World);
+            //directionalLightShader.Parameters["g_vFrustumCornersVS"].SetValue(farFrustumCornersVS);
+            //directionalLightShader.Parameters["camWorld"].SetValue(Camera.World);
+
+            directionalLightShader.Parameters["TanAspect"].SetValue(new Vector2(Camera.TanFovy * Camera.AspectRatio, -Camera.TanFovy));
+            directionalLightShader.Parameters["farPlane"].SetValue(Camera.FarPlane);
 
             directionalLightShader.Parameters["lightView"].SetValue(directionalLight.View);
             directionalLightShader.Parameters["lightProj"].SetValue(directionalLight.Projection);
