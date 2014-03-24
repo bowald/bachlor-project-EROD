@@ -11,7 +11,7 @@ float3 Color = 1;
 float FarPlane;
 
 // Strength of normalmap.
-float BumpConstant = 1.0f;
+float BumpConstant = 0.0f;
 
 // Diffuse texture enabled.
 bool TextureEnabled;

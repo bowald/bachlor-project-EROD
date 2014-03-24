@@ -107,17 +107,5 @@ namespace ERoD
         {
             base.Update(gameTime);
         }
-
-        //public override void Dispose()
-        //{
-        //    base.Dispose();
-        //    Game.Components.Remove(this);
-        //}
-
-<<<<<<< HEAD
-
-        
-=======
->>>>>>> Develop
     }
 }

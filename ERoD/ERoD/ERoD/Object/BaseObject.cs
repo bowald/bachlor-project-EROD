@@ -140,9 +140,9 @@ namespace ERoD
                     {
                         effect.Parameters["bumpConstant"].SetValue(bumpConstant);
                     }
-                    if (effect.Parameters["texMult"] != null)
+                    if (effect.Parameters["TexMult"] != null)
                     {
-                        effect.Parameters["texMult"].SetValue(TexMult);
+                        effect.Parameters["TexMult"].SetValue(TexMult);
                     }
                 }
                 mesh.Draw();

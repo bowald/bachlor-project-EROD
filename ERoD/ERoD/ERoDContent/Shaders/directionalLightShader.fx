@@ -22,7 +22,7 @@ float2 SidesLengthVS;
 float FarPlane;
 
 // Bias term for shadows.
-float BIAS = 0.001f;
+float BIAS = 0.0015f;
 
 // color of the light 
 float3 Color;
