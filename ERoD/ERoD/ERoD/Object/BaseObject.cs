@@ -16,17 +16,30 @@ namespace ERoD
             get { return ((ICamera)Game.Services.GetService(typeof(ICamera))); }
         }
 
-        protected Matrix world;
-        protected Matrix transform;
+        protected Vector3 position;
+        protected Vector3 scale;
+        protected Quaternion rotation;
+        
         protected Model model;
         protected Texture2D diffuseTexture;
         protected Texture2D specularMap;
         protected Texture2D bumpMap;
         protected Boolean textureEnabled;
+        protected float bumpConstant = 0f;
         Matrix[] boneTransforms;
 
         public Effect standardEffect;
         public Effect shadowEffect;
+        
+        /// <summary>
+        ///  Increases the "size" of tiled textures.
+        /// </summary>
+        private float texMult = 1f;
+        public float TexMult
+        { 
+            get { return texMult; } 
+            set { texMult = value;  } 
+        }
 
         public bool TextureEnabled
         {
@@ -34,16 +47,15 @@ namespace ERoD
             set { textureEnabled = value; }
         }
 
-        public Matrix Transform
+        public float BumpConstant
         {
-            get { return transform; }
-            set { transform = value; }
+            get { return bumpConstant; }
+            set { bumpConstant = value; }
         }
 
         public Matrix World
         {
-            get { return world; }
-            set { world = value; }
+            get { return Matrix.CreateScale(scale) * Matrix.CreateFromQuaternion(rotation) * Matrix.CreateTranslation(position); }
         }
 
         public Model Model
@@ -70,11 +82,10 @@ namespace ERoD
             set { bumpMap = value; }
         }
 
-        protected BaseObject(Model model, Matrix transform, Game game)
+        protected BaseObject(Model model, Game game)
             : base(game)
         {
             this.model = model;
-            this.transform = transform;
             boneTransforms = new Matrix[model.Bones.Count];
         }
 
@@ -124,6 +135,14 @@ namespace ERoD
                     if (effect.Parameters["BumpMap"] != null)
                     {
                         effect.Parameters["BumpMap"].SetValue(bumpMap);
+                    }
+                    if (effect.Parameters["bumpConstant"] != null)
+                    {
+                        effect.Parameters["bumpConstant"].SetValue(bumpConstant);
+                    }
+                    if (effect.Parameters["TexMult"] != null)
+                    {
+                        effect.Parameters["TexMult"].SetValue(TexMult);
                     }
                 }
                 mesh.Draw();

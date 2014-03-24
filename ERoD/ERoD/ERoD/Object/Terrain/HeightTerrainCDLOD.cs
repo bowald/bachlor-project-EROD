@@ -90,8 +90,8 @@ namespace ERoD
             /// subdivide the patch from 2 triangles to 8
             Subdivide(vertices, indices, true);
             Subdivide(vertices, indices, true);
-            Subdivide(vertices, indices, true);
-
+            //Subdivide(vertices, indices, true);
+            //Subdivide(vertices, indices, true);
 
             vertexBuffer = new VertexBuffer(Game.GraphicsDevice, VertexPositionNormalTexture.VertexDeclaration, vertices.Count, BufferUsage.WriteOnly);
             vertexBuffer.SetData(vertices.ToArray());
@@ -285,7 +285,7 @@ namespace ERoD
 
 
             // Load heightdata
-            Texture2D tempHeight = Game.Content.Load<Texture2D>("HeightMap/heightNC");
+            Texture2D tempHeight = Game.Content.Load<Texture2D>("HeightMap/height");
 
             Microsoft.Xna.Framework.Graphics.PackedVector.Rgba64[] heightValues = new Microsoft.Xna.Framework.Graphics.PackedVector.Rgba64[tempHeight.Width * tempHeight.Height];
             tempHeight.GetData(heightValues);
@@ -334,6 +334,7 @@ namespace ERoD
             effect.Parameters["World"].SetValue(WorldMatrix);
             effect.Parameters["View"].SetValue(Camera.View);
             effect.Parameters["Projection"].SetValue(Camera.Projection);
+
             effect.Parameters["FarPlane"].SetValue(Camera.FarPlane);
 
             effect.Parameters["HeightMap"].SetValue(heightMap);

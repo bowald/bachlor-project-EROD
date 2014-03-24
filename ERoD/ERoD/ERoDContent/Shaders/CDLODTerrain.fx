@@ -159,6 +159,7 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input)
 	//output.Color = float4(levelColors[input.treeLevel], 1);
 	output.Color = tex2D(TextureSampler, input.texCoord);
 
+
 	float depth = 1 - (-input.Depth / FarPlane);
 	output.Depth = float4(depth, 0, 0, 1);
 	output.SGR = 0;

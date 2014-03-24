@@ -2,6 +2,8 @@ float4x4 World;
 float4x4 View;
 float4x4 Projection;
 
+float3 TexMult = 1;
+
 // Color of the object.
 float3 Color = 1;
 
@@ -9,7 +11,7 @@ float3 Color = 1;
 float FarPlane;
 
 // Strength of normalmap.
-float BumpConstant = 1.0f;
+float BumpConstant = 0.0f;
 
 // Diffuse texture enabled.
 bool TextureEnabled;
@@ -95,7 +97,7 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 
     float4 worldPos = mul(input.Position, World);
 	float4 viewPos = mul(worldPos, View);
-	output.Position = mul(viewPos, Projection); 
+	output.Position = mul(viewPos, Projection);
 		
 	output.TexCoord = input.TexCoord;
 
@@ -121,6 +123,8 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input)
 {
 	PixelShaderOutput output = (PixelShaderOutput)0;
 
+	input.TexCoord *= (1 / TexMult);
+
 	if (TextureEnabled)
 	{
 		output.Color = tex2D(DiffuseSampler, input.TexCoord) * float4(Color, 1);
@@ -130,7 +134,7 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input)
 		output.Color = float4(Color, 1);
 	}
 
-	float3 bumpValue = BumpConstant * tex2D(BumpMapSampler, input.TexCoord);
+	float3 bumpValue = BumpConstant * (tex2D(BumpMapSampler, input.TexCoord) * 2.0f - 1.0f);
 
 	float3 bumpNormal = input.Normal + (bumpValue.x * input.Tangent + bumpValue.y * input.Binormal);
 

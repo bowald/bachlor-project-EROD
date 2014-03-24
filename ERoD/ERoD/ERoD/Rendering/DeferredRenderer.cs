@@ -309,7 +309,7 @@ namespace ERoD
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
 
             spriteBatch.Draw(colorMap, new Rectangle(1, 1, w, h), Color.White);
-            //spriteBatch.Draw(SGRMap, new Rectangle((w * 4) + 4, 1, w, h), Color.White);
+            spriteBatch.Draw(SGRMap, new Rectangle((w * 4) + 4, 1, w, h), Color.White);
             spriteBatch.Draw(normalMap, new Rectangle(w + 2, 1, w, h), Color.White);
 
             GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
@@ -322,7 +322,6 @@ namespace ERoD
             DepthRender.CurrentTechnique.Passes[0].Apply();
             GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
             spriteBatch.Draw(depthMap, new Rectangle((w * 2) + 3, 1, w, h), Color.White);
-            spriteBatch.Draw(DirectionalLights[0].ShadowMap, new Rectangle((w * 4) + 4, 1, w, h), Color.White);
             spriteBatch.End();
         }
     }
