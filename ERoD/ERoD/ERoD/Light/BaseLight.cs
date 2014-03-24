@@ -14,7 +14,7 @@ namespace ERoD
         protected Color color;
         protected float intensity;
         protected bool castShadow;
-        protected RenderTarget2D shadowMap;
+        protected ShadowRenderer.CascadeShadowMapEntry shadowMapEntry;
         protected Game Game;
 
         protected ICamera camera
@@ -56,10 +56,10 @@ namespace ERoD
             set { castShadow = value; }
         }
 
-        public RenderTarget2D ShadowMap
+        public ShadowRenderer.CascadeShadowMapEntry ShadowMapEntry
         {
-            get { return shadowMap; }
-            set { shadowMap = value; }
+            get { return shadowMapEntry; }
+            set { shadowMapEntry = value; }
         }
 
         public BaseLight(Vector3 position, Color color, float intensity, bool castShadow)
@@ -68,6 +68,7 @@ namespace ERoD
             this.Color = color;
             this.Intensity = intensity;
             this.CastShadow = castShadow;
+            shadowMapEntry = new ShadowRenderer.CascadeShadowMapEntry();
         }
 
         // Use this?? do we need Game here?

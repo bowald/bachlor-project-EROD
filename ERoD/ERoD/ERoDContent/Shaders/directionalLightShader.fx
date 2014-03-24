@@ -2,6 +2,13 @@ float4x4 ViewInv;
 float4x4 LightView;
 float4x4 LightProj;
 
+float3 CascadeDistances;
+
+static const int NUM_SPLITS = 3;
+
+float4x4 ViewMatrices[NUM_SPLITS];
+float4x4 ProjectionMatrices[NUM_SPLITS];
+
 //direction of the light
 float3 LightDirection;
 
@@ -11,6 +18,9 @@ float Power = 1;
 float SpecularModifier = 3;
 
 float2 HalfPixel;
+
+
+float2	ClipPlanes[NUM_SPLITS];
 
 // Vector size of the shadow map in use.
 float2 ShadowMapSize;
@@ -22,7 +32,7 @@ float2 SidesLengthVS;
 float FarPlane;
 
 // Bias term for shadows.
-float BIAS = 0.001f;
+float BIAS = 0.005f;
 
 // color of the light 
 float3 Color;
@@ -120,7 +130,7 @@ float CalcShadowTermPCF(float lightDepth, float2 shadowTexCoord)
 }
 
 // Calculates the shadow term using PCF soft-shadowing
-// sqrtSamples = number of samples, higher number -> better quality [1..7]
+// sqrtSamples = number of samples, higher number -> softer shadows [1..7]
 float CalcShadowTermSoftPCF(float lightDepth, float2 shadowTexCoord, int sqrtSamples)
 {
 	float shadowTerm = 0.0f;
@@ -175,9 +185,12 @@ float CalcShadowTermSoftPCF(float lightDepth, float2 shadowTexCoord, int sqrtSam
 float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 {
 	// Reconstruct position
-	float depth = 1-tex2D(DepthSampler, input.TexCoord).r;
+	float depth = 1 - tex2D(DepthSampler, input.TexCoord).r;
 
 	float2 screenPos = input.TexCoord * 2.0f - 1.0f;
+
+	//if depth value == 1, we can assume its a background value, so skip it
+	clip(-depth + 0.9999f);
 
 	depth *= FarPlane;
 
@@ -186,24 +199,19 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 	// World Space
 	float4 positionWS = mul(positionCVS, ViewInv);
 
-	float shading = 1.0f;
+	/*float4x4 lightView = ViewMatrices[0];
+	float4x4 lightProj = ProjectionMatrices[0];
+	float offset = 0;*/
 
-	if (CastShadow)
-	{
-		// Get position in light viewspace and light clip-space.
-		float4 positionLightVS = mul(positionWS, LightView);
-		float4 positionLightCS = mul(positionLightVS, LightProj);
+	// Figure out which split this pixel belongs to, based on view-space depth.
+	float3 weights = (positionCVS.z < CascadeDistances);
+	weights.xy -= weights.yz;
 
-		// Get the distance from the camera in light viewspace depth
-		float lightDepth = -positionLightVS.z / FarPlane;
+	float4x4 lightView = ViewMatrices[0] * weights.x + ViewMatrices[1] * weights.y + ViewMatrices[2] * weights.z;
+	float4x4 lightProj = ProjectionMatrices[0] * weights.x + ProjectionMatrices[1] * weights.y + ProjectionMatrices[2] * weights.z;
 
-		// Get the coordinates for sampling the shadowmap.
-		float2 shadowTexCoord = 0.5f * positionLightCS.xy / positionLightCS.w + float2(0.5f, 0.5f);
-		shadowTexCoord.y = 1 - shadowTexCoord.y;
-
-		// Get soft shadows
-		shading = CalcShadowTermSoftPCF(lightDepth, shadowTexCoord, 7);
-	}
+	//remember that we need to find the correct cascade into our cascade atlas
+	float offset = weights.y*0.33333f + weights.z*0.666666f;
 
 	// Light calculation
 	// Get normals
@@ -215,6 +223,30 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 
 	// compute diffuse light
 	float NdL = saturate(dot(normal, lightVector));
+
+	clip(NdL - 0.00001f);
+
+	float shading = 1.0f;
+
+	if (CastShadow)
+	{
+		// Get position in light viewspace and light clip-space.
+		float4 positionLightVS = mul(positionWS, lightView);
+		float4 positionLightCS = mul(positionLightVS, lightProj);
+
+		// Get the distance from the camera in light viewspace depth
+		float lightDepth = -positionLightVS.z / FarPlane;
+
+		// Get the coordinates for sampling the shadowmap.
+		float2 shadowTexCoord = 0.5f * positionLightCS.xy / positionLightCS.w + float2(0.5f, 0.5f);
+		shadowTexCoord.x = shadowTexCoord.x * 0.3333333f + offset;
+		shadowTexCoord.y = 1 - shadowTexCoord.y;
+
+		// Get soft shadows
+		shading = CalcShadowTermSoftPCF(lightDepth, shadowTexCoord, 5);
+	}
+
+	
 	float3 diffuseLight = (NdL * Color.rgb) * Power;
 
 	// Specular, Glow, Reflection map.
@@ -233,6 +265,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 	diffuseLight += (specular * SpecularModifier * Power);
 
 	return float4(diffuseLight.rgb, 1) * shading;
+	
 }
 
 technique Technique1

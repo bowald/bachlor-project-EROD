@@ -26,6 +26,8 @@ namespace ERoD
 
         SpriteBatch spriteBatch;
 
+        ShadowRenderer shadowRenderer;
+
         // Skybox //
         Skybox skybox;
 
@@ -40,7 +42,6 @@ namespace ERoD
         public List<IDirectionalLight> DirectionalLights = new List<IDirectionalLight>();
 
         Vector2 halfPixel;
-        private int shadowMapSize = 2048;
 
         ScreenQuad sceneQuad;
 
@@ -48,6 +49,7 @@ namespace ERoD
         {
             game.Components.Add(this);
             sceneQuad = new ScreenQuad(game);
+            shadowRenderer = new ShadowRenderer(this, game);
         }
 
         protected override void LoadContent()
@@ -146,30 +148,19 @@ namespace ERoD
             GraphicsDevice.DepthStencilState = DepthStencilState.Default;
             List<ILight> lights = new List<ILight>(DirectionalLights.Where(entity => entity.Intensity > 0 && entity.Color != Color.Black && entity.CastShadow));
 
-            List<ILight> needShadowMaps = new List<ILight>(lights.Where(entity => entity.ShadowMap == null));
+            List<ILight> needShadowMaps = new List<ILight>(lights.Where(entity => entity.ShadowMapEntry.ShadowMap == null));
 
             int width = GraphicsDevice.Viewport.Width;
             int height = GraphicsDevice.Viewport.Height;
 
             foreach (ILight light in needShadowMaps)
             {
-                light.ShadowMap = new RenderTarget2D(GraphicsDevice, shadowMapSize, shadowMapSize,
-                    false, SurfaceFormat.Single, DepthFormat.Depth24Stencil8);
+                light.ShadowMapEntry.ShadowMap = shadowRenderer.AssignShadowMap();
             }
 
-            foreach (ILight light in lights)
+            foreach (IDirectionalLight light in lights)
             {
-                // Clear shadow map..
-                GraphicsDevice.SetRenderTarget(light.ShadowMap);
-                GraphicsDevice.Clear(Color.Transparent);
-
-                foreach (GameComponent component in Game.Components)
-                {
-                    if (component is ICastShadow)
-                    {
-                        ((ICastShadow)component).DrawShadow(gameTime, light.View, light.Projection);
-                    }
-                }
+                shadowRenderer.RenderCascadedShadowMap(light, Camera, gameTime);
             }
         }
 
@@ -222,8 +213,26 @@ namespace ERoD
             directionalLightShader.Parameters["CastShadow"].SetValue(directionalLight.CastShadow);
             if (directionalLight.CastShadow)
             {
-                directionalLightShader.Parameters["ShadowMapSize"].SetValue(new Vector2(directionalLight.ShadowMap.Width, directionalLight.ShadowMap.Height));
-                directionalLightShader.Parameters["ShadowMap"].SetValue(directionalLight.ShadowMap);
+                directionalLightShader.Parameters["ShadowMapSize"].SetValue(new Vector2(directionalLight.ShadowMapEntry.ShadowMap.Width, directionalLight.ShadowMapEntry.ShadowMap.Height));
+                directionalLightShader.Parameters["ShadowMap"].SetValue(directionalLight.ShadowMapEntry.ShadowMap);
+                directionalLightShader.Parameters["ClipPlanes"].SetValue(directionalLight.ShadowMapEntry.LightClipPlanes);
+                Matrix[] viewMatrices = new Matrix[3];
+                Matrix[] projectionMatrices = new Matrix[3];
+                for (int i = 0; i < 3; i++)
+                {
+                    viewMatrices[i] = directionalLight.ShadowMapEntry.LightViewProjectionMatrices[i].LightView;
+                    projectionMatrices[i] = directionalLight.ShadowMapEntry.LightViewProjectionMatrices[i].LightProjection;
+                }
+                directionalLightShader.Parameters["ViewMatrices"].SetValue(viewMatrices);
+                directionalLightShader.Parameters["ProjectionMatrices"].SetValue(projectionMatrices);
+                Vector3 cascadeDistances = Vector3.Zero;
+                cascadeDistances.X = directionalLight.ShadowMapEntry.LightClipPlanes[0].X;
+                Console.WriteLine(cascadeDistances.X);
+                cascadeDistances.Y = directionalLight.ShadowMapEntry.LightClipPlanes[1].X;
+                Console.WriteLine(cascadeDistances.Y);
+                cascadeDistances.Z = directionalLight.ShadowMapEntry.LightClipPlanes[2].X;
+                Console.WriteLine(cascadeDistances.Z);
+                directionalLightShader.Parameters["CascadeDistances"].SetValue(cascadeDistances);
             }
 
             directionalLightShader.Techniques[0].Passes[0].Apply();
@@ -306,23 +315,23 @@ namespace ERoD
         Effect DepthRender;
         public void RenderDebug()
         {
-            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
+            //spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
 
-            spriteBatch.Draw(colorMap, new Rectangle(1, 1, w, h), Color.White);
-            //spriteBatch.Draw(SGRMap, new Rectangle((w * 4) + 4, 1, w, h), Color.White);
-            spriteBatch.Draw(normalMap, new Rectangle(w + 2, 1, w, h), Color.White);
+            //spriteBatch.Draw(colorMap, new Rectangle(1, 1, w, h), Color.White);
+            ////spriteBatch.Draw(SGRMap, new Rectangle((w * 4) + 4, 1, w, h), Color.White);
+            //spriteBatch.Draw(normalMap, new Rectangle(w + 2, 1, w, h), Color.White);
 
-            GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
+            //GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
 
-            spriteBatch.Draw(lightMap, new Rectangle((w * 3) + 4, 1, w, h), Color.White);
+            //spriteBatch.Draw(lightMap, new Rectangle((w * 3) + 4, 1, w, h), Color.White);
             
-            spriteBatch.End();
+            //spriteBatch.End();
             
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
             DepthRender.CurrentTechnique.Passes[0].Apply();
             GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
-            spriteBatch.Draw(depthMap, new Rectangle((w * 2) + 3, 1, w, h), Color.White);
-            spriteBatch.Draw(DirectionalLights[0].ShadowMap, new Rectangle((w * 4) + 4, 1, w, h), Color.White);
+            spriteBatch.Draw(depthMap, new Rectangle((w * 3) + 4, 1, w, h), Color.White);
+            spriteBatch.Draw(DirectionalLights[0].ShadowMapEntry.ShadowMap, new Rectangle(1, 1, w*3, h), Color.White);
             spriteBatch.End();
         }
     }
