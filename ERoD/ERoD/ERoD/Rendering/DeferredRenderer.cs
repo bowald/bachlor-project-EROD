@@ -270,9 +270,13 @@ namespace ERoD
 
             pointLightShader.Parameters["World"].SetValue(sphereWorldMatrix);
             pointLightShader.Parameters["View"].SetValue(Camera.View);
+            pointLightShader.Parameters["viewInv"].SetValue(Matrix.Invert(Camera.View));
             pointLightShader.Parameters["Projection"].SetValue(Camera.Projection);
 
             pointLightShader.Parameters["lightPosition"].SetValue(pointLight.Position);
+
+            pointLightShader.Parameters["TanAspect"].SetValue(new Vector2(Camera.TanFovy * Camera.AspectRatio, -Camera.TanFovy));
+            pointLightShader.Parameters["farPlane"].SetValue(Camera.FarPlane);
 
             pointLightShader.Parameters["Color"].SetValue(pointLight.Color.ToVector3());
             pointLightShader.Parameters["lightRadius"].SetValue(pointLight.Radius);

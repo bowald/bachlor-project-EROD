@@ -1,6 +1,7 @@
 float4x4 World;
 float4x4 View;
 float4x4 Projection;
+float4x4 viewInv;
 
 float3 Color;
 
@@ -15,6 +16,9 @@ float lightRadius;
 float lightIntensity = 1.0f;
 
 float2 halfPixel;
+
+float2 TanAspect;
+float farPlane;
 
 texture colorMap;
 sampler colorSampler = sampler_state
@@ -85,15 +89,12 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 	float4 normalData = tex2D(normalSampler, texCoord);
 	float3 normal = 2.0f * normalData.xyz - 1.0f;
 
-	float4 position;
-	position.xy = input.ScreenPosition.xy;
-	position.z = depthVal;
-	position.w = 1.0f;
+	depthVal *= farPlane;
 
-	position = mul(position, InvertViewProjection);
-	position /= position.w;
+	float4 positionCVS = float4(float3(TanAspect * (2 * texCoord - 1) * depthVal, -depthVal), 1);
+	float4 positionWS = mul(positionCVS, viewInv);
 
-	float3 lightVector = lightPosition - position;
+	float3 lightVector = lightPosition - positionWS;
 
 	float attenuation = saturate(1.0f - length(lightVector) / lightRadius);
 

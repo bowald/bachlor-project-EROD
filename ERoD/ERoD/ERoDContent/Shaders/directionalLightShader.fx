@@ -108,6 +108,51 @@ float CalcShadowTermPCF(float fLightDepth, float2 vShadowTexCoord)
 	return fShadowTerm;
 }
 
+// Calculates the shadow term using PCF soft-shadowing
+float CalcShadowTermSoftPCF(float fLightDepth, float2 vShadowTexCoord, int iSqrtSamples)
+{
+	float fShadowTerm = 0.0f;
+
+	float fRadius = (iSqrtSamples - 1.0f) / 2;
+	float fWeightAccum = 0.0f;
+
+	for (float y = -fRadius; y <= fRadius; y++)
+	{
+		for (float x = -fRadius; x <= fRadius; x++)
+		{
+			float2 vOffset = 0;
+				float2 g_vShadowMapSize = float2(2048, 2048);
+			vOffset = float2(x, y);
+			vOffset /= g_vShadowMapSize;
+			float2 vSamplePoint = vShadowTexCoord + vOffset;
+			float fDepth = 1 - tex2D(shadowSampler, vSamplePoint).x;
+			float fSample = (fLightDepth <= fDepth + BIAS);
+
+			// Edge tap smoothing
+			float xWeight = 1;
+			float yWeight = 1;
+
+			if (x == -fRadius)
+				xWeight = 1 - frac(vShadowTexCoord.x * g_vShadowMapSize.x);
+			else if (x == fRadius)
+				xWeight = frac(vShadowTexCoord.x * g_vShadowMapSize.x);
+
+			if (y == -fRadius)
+				yWeight = 1 - frac(vShadowTexCoord.y * g_vShadowMapSize.y);
+			else if (y == fRadius)
+				yWeight = frac(vShadowTexCoord.y * g_vShadowMapSize.y);
+
+			fShadowTerm += fSample * xWeight * yWeight;
+			fWeightAccum = xWeight * yWeight;
+		}
+	}
+
+	fShadowTerm /= (iSqrtSamples * iSqrtSamples);
+	fShadowTerm *= 1.55f;
+
+	return fShadowTerm;
+}
+
 float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 {
 	float4 normalData = tex2D(normalSampler, input.TexCoord);
@@ -141,7 +186,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 	//realDistanceToLight -= shadowBias;
 
 	//float shading = (tex2D(shadowSampler, shadowTexCoord).x < 0.1) ? 0.0f : 1.0f;
-	float shading = CalcShadowTermPCF(lightDepth, shadowTexCoord);
+	float shading = CalcShadowTermSoftPCF(lightDepth, shadowTexCoord, 7);
 
 	/*bool shadowCondition = distanceStoredInDepthMap <= realDistanceToLight;
 
