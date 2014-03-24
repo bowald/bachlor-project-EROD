@@ -35,17 +35,6 @@ sampler lightSampler = sampler_state
 	MinFilter = LINEAR;
 	Mipfilter = LINEAR;
 };
-//texture SSAOMap;
-//sampler SSAOSampler = sampler_state
-//{
-//	Texture = (SSAOMap);
-//	AddressU = CLAMP;
-//	AddressV = CLAMP;
-//	MagFilter = LINEAR;
-//	MinFilter = LINEAR;
-//	Mipfilter = LINEAR;
-//};
-
 
 texture depthMap;
 sampler depthSampler = sampler_state
@@ -86,7 +75,6 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 {
 	float4 color = tex2D(colorSampler, input.TexCoord);
 	color *= (tex2D(lightSampler, input.TexCoord) + AmbientMag);
-	//color *= tex2D(SSAOSampler, input.TexCoord);
 
 	float depth = 1 - tex2D(depthSampler, input.TexCoord).r;
 	if (depth > 0.999999){

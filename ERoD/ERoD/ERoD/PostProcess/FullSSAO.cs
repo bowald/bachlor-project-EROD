@@ -14,7 +14,7 @@ namespace ERoD
         //public WorldPositionMap posMap;
         public BiliteradBlurV BlurV;
         public BiliteradBlurH BlurH;
-        //public SceneBlend blend;
+        public Blend blend;
 
         public float rad
         {
@@ -48,7 +48,7 @@ namespace ERoD
             BlurH = new BiliteradBlurH(game, 1.5f);
             //blur.Sampler = SamplerState.PointClamp;
 
-            //blend = new SceneBlend(game);
+            blend = new Blend(game);
             //blend.Blend = true;
             //blend.Sampler = SamplerState.PointClamp;
 
@@ -57,7 +57,7 @@ namespace ERoD
             AddPostProcess(ssao);
             AddPostProcess(BlurV);
             AddPostProcess(BlurH);
-            //AddPostProcess(blend);
+            AddPostProcess(blend);
         }
         public override void Draw(GameTime gameTime, Texture2D scene)
         {

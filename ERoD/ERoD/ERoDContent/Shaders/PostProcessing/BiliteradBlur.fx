@@ -33,6 +33,7 @@ sampler depthSampler = sampler_state
 	MinFilter = POINT;
 	Mipfilter = POINT;
 };
+
 float3 getNormal(in float2 uv)
 {
 	return normalize(tex2D(normalSampler, uv).xyz * 2.0f - 1.0f);
@@ -41,7 +42,7 @@ float getDepth(in float2 uv){
 	return 1 - tex2D(depthSampler, uv).r;
 }
 
-float4 GaussianBlurPS(float2 texCoord : TEXCOORD0) : COLOR0
+float4 BiliteradBlurPS(float2 texCoord : TEXCOORD0) : COLOR0
 {
 	texCoord -= halfPixel;
 	float4 c = 0;
@@ -51,11 +52,10 @@ float4 GaussianBlurPS(float2 texCoord : TEXCOORD0) : COLOR0
 		// Combine a number of weighted image filter taps.
 	for (int i = 0; i < SAMPLE_COUNT; i++)
 	{
+		float SampleDepth = getDepth(texCoord + SampleOffsets[i].xy);
 		float weight = SampleWeights[i];
 		float3 SampleNormal = getNormal(saturate(texCoord + SampleOffsets[i].xy));
-			float SampleDepth = getDepth(saturate(texCoord + SampleOffsets[i].xy));
-		//|| abs(centerDepth – SampleDepth) > 0.01f skall vara i IF-satsen
-		if (dot(SampleNormal, centerNormal) < 0.9f){
+		if (dot(SampleNormal, centerNormal) < 0.9f || abs(centerDepth - SampleDepth) > 0.01f){
 			weight = 0.0f;
 		}	
 
@@ -70,7 +70,7 @@ technique BiliteradBlur
 {
 	pass P0
 	{
-		PixelShader = compile ps_3_0 GaussianBlurPS();
+		PixelShader = compile ps_3_0 BiliteradBlurPS();
 
 	}
 }
