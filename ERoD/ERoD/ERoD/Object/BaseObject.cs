@@ -112,29 +112,29 @@ namespace ERoD
                     {
                         effect.Parameters["Projection"].SetValue(Camera.Projection);
                     }
-                    if (effect.Parameters["farPlane"] != null)
+                    if (effect.Parameters["FarPlane"] != null)
                     {
-                        effect.Parameters["farPlane"].SetValue(Camera.FarPlane);
+                        effect.Parameters["FarPlane"].SetValue(Camera.FarPlane);
                     }
-                    if (effect.Parameters["color"] != null)
+                    if (effect.Parameters["Color"] != null)
                     {
-                        effect.Parameters["color"].SetValue(Color.White.ToVector3());
+                        effect.Parameters["Color"].SetValue(Color.White.ToVector3());
                     }
-                    if (effect.Parameters["textureEnabled"] != null)
+                    if (effect.Parameters["TextureEnabled"] != null)
                     {
-                        effect.Parameters["textureEnabled"].SetValue(textureEnabled);
+                        effect.Parameters["TextureEnabled"].SetValue(textureEnabled);
                     }
-                    if (effect.Parameters["diffuseTexture"] != null)
+                    if (effect.Parameters["DiffuseTexture"] != null)
                     {
-                        effect.Parameters["diffuseTexture"].SetValue(diffuseTexture);
+                        effect.Parameters["DiffuseTexture"].SetValue(diffuseTexture);
                     }
-                    if (effect.Parameters["specularMap"] != null)
+                    if (effect.Parameters["SpecularMap"] != null)
                     {
-                        effect.Parameters["specularMap"].SetValue(specularMap);
+                        effect.Parameters["SpecularMap"].SetValue(specularMap);
                     }
-                    if (effect.Parameters["bumpMap"] != null)
+                    if (effect.Parameters["BumpMap"] != null)
                     {
-                        effect.Parameters["bumpMap"].SetValue(bumpMap);
+                        effect.Parameters["BumpMap"].SetValue(bumpMap);
                     }
                     if (effect.Parameters["bumpConstant"] != null)
                     {
@@ -154,7 +154,7 @@ namespace ERoD
             Draw(gameTime, standardEffect);
         }
 
-        public void DrawShadow(GameTime gameTime, Matrix lightViewProjection)
+        public void DrawShadow(GameTime gameTime, Matrix lightView, Matrix lightProjection)
         {
             model.CopyAbsoluteBoneTransformsTo(boneTransforms);
 
@@ -169,9 +169,17 @@ namespace ERoD
                     {
                         shadowEffect.Parameters["World"].SetValue(meshWorld);
                     }
-                    if (shadowEffect.Parameters["vp"] != null)
+                    if (shadowEffect.Parameters["LightView"] != null)
                     {
-                        shadowEffect.Parameters["vp"].SetValue(lightViewProjection);
+                        shadowEffect.Parameters["LightView"].SetValue(lightView);
+                    }
+                    if (shadowEffect.Parameters["LightProjection"] != null)
+                    {
+                        shadowEffect.Parameters["LightProjection"].SetValue(lightProjection);
+                    }
+                    if (shadowEffect.Parameters["FarPlane"] != null)
+                    {
+                        shadowEffect.Parameters["FarPlane"].SetValue(Camera.FarPlane);
                     }
                 }
                 mesh.Draw();

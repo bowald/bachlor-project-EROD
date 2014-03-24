@@ -90,7 +90,7 @@ namespace ERoD
             /// subdivide the patch from 2 triangles to 8
             Subdivide(vertices, indices, true);
             Subdivide(vertices, indices, true);
-            Subdivide(vertices, indices, true);
+            //Subdivide(vertices, indices, true);
             //Subdivide(vertices, indices, true);
 
             vertexBuffer = new VertexBuffer(Game.GraphicsDevice, VertexPositionNormalTexture.VertexDeclaration, vertices.Count, BufferUsage.WriteOnly);
@@ -216,8 +216,6 @@ namespace ERoD
 
                 // find the size of the selected node.
                 float size = Math.Min(boundsMax.X - boundsMin.X, boundsMax.Z - boundsMin.Z);
-                //Console.WriteLine(node.BoundingBox);
-                //Console.WriteLine(size);
                 
                 // Set morph info to send to shader.
                 float rangeStart = morphRanges[node.Level - 1];
@@ -334,10 +332,10 @@ namespace ERoD
         public void SetEffectParameters(GameTime gameTime, Effect effect)
         {
             effect.Parameters["World"].SetValue(WorldMatrix);
-
             effect.Parameters["View"].SetValue(Camera.View);
             effect.Parameters["Projection"].SetValue(Camera.Projection);
-            effect.Parameters["farPlane"].SetValue(Camera.FarPlane);
+
+            effect.Parameters["FarPlane"].SetValue(Camera.FarPlane);
 
             effect.Parameters["HeightMap"].SetValue(heightMap);
             effect.Parameters["NormalMap"].SetValue(normalMap);
@@ -394,12 +392,13 @@ namespace ERoD
             base.Draw(gameTime);
         }
 
-        public void DrawShadow(GameTime gameTime, Matrix lightViewProjection)
+        public void DrawShadow(GameTime gameTime, Matrix lightView, Matrix lightProjection)
         {
             baseEffect.CurrentTechnique = baseEffect.Techniques["Shadow"];
 
             SetEffectParameters(gameTime, baseEffect);
-            baseEffect.Parameters["LightViewProjection"].SetValue(lightViewProjection);
+            baseEffect.Parameters["LightView"].SetValue(lightView);
+            baseEffect.Parameters["LightProjection"].SetValue(lightProjection);
 
             if (activePatchCount > 0)
             {

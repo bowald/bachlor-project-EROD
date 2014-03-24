@@ -135,7 +135,6 @@ namespace ERoD
 
             space.Add(((ITerrain)Services.GetService(typeof(ITerrain))).PhysicTerrain);
 
-            //Console.WriteLine("Max {0}, Min {1}", terrain.PhysicTerrain.BoundingBox.Max, terrain.PhysicTerrain.BoundingBox.Min);
 
             #region Ship loading
 
@@ -143,6 +142,7 @@ namespace ERoD
             Model shipModelT = Content.Load<Model>("Models/space_frigate_tangentOn");
             Vector3 shipScale = new Vector3(0.06f, 0.06f, 0.06f);
             Vector3 shipPosition = new Vector3(150, 20, 300);
+
 
             Entity entity = LoadEntityObject(shipModel, shipPosition, shipScale);
 

@@ -88,7 +88,6 @@ namespace ERoD
             foreach (ModelMesh mesh in Model.Meshes)
             {
                 Matrix meshWorld = boneTransforms[mesh.ParentBone.Index] * Transform * ConversionHelper.MathConverter.Convert(Entity.WorldTransform);
-                Matrix wvp = meshWorld * Camera.View * Camera.Projection;
 
                 foreach (ModelMeshPart part in mesh.MeshParts)
                 {
@@ -97,29 +96,33 @@ namespace ERoD
                     {
                         effect.Parameters["World"].SetValue(meshWorld);
                     }
-                    if (effect.Parameters["wvp"] != null)
+                    if (effect.Parameters["View"] != null)
                     {
-                        effect.Parameters["wvp"].SetValue(wvp);
+                        effect.Parameters["View"].SetValue(Camera.View);
                     }
-                    if (effect.Parameters["color"] != null)
+                    if (effect.Parameters["Projection"] != null)
                     {
-                        effect.Parameters["color"].SetValue(Color.White.ToVector3());
+                        effect.Parameters["Projection"].SetValue(Camera.Projection);
                     }
-                    if (effect.Parameters["textureEnabled"] != null)
+                    if (effect.Parameters["Color"] != null)
                     {
-                        effect.Parameters["textureEnabled"].SetValue(false);
+                        effect.Parameters["Color"].SetValue(Color.White.ToVector3());
                     }
-                    if (effect.Parameters["diffuseTexture"] != null)
+                    if (effect.Parameters["TextureEnabled"] != null)
                     {
-                        effect.Parameters["diffuseTexture"].SetValue((Texture2D)null);
+                        effect.Parameters["TextureEnabled"].SetValue(false);
                     }
-                    if (effect.Parameters["specularMap"] != null)
+                    if (effect.Parameters["DiffuseTexture"] != null)
                     {
-                        effect.Parameters["specularMap"].SetValue((Texture2D)null);
+                        effect.Parameters["DiffuseTexture"].SetValue((Texture2D)null);
                     }
-                    if (effect.Parameters["bumpMap"] != null)
+                    if (effect.Parameters["SpecularMap"] != null)
                     {
-                        effect.Parameters["bumpMap"].SetValue((Texture2D)null);
+                        effect.Parameters["SpecularMap"].SetValue((Texture2D)null);
+                    }
+                    if (effect.Parameters["BumpMap"] != null)
+                    {
+                        effect.Parameters["BumpMap"].SetValue((Texture2D)null);
                     }
                 }
                 mesh.Draw();

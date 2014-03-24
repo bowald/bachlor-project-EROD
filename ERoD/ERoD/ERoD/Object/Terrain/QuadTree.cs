@@ -115,7 +115,6 @@ namespace ERoD
 
         public static QuadTree Build(ref float[] heights, int mapWidth, int mapHeight, ref float[] morphRanges)
         {
-            Debug.Assert(mapWidth == mapHeight, "This version only supports square textures");
 
             var root = new QuadTreeNode();
             root.Level = morphRanges.Length - 1;
