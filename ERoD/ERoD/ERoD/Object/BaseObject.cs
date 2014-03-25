@@ -23,11 +23,7 @@ namespace ERoD
         protected Texture2D specularMap;
         protected Texture2D bumpMap;
         protected Boolean textureEnabled;
-//<<<<<<< HEAD
-//=======
         protected Boolean mask;
-//        protected Vector3 nodeRotation = Vector3.Zero;
-//>>>>>>> PostProcess
         Matrix[] boneTransforms;
 
         public Effect standardEffect;

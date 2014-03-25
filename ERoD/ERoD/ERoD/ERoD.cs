@@ -66,7 +66,7 @@ namespace ERoD
             get { return renderer; }
         }
 
-        protected List<PostProcess> postProcesses = new List<PostProcess>();
+        protected List<BasicPostProcess> postProcesses = new List<BasicPostProcess>();
         protected PostProcessingManager2 manager;
 
 
@@ -339,7 +339,7 @@ namespace ERoD
             }
 
 
-            foreach (PostProcess postProcess in postProcesses)
+            foreach (BasicPostProcess postProcess in postProcesses)
             {
             //    postProcess.Draw(gameTime);
             }

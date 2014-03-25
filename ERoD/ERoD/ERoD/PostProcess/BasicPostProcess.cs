@@ -8,10 +8,14 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace ERoD
 {
-    public class PostProcess
+    public class BasicPostProcess : IPPEffect
     {
-        public Vector2 HalfPixel;
-
+        protected Boolean enable;
+        public bool Enabled
+        {
+            get { return enable; }
+            set { enable = value; }
+        }
         public ICamera camera
         {
             get { return ((ICamera)Game.Services.GetService(typeof(ICamera))); }
@@ -22,14 +26,30 @@ namespace ERoD
             get { return (SpriteBatch)Game.Services.GetService(typeof(SpriteBatch)); }
         }
 
-        public Texture2D DepthBuffer;
+        protected Vector2 halfPixel;
+        public Vector2 HalfPixel
+        {
+            get { return halfPixel; }
+            set { halfPixel = value; }
+        }
 
-        public Texture2D BackBuffer;
-        public Texture2D orgBuffer;
+        public Texture2D newScene;
+        public Texture2D NewScene
+        {
+            get { return newScene; }
+            set { newScene = value; }
+        }
+
+        protected Texture2D orgScene;
+        public Texture2D OrgScene
+        {
+            get { return orgScene; }
+            set { orgScene = value; }
+        }
+        public Texture2D DepthBuffer;
         public Texture2D normalBuffer;
 
-        public bool Enabled = true;
-
+        
         public SpriteSortMode SortMode = SpriteSortMode.Immediate;
         public BlendState Blend = BlendState.Opaque;
         public SamplerState Sampler = SamplerState.AnisotropicClamp;
@@ -39,15 +59,15 @@ namespace ERoD
         protected Effect effect;
 
         protected ERoD Game;
-        public RenderTarget2D newScene;
 
         ScreenQuad sq;
 
         public bool UsesVertexShader = false;
 
-        public PostProcess(ERoD game)
+        public BasicPostProcess(ERoD game)
         {
             Game = game;
+            enable = true;
 
         }
         public virtual void Update(GameTime gameTime)
@@ -76,7 +96,7 @@ namespace ERoD
                     sq.Draw(-Vector2.One, Vector2.One);
                 else
                 {
-                    spriteBatch.Draw(BackBuffer, new Rectangle(0, 0, Game.GraphicsDevice.Viewport.Width, Game.GraphicsDevice.Viewport.Height), Color.White);
+                    spriteBatch.Draw(newScene, new Rectangle(0, 0, Game.GraphicsDevice.Viewport.Width, Game.GraphicsDevice.Viewport.Height), Color.White);
                     spriteBatch.End();
                 }
             }

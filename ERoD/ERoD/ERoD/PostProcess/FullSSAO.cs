@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace ERoD
 {
-    public class FullSSAO : BasePostProcessingEffect
+    public class FullSSAO : AdvancedPostProcess
     {
         public BasicSSAO ssao;
         //public WorldPositionMap posMap;
@@ -67,7 +67,7 @@ namespace ERoD
             orgScene = scene;
 
             int maxProcess = postProcesses.Count;
-            lastScene = null;
+            orgScene = null;
 
             for (int p = 0; p < maxProcess; p++)
             {
@@ -78,7 +78,7 @@ namespace ERoD
                         postProcesses[p].HalfPixel = HalfPixel;
 
                     // Set original scene
-                    postProcesses[p].orgBuffer = orgScene;
+                    postProcesses[p].OrgScene = orgScene;
 
                     // Ready render target if needed.
                     if (postProcesses[p].newScene == null)
@@ -89,27 +89,27 @@ namespace ERoD
                             postProcesses[p].newScene = new RenderTarget2D(Game.GraphicsDevice, Game.GraphicsDevice.Viewport.Width, Game.GraphicsDevice.Viewport.Height, false, SurfaceFormat.Color, DepthFormat.None);
                     }
 
-                    Game.GraphicsDevice.SetRenderTarget(postProcesses[p].newScene);
+                    Game.GraphicsDevice.SetRenderTarget(postProcesses[p].NewScene);
 
                     // Has the scene been rendered yet (first effect may be disabled)
-                    if (lastScene == null)
-                        lastScene = orgScene;
+                    if (newScene == null)
+                        newScene = orgScene;
 
-                    postProcesses[p].BackBuffer = lastScene;
+                    postProcesses[p].OrgScene = newScene;
 
                     //postProcesses[p].DepthBuffer = depth;
                     //postProcesses[p].normalBuffer = normal;
-                    Game.GraphicsDevice.Textures[0] = postProcesses[p].BackBuffer;
+                    Game.GraphicsDevice.Textures[0] = postProcesses[p].OrgScene;
                     postProcesses[p].Draw(gameTime);
 
                     Game.GraphicsDevice.SetRenderTarget(null);
 
-                    lastScene = postProcesses[p].newScene;
+                    newScene = postProcesses[p].newScene;
                 }
             }
 
-            if (lastScene == null)
-                lastScene = scene;
+            if (newScene == null)
+                newScene = scene;
         }
     }
 }

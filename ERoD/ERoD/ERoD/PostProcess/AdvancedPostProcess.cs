@@ -8,12 +8,9 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace ERoD
 {
-    public class BasePostProcessingEffect
+    public class AdvancedPostProcess : IPPEffect
     {
-        public Vector2 HalfPixel;
-        public Texture2D lastScene;
-        public Texture2D orgScene;
-        protected List<PostProcess> postProcesses = new List<PostProcess>();
+        protected List<BasicPostProcess> postProcesses = new List<BasicPostProcess>();
 
         protected Game Game;
 
@@ -27,14 +24,40 @@ namespace ERoD
             get { return (SpriteBatch)Game.Services.GetService(typeof(SpriteBatch)); }
         }
 
-        public BasePostProcessingEffect(Game game)
+        protected Texture2D newScene;
+        public Texture2D NewScene
         {
-            Game = game;
+            get { return newScene; }
+            set { newScene = value; }
         }
 
-        public bool Enabled = true;
+        protected Texture2D orgScene;
+        public Texture2D OrgScene
+        {
+            get { return orgScene; }
+            set { orgScene = value; }
+        }
 
-        public void AddPostProcess(PostProcess postProcess)
+        protected Vector2 halfPixel;
+        public Vector2 HalfPixel
+        {
+            get { return halfPixel; }
+            set { halfPixel = value; }
+        }
+        protected Boolean enable;
+        public bool Enabled
+        {
+            get { return enable; }
+            set { enable = value; }
+        }
+
+        public AdvancedPostProcess(Game game)
+        {
+            Game = game;
+            enable = true;
+        }
+
+        public void AddPostProcess(BasicPostProcess postProcess)
         {
             postProcesses.Add(postProcess);
         }
@@ -59,7 +82,7 @@ namespace ERoD
             orgScene = scene;
 
             int maxProcess = postProcesses.Count;
-            lastScene = null;
+            newScene = null;
 
             for (int p = 0; p < maxProcess; p++)
             {
@@ -70,7 +93,7 @@ namespace ERoD
                         postProcesses[p].HalfPixel = HalfPixel;
 
                     // Set original scene
-                    postProcesses[p].orgBuffer = orgScene;
+                    postProcesses[p].OrgScene = orgScene;
 
                     // Ready render target if needed.
                     if (postProcesses[p].newScene == null)
@@ -81,24 +104,24 @@ namespace ERoD
                     Game.GraphicsDevice.Clear(Color.Black);
                     
                     // Has the scene been rendered yet (first effect may be disabled)
-                    if (lastScene == null)
-                        lastScene = orgScene;
+                    if (newScene == null)
+                        newScene = orgScene;
 
-                    postProcesses[p].BackBuffer = lastScene;
+                    postProcesses[p].OrgScene = newScene;
 
                     //postProcesses[p].DepthBuffer = depth;
                     //postProcesses[p].normalBuffer = normal;
-                    Game.GraphicsDevice.Textures[0] = postProcesses[p].BackBuffer;
+                    Game.GraphicsDevice.Textures[0] = postProcesses[p].OrgScene;
                     postProcesses[p].Draw(gameTime);
 
                     Game.GraphicsDevice.SetRenderTarget(null);
 
-                    lastScene = postProcesses[p].newScene;
+                    newScene = postProcesses[p].newScene;
                 }
             }
 
-            if (lastScene == null)
-                lastScene = scene;
+            if (newScene == null)
+                newScene = scene;
         }
     }
 }

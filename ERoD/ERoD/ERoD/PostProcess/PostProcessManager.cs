@@ -14,7 +14,7 @@ namespace ERoD
         public Texture2D Scene;
         public Texture2D DepthBuffer;
 
-        protected List<PostProcess> postProcessingEffects = new List<PostProcess>();
+        protected List<BasicPostProcess> postProcessingEffects = new List<BasicPostProcess>();
 
         public Vector2 HalfPixel;
 
@@ -28,7 +28,7 @@ namespace ERoD
             Game = game;
         }
 
-        public void AddEffect(PostProcess ppEfect)
+        public void AddEffect(BasicPostProcess ppEfect)
         {
             postProcessingEffects.Add(ppEfect);
         }

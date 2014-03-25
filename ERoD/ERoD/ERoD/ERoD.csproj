@@ -87,6 +87,7 @@
     <Compile Include="Camera\BaseCamera.cs" />
     <Compile Include="Camera\ChaseCamera.cs" />
     <Compile Include="Camera\FreeCamera.cs" />
+    <Compile Include="Interface\IPPEffect.cs" />
     <Compile Include="Interface\ITrigger.cs" />
     <Compile Include="Logic\CollisionHandler.cs" />
     <Compile Include="GameConstants.cs" />
@@ -111,13 +112,13 @@
     <Compile Include="Object\ObjectConstants.cs" />
     <Compile Include="Object\Ship.cs" />
     <Compile Include="Object\StaticObject.cs" />
-    <Compile Include="PostProcess\BasePostProcessingEffect.cs" />
+    <Compile Include="PostProcess\AdvancedPostProcess.cs" />
     <Compile Include="PostProcess\BiliteradBlurH.cs" />
     <Compile Include="PostProcess\BiliteradBlurV.cs" />
     <Compile Include="PostProcess\Blend.cs" />
     <Compile Include="PostProcess\FullSSAO.cs" />
     <Compile Include="PostProcess\MotionBlur.cs" />
-    <Compile Include="PostProcess\PostProcess.cs" />
+    <Compile Include="PostProcess\BasicPostProcess.cs" />
     <Compile Include="Object\Terrain\HeightTerrainCDLOD.cs" />
     <Compile Include="Object\Terrain\QuadTree.cs" />
     <Compile Include="PostProcess\BasicSSAO.cs" />

@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace ERoD
 {
-    public class BasicSSAO : PostProcess
+    public class BasicSSAO : BasicPostProcess
     {
         public float rad = .1f;
         public float intensity = 1;//2.5f;
