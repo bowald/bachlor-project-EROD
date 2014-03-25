@@ -227,11 +227,8 @@ namespace ERoD
                 directionalLightShader.Parameters["ProjectionMatrices"].SetValue(projectionMatrices);
                 Vector3 cascadeDistances = Vector3.Zero;
                 cascadeDistances.X = directionalLight.ShadowMapEntry.LightClipPlanes[0].X;
-                Console.WriteLine(cascadeDistances.X);
                 cascadeDistances.Y = directionalLight.ShadowMapEntry.LightClipPlanes[1].X;
-                Console.WriteLine(cascadeDistances.Y);
                 cascadeDistances.Z = directionalLight.ShadowMapEntry.LightClipPlanes[2].X;
-                Console.WriteLine(cascadeDistances.Z);
                 directionalLightShader.Parameters["CascadeDistances"].SetValue(cascadeDistances);
             }
 
