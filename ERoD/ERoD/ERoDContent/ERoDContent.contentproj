@@ -336,9 +336,9 @@
       <Name>BiliteradBlur</Name>
       <Importer>EffectImporter</Importer>
       <Processor>EffectProcessor</Processor>
-   </Compile>
- </ItemGroup>
- <ItemGroup>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="Shaders\CDLODTerrain.fx">
       <Name>CDLODTerrain</Name>
       <Importer>EffectImporter</Importer>
@@ -356,6 +356,13 @@
   <ItemGroup>
     <Compile Include="Shaders\PostProcessing\Blend.fx">
       <Name>Blend</Name>
+      <Importer>EffectImporter</Importer>
+      <Processor>EffectProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Shaders\PostProcessing\SSAO_SC2.fx">
+      <Name>SSAO_SC2</Name>
       <Importer>EffectImporter</Importer>
       <Processor>EffectProcessor</Processor>
     </Compile>

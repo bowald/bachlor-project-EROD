@@ -112,6 +112,7 @@
     <Compile Include="Object\Ship.cs" />
     <Compile Include="Object\StaticObject.cs" />
     <Compile Include="PostProcess\AdvancedPostProcess.cs" />
+    <Compile Include="PostProcess\BasicSSAO_SC2.cs" />
     <Compile Include="PostProcess\BiliteradBlurH.cs" />
     <Compile Include="PostProcess\BiliteradBlurV.cs" />
     <Compile Include="PostProcess\Blend.cs" />

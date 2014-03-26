@@ -46,11 +46,11 @@ namespace ERoD
                 SetBlurEffectParameters(0, 1.0f / (float)(this.Game.GraphicsDevice.Viewport.Height / 2f), ref sampleOffsetsVert, ref sampleWeightsVert);
             }
 
-            effect.Parameters["depthMap"].SetValue(Game.Renderer.depthMap);
-            effect.Parameters["normalMap"].SetValue(Game.Renderer.normalMap);
+            effect.Parameters["DepthMap"].SetValue(Game.Renderer.depthMap);
+            effect.Parameters["NormalMap"].SetValue(Game.Renderer.normalMap);
             effect.Parameters["SampleOffsets"].SetValue(sampleOffsetsVert);
             effect.Parameters["SampleWeights"].SetValue(sampleWeightsVert);
-            effect.Parameters["halfPixel"].SetValue(HalfPixel);
+            effect.Parameters["HalfPixel"].SetValue(HalfPixel);
 
             Game.GraphicsDevice.BlendState = BlendState.Opaque;
             // Set Params.
