@@ -168,9 +168,9 @@ namespace ERoD
 
             space.ForceUpdater.Gravity = new BVector3(0, -20.0f, 0);
 
-            //manager.AddEffect(new MotionBlur(this));
-            manager.AddEffect(new FullSSAO(this,0.2f,1.0f,1.5f,1f));
             
+            manager.AddEffect(new FullSSAO(this,0.2f,1.0f,1.5f,1f));
+            //manager.AddEffect(new MotionBlur(this));
 
             renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(50, 550, 450), Vector3.Zero, Color.LightYellow, 0.5f, true));
             renderer.PointLights.Add(new PointLight(new Vector3(0, 25, 50), Color.Blue, 50.0f, 1.0f));
@@ -337,12 +337,10 @@ namespace ERoD
 
                 spriteBatch.End();
             }
-
-
-            foreach (BasicPostProcess postProcess in postProcesses)
-            {
+            //foreach (BasicPostProcess postProcess in postProcesses)
+            //{
             //    postProcess.Draw(gameTime);
-            }
+            //}
             manager.Draw(gameTime, renderer.finalBackBuffer);
             //manager.Draw(gameTime);
 

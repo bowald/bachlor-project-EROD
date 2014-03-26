@@ -8,14 +8,10 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace ERoD
 {
-    public class BasicPostProcess : IPPEffect
+    public class BasicPostProcess
     {
-        protected Boolean enable;
-        public bool Enabled
-        {
-            get { return enable; }
-            set { enable = value; }
-        }
+        public Boolean Enable;
+
         public ICamera camera
         {
             get { return ((ICamera)Game.Services.GetService(typeof(ICamera))); }
@@ -33,8 +29,8 @@ namespace ERoD
             set { halfPixel = value; }
         }
 
-        public Texture2D newScene;
-        public Texture2D NewScene
+        public RenderTarget2D newScene;
+        public RenderTarget2D NewScene
         {
             get { return newScene; }
             set { newScene = value; }
@@ -67,7 +63,7 @@ namespace ERoD
         public BasicPostProcess(ERoD game)
         {
             Game = game;
-            enable = true;
+            Enable = true;
 
         }
         public virtual void Update(GameTime gameTime)
@@ -76,7 +72,7 @@ namespace ERoD
         }
         public virtual void Draw(GameTime gameTime)
         {
-            if (Enabled)
+            if (Enable)
             {
                 if (sq == null)
                 {

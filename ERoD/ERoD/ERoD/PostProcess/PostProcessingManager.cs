@@ -14,8 +14,6 @@ namespace ERoD
         public Texture2D Scene;
         public Texture2D DepthBuffer;
 
-        //public RenderTarget2D newScene;
-
         protected List<AdvancedPostProcess> AdvancedEffects = new List<AdvancedPostProcess>();
         protected List<BasicPostProcess> BasicEffects = new List<BasicPostProcess>();
         public Vector2 HalfPixel;
@@ -38,46 +36,19 @@ namespace ERoD
 
         public void AddEffect(BasicPostProcess ppEfect)
         {
-            BasicEffects.Add(ppEfect);
-        }
-
-        private void UpdateList<T>(GameTime gameTime, List<T> list) where T : IPPEffect
-        {
-            int max = list.Count;
-            for (int e = 0; e < max; e++)
-            {
-                if (list[e].Enabled)
-                {
-                    list[e].Update(gameTime);
-                }
-            }
-        }
-
-        private Texture2D drawList<T>(GameTime gameTime, Texture2D scene, Vector2 HalfPixel, List<T> list) where T : IPPEffect
-        {
-            int maxEffect = list.Count;
-            for (int e = 0; e < maxEffect; e++)
-            {
-                if (list[e].Enabled)
-                {
-                    if (list[e].HalfPixel == Vector2.Zero)
-                        list[e].HalfPixel = HalfPixel;
-
-                    list[e].OrgScene = scene;
-                    if(typeof(T) == typeof(AdvancedPostProcess)){
-                        list[e].Draw(gameTime, Scene);
-                    }
-
-                    Scene = list[e].NewScene;
-                }
-            }
-            return Scene;
+            AdvancedEffects.Add(new AdvancedPostProcess(Game, ppEfect));
         }
 
         public virtual void Update(GameTime gameTime)
         {
-            UpdateList(gameTime, AdvancedEffects);
-            UpdateList(gameTime, BasicEffects);
+            int max = AdvancedEffects.Count;
+            for (int e = 0; e < max; e++)
+            {
+                if (AdvancedEffects[e].Enable)
+                {
+                    AdvancedEffects[e].Update(gameTime);
+                }
+            }
         }
 
         public virtual void Draw(GameTime gameTime, Texture2D scene)
@@ -86,20 +57,20 @@ namespace ERoD
                 HalfPixel = -new Vector2(.5f / (float)Game.GraphicsDevice.Viewport.Width,
                                      .5f / (float)Game.GraphicsDevice.Viewport.Height);
 
-            
+            int maxEffect = AdvancedEffects.Count;
 
             Scene = scene;
-            int maxEffect = AdvancedEffects.Count;
+
             for (int e = 0; e < maxEffect; e++)
             {
-                if (AdvancedEffects[e].Enabled)
+                if (AdvancedEffects[e].Enable)
                 {
                     if (AdvancedEffects[e].HalfPixel == Vector2.Zero)
                         AdvancedEffects[e].HalfPixel = HalfPixel;
 
-                    AdvancedEffects[e].orgScene = scene;
+                    AdvancedEffects[e].OrgScene = scene;
                     AdvancedEffects[e].Draw(gameTime, Scene);
-                    Scene = AdvancedEffects[e].lastScene;
+                    Scene = AdvancedEffects[e].LastScene;
                 }
             }
 

@@ -61,24 +61,24 @@ namespace ERoD
         }
         public override void Draw(GameTime gameTime, Texture2D scene)
         {
-            if (!Enabled)
+            if (!Enable)
                 return;
 
-            orgScene = scene;
+            OrgScene = scene;
 
             int maxProcess = postProcesses.Count;
-            orgScene = null;
+            OrgScene = null;
 
             for (int p = 0; p < maxProcess; p++)
             {
-                if (postProcesses[p].Enabled)
+                if (postProcesses[p].Enable)
                 {
                     // Set Half Pixel value.
                     if (postProcesses[p].HalfPixel == Vector2.Zero)
                         postProcesses[p].HalfPixel = HalfPixel;
 
                     // Set original scene
-                    postProcesses[p].OrgScene = orgScene;
+                    postProcesses[p].OrgScene = OrgScene;
 
                     // Ready render target if needed.
                     if (postProcesses[p].newScene == null)
@@ -92,10 +92,10 @@ namespace ERoD
                     Game.GraphicsDevice.SetRenderTarget(postProcesses[p].NewScene);
 
                     // Has the scene been rendered yet (first effect may be disabled)
-                    if (newScene == null)
-                        newScene = orgScene;
+                    if (LastScene == null)
+                        LastScene = OrgScene;
 
-                    postProcesses[p].OrgScene = newScene;
+                    postProcesses[p].OrgScene = LastScene;
 
                     //postProcesses[p].DepthBuffer = depth;
                     //postProcesses[p].normalBuffer = normal;
@@ -104,12 +104,12 @@ namespace ERoD
 
                     Game.GraphicsDevice.SetRenderTarget(null);
 
-                    newScene = postProcesses[p].newScene;
+                    LastScene = postProcesses[p].NewScene;
                 }
             }
 
-            if (newScene == null)
-                newScene = scene;
+            if (LastScene == null)
+                LastScene = scene;
         }
     }
 }
