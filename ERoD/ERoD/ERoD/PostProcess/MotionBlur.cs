@@ -7,7 +7,7 @@ using System.Text;
 
 namespace ERoD
 {
-    class MotionBlur : PostProcess
+    class MotionBlur : BasicPostProcess
     {
         Matrix lastVP;
 

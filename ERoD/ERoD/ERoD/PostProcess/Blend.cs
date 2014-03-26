@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace ERoD
 {
-    public class Blend : PostProcess
+    public class Blend : BasicPostProcess
     {
         public Blend(ERoD game)
             : base(game)

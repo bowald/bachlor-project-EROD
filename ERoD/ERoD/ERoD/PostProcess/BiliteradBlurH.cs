@@ -8,7 +8,7 @@ using System.Text;
 
 namespace ERoD
 {
-    public class BiliteradBlurH : PostProcess
+    public class BiliteradBlurH : BasicPostProcess
     {
         private Vector4[] sampleOffsetsHoriz;
         private float[] sampleWeightsHoriz;

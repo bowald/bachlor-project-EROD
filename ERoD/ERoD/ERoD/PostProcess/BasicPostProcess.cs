@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace ERoD
 {
-    public class PostProcess
+    public class BasicPostProcess
     {
         public Vector2 HalfPixel;
 
@@ -26,7 +26,7 @@ namespace ERoD
 
         public Texture2D BackBuffer;
         public Texture2D orgBuffer;
-        public Texture2D normalBuffer;
+        public Texture2D NormalBuffer;
 
         public bool Enabled = true;
 
@@ -45,7 +45,7 @@ namespace ERoD
 
         public bool UsesVertexShader = false;
 
-        public PostProcess(ERoD game)
+        public BasicPostProcess(ERoD game)
         {
             Game = game;
 

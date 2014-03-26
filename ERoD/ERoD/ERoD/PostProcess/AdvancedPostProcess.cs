@@ -8,12 +8,12 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace ERoD
 {
-    public class BasePostProcessingEffect
+    public class AdvancedPostProcess
     {
         public Vector2 HalfPixel;
         public Texture2D lastScene;
         public Texture2D orgScene;
-        protected List<PostProcess> postProcesses = new List<PostProcess>();
+        protected List<BasicPostProcess> postProcesses = new List<BasicPostProcess>();
 
         protected Game Game;
 
@@ -27,14 +27,19 @@ namespace ERoD
             get { return (SpriteBatch)Game.Services.GetService(typeof(SpriteBatch)); }
         }
 
-        public BasePostProcessingEffect(Game game)
+        public AdvancedPostProcess(Game game)
         {
             Game = game;
+        }
+        public AdvancedPostProcess(Game game, BasicPostProcess basic)
+        {
+            Game = game;
+            AddPostProcess(basic);
         }
 
         public bool Enabled = true;
 
-        public void AddPostProcess(PostProcess postProcess)
+        public void AddPostProcess(BasicPostProcess postProcess)
         {
             postProcesses.Add(postProcess);
         }
@@ -51,7 +56,7 @@ namespace ERoD
             }
         }
 
-        public virtual void Draw(GameTime gameTime, Texture2D scene)
+        public virtual void Draw(GameTime gameTime, Texture2D scene, Texture2D depth, Texture2D normal)
         {
             if (!Enabled)
                 return;
@@ -86,8 +91,8 @@ namespace ERoD
 
                     postProcesses[p].BackBuffer = lastScene;
 
-                    //postProcesses[p].DepthBuffer = depth;
-                    //postProcesses[p].normalBuffer = normal;
+                    postProcesses[p].DepthBuffer = depth;
+                    postProcesses[p].NormalBuffer = normal;
                     Game.GraphicsDevice.Textures[0] = postProcesses[p].BackBuffer;
                     postProcesses[p].Draw(gameTime);
 

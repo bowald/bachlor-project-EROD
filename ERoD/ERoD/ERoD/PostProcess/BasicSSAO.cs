@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace ERoD
 {
-    public class BasicSSAO : PostProcess
+    public class BasicSSAO : BasicPostProcess
     {
         public float rad = .1f;
         public float intensity = 1;//2.5f;
@@ -48,8 +48,8 @@ namespace ERoD
             float bias = 1f;
 
             effect.Parameters["halfPixel"].SetValue(HalfPixel);
-            effect.Parameters["normalMap"].SetValue(Game.Renderer.normalMap);
-            effect.Parameters["depthMap"].SetValue(Game.Renderer.depthMap);
+            effect.Parameters["normalMap"].SetValue(NormalBuffer);
+            effect.Parameters["depthMap"].SetValue(DepthBuffer);
             effect.Parameters["screenSize"].SetValue(new Vector2(camera.Viewport.Width, camera.Viewport.Height));
             effect.Parameters["random"].SetValue(randomTexture);
             effect.Parameters["random_size"].SetValue(new Vector2(randomTexture.Width, randomTexture.Height));

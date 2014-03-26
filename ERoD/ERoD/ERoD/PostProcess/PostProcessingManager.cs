@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace ERoD
 {
-    public class PostProcessingManager2
+    public class PostProcessingManager
     {
         protected Game Game;
         public Texture2D Scene;
@@ -16,7 +16,7 @@ namespace ERoD
 
         //public RenderTarget2D newScene;
 
-        protected List<BasePostProcessingEffect> postProcessingEffects = new List<BasePostProcessingEffect>();
+        protected List<AdvancedPostProcess> postProcessingEffects = new List<AdvancedPostProcess>();
 
         public Vector2 HalfPixel;
 
@@ -25,15 +25,19 @@ namespace ERoD
         //    get { return (SpriteBatch)Game.Services.GetService(typeof(SpriteBatch)); }
         //}
 
-        public PostProcessingManager2(Game game)
+        public PostProcessingManager(Game game)
         {
             Game = game;
             spriteBatch = new SpriteBatch(Game.GraphicsDevice);
         }
 
-        public void AddEffect(BasePostProcessingEffect ppEfect)
+        public void AddEffect(AdvancedPostProcess ppEfect)
         {
             postProcessingEffects.Add(ppEfect);
+        }
+        public void AddEffect(BasicPostProcess ppEfect)
+        {
+            postProcessingEffects.Add(new AdvancedPostProcess(Game, ppEfect));
         }
 
         public virtual void Update(GameTime gameTime)
@@ -48,7 +52,7 @@ namespace ERoD
             }
         }
 
-        public virtual void Draw(GameTime gameTime, Texture2D scene)
+        public virtual void Draw(GameTime gameTime, Texture2D scene, Texture2D depth, Texture2D normal)
         {
             if (HalfPixel == Vector2.Zero)
                 HalfPixel = -new Vector2(.5f / (float)Game.GraphicsDevice.Viewport.Width,
@@ -66,7 +70,7 @@ namespace ERoD
                         postProcessingEffects[e].HalfPixel = HalfPixel;
 
                     postProcessingEffects[e].orgScene = scene;
-                    postProcessingEffects[e].Draw(gameTime, Scene);
+                    postProcessingEffects[e].Draw(gameTime, Scene, depth, normal);
                     Scene = postProcessingEffects[e].lastScene;
                 }
             }
