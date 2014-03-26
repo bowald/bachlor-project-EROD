@@ -1,14 +1,27 @@
-#define g_numSamples 4
+#define g_numSamples 8
 
 float4x4 vp;
 float4x4 g_ViewProjectionInverseMatrix;
 float4x4 g_previousViewProjectionMatrix;
 
+float epsilon = 0.00033f;
+
+texture mask;
+sampler maskSampler = sampler_state
+{
+	Texture = (mask);
+	AddressU = Clamp;
+	AddressV = Clamp;
+	MinFilter = Point;
+	MagFilter = Point;
+	MipFilter = Point;
+};
+
 float2 halfPixel;
 sampler screen : register(s0);
 
 texture depthMap;
-sampler depth = sampler_state
+sampler depthSampler = sampler_state
 {
 	Texture = (depthMap);
 	MinFilter = Point;
@@ -41,9 +54,18 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 
 float4 PixelShaderFunction(float2 texCoord : TEXCOORD0) : COLOR0
 {
+
+	float mask = tex2D(maskSampler, texCoord).a;
+	float4 color = tex2D(screen, texCoord);
+
+	if (mask == 0)
+	{
+		return color;
+	}
+
 	texCoord -= halfPixel;
 
-	float zOverW = 1 - tex2D(depth, texCoord);
+	float zOverW = 1 - tex2D(depthSampler, texCoord);
 	// H is the viewport position at this pixel in the range -1 to 1.  
 	float4 H = float4(texCoord.x * 2 - 1, (1 - texCoord.y) * 2 - 1,
 		zOverW, 1);
@@ -62,21 +84,28 @@ float4 PixelShaderFunction(float2 texCoord : TEXCOORD0) : COLOR0
 	// Use this frame's position and last frame's to compute the pixel  
 	// velocity.  
 	float2 velocity = (currentPos - previousPos) / 2.f;
+	// Decrease the "feel" of speed by faking lower speed	
+	velocity /= 4.0f;
 
 	// Get the initial color at this pixel.  
-	float4 color = tex2D(screen, texCoord);
 	texCoord += velocity;
+
+	float4 blendedColor = color;
 	for (int i = 1; i < g_numSamples; ++i, texCoord += velocity)
 	{
 		// Sample the color buffer along the velocity vector.  
 		float4 currentColor = tex2D(screen, texCoord);
-		// Add the current color to our color sum.  
-		color += currentColor;
+		float depth = 1 - tex2D(depthSampler, texCoord).r;
+		if (abs(zOverW - depth) > epsilon)
+		{
+			blendedColor = lerp(blendedColor, color, 1.0f/(i+1));
+		}
+		else
+		{
+			blendedColor = lerp(blendedColor, currentColor, 1.0f / (i + 1));
+		}
 	}
-	// Average all of the samples to get the final blur color.  
-	float4 finalColor = color / g_numSamples;
-
-	return finalColor;
+	return blendedColor;
 }
 
 technique MotionBlur

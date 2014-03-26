@@ -21,6 +21,8 @@ namespace ERoD
         public RenderTarget2D normalMap;
         public RenderTarget2D SGRMap;
         public RenderTarget2D lightMap;
+        //public RenderTarget2D SSAOMap;
+        //public RenderTarget2D SSAOBlurMap;
         public RenderTarget2D finalBackBuffer;
         public RenderTarget2D skyMap;
         //public RenderTarget2D blendedDepthBuffer;
@@ -36,6 +38,13 @@ namespace ERoD
         Effect pointLightShader;
         Effect directionalLightShader;
         Effect deferredShader;
+
+        Effect deferredShadowShader;
+        //Effect SSAOShader;
+        //Effect SSAOBlur;
+
+        Texture2D randomTexture;
+
 
         public List<IPointLight> PointLights = new List<IPointLight>();
         public List<IDirectionalLight> DirectionalLights = new List<IDirectionalLight>();
@@ -82,17 +91,21 @@ namespace ERoD
             //blendedDepthBuffer = new RenderTarget2D(GraphicsDevice, width, height, false,
             //    SurfaceFormat.Rg32, DepthFormat.None);
 
-            skybox = new Skybox("Skyboxes/skybox2", Game.Content);
+            skybox = new Skybox("Skyboxes/skybox", Game.Content);
 
             directionalLightShader = Game.Content.Load<Effect>("Shaders/DirectionalLightShader");
 
             pointLightShader = Game.Content.Load<Effect>("Shaders/PointLightShader");
             deferredShader = Game.Content.Load<Effect>("Shaders/DeferredRender");
-            
+
+            deferredShadowShader = Game.Content.Load<Effect>("Shaders/DeferredShadowShader");
+
+            randomTexture = Game.Content.Load<Texture2D>("Textures/random");
+
             // Debug depth renderer
             DepthRender = Game.Content.Load<Effect>("Shaders/depthRender");
-            w = GraphicsDevice.Viewport.Width / 5;
-            h = (int) (GraphicsDevice.Viewport.Height / 3.5f);
+            w = GraphicsDevice.Viewport.Width / 6;
+            h = GraphicsDevice.Viewport.Height / 4;
 
             pointLightMesh = Game.Content.Load<Model>("Models/lightmesh");
             pointLightMesh.Meshes[0].MeshParts[0].Effect = pointLightShader;
@@ -139,7 +152,6 @@ namespace ERoD
             DrawSkybox();
 
             GraphicsDevice.SetRenderTargets(finalBackBuffer);
-
             DrawDeferred();
 
             GraphicsDevice.SetRenderTarget(null);
@@ -218,7 +230,8 @@ namespace ERoD
                 * Camera.Projection));
             directionalLightShader.Parameters["lightViewProjection"].SetValue(directionalLight.View
                 * directionalLight.Projection);
-
+            
+            directionalLightShader.Parameters["shadowMapSize"].SetValue(shadowMapSize);
             directionalLightShader.Parameters["castShadow"].SetValue(directionalLight.CastShadow);
             if (directionalLight.CastShadow)
             {
@@ -307,6 +320,7 @@ namespace ERoD
         {
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
 
+            GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
             spriteBatch.Draw(colorMap, new Rectangle(1, 1, w, h), Color.White);
             //spriteBatch.Draw(SGRMap, new Rectangle((w * 4) + 4, 1, w, h), Color.White);
             spriteBatch.Draw(normalMap, new Rectangle(w + 2, 1, w, h), Color.White);
@@ -314,9 +328,9 @@ namespace ERoD
             GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
 
             spriteBatch.Draw(lightMap, new Rectangle((w * 3) + 4, 1, w, h), Color.White);
-            
+
             spriteBatch.End();
-            
+
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
             DepthRender.CurrentTechnique.Passes[0].Apply();
             GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;

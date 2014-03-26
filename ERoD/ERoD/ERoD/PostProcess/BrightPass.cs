@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace ERoD
 {
-    public class BrightPass : PostProcess
+    public class BrightPass : BasicPostProcess
     {
         public float BloomThreshold;
         public BrightPass(ERoD game, float threshold)

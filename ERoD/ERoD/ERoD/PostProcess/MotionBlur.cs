@@ -7,7 +7,7 @@ using System.Text;
 
 namespace ERoD
 {
-    class MotionBlur : PostProcess
+    class MotionBlur : BasicPostProcess
     {
         Matrix lastVP;
 
@@ -25,7 +25,8 @@ namespace ERoD
                 effect = Game.Content.Load<Effect>("Shaders/PostProcessing/MotionBlur");
                 effect.CurrentTechnique = effect.Techniques["MotionBlur"];
             }
-            
+
+            effect.Parameters["mask"].SetValue(Game.Renderer.colorMap);
             effect.Parameters["depthMap"].SetValue(Game.Renderer.depthMap);
             effect.Parameters["g_ViewProjectionInverseMatrix"].SetValue(Matrix.Invert(camera.View * camera.Projection));
             effect.Parameters["g_previousViewProjectionMatrix"].SetValue(lastVP);

@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace ERoD
 {
-    public class LightSourceMask : PostProcess
+    public class LightSourceMask : BasicPostProcess
     {
         Texture lishsourceTexture;
         public Vector3 lighSourcePos;

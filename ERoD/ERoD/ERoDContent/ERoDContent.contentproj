@@ -45,13 +45,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Shaders\PostProcessing\PostSample.fx">
-      <Name>PostSample</Name>
-      <Importer>EffectImporter</Importer>
-      <Processor>EffectProcessor</Processor>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="Models\ground.FBX">
       <Name>ground</Name>
       <Importer>FbxImporter</Importer>
@@ -277,6 +270,13 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Shaders\SSAO.fx">
+      <Name>SSAO</Name>
+      <Importer>EffectImporter</Importer>
+      <Processor>EffectProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="Sprites\Lap1.spritefont">
       <Name>Lap1</Name>
       <Importer>FontDescriptionImporter</Importer>
@@ -288,6 +288,18 @@
       <Name>MotionBlur</Name>
       <Importer>EffectImporter</Importer>
       <Processor>EffectProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Textures\ssaoRandom.jpg">
+      <Name>ssaoRandom</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Textures\random.png">
+      <Name>random</Name>
     </Compile>
   </ItemGroup>
   <ItemGroup>
@@ -306,6 +318,13 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Shaders\PostProcessing\PDBlur.fx">
+      <Name>PDBlur</Name>
+      <Importer>EffectImporter</Importer>
+      <Processor>EffectProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="Shaders\Skybox.fx">
       <Name>Skybox</Name>
       <Importer>EffectImporter</Importer>
@@ -313,6 +332,13 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Shaders\PostProcessing\BiliteradBlur.fx">
+      <Name>BiliteradBlur</Name>
+      <Importer>EffectImporter</Importer>
+      <Processor>EffectProcessor</Processor>
+   </Compile>
+ </ItemGroup>
+ <ItemGroup>
     <Compile Include="Shaders\CDLODTerrain.fx">
       <Name>CDLODTerrain</Name>
       <Importer>EffectImporter</Importer>
@@ -330,6 +356,13 @@
   <ItemGroup>
     <Compile Include="Shaders\PostProcessing\LightRay.fx">
       <Name>LightRay</Name>
+	  <Importer>EffectImporter</Importer>
+      <Processor>EffectProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Shaders\PostProcessing\Blend.fx">
+      <Name>Blend</Name>
       <Importer>EffectImporter</Importer>
       <Processor>EffectProcessor</Processor>
     </Compile>

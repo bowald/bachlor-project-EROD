@@ -1,4 +1,4 @@
-﻿﻿using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,11 +8,9 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace ERoD
 {
-    public class SceneBlend : BasicPostProcess
+    public class Blend : BasicPostProcess
     {
-        public bool Blend = false;
-
-        public SceneBlend(ERoD game)
+        public Blend(ERoD game)
             : base(game)
         {
             UsesVertexShader = true;
@@ -21,12 +19,9 @@ namespace ERoD
         public override void Draw(GameTime gameTime)
         {
             if (effect == null)
-                effect = Game.Content.Load<Effect>("Shaders/PostProcessing/SceneBlend");
+                effect = Game.Content.Load<Effect>("Shaders/PostProcessing/Blend");
 
-            if (Blend)
                 effect.CurrentTechnique = effect.Techniques["Blend"];
-            else
-                effect.CurrentTechnique = effect.Techniques["Aditive"];
 
             effect.Parameters["OrgScene"].SetValue(orgBuffer);
             // Set Params.

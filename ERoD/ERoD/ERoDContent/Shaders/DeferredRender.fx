@@ -36,7 +36,6 @@ sampler lightSampler = sampler_state
 	Mipfilter = LINEAR;
 };
 
-
 texture depthMap;
 sampler depthSampler = sampler_state
 {

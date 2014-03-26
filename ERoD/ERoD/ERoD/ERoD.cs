@@ -65,7 +65,8 @@ namespace ERoD
             get { return renderer; }
         }
 
-        protected List<PostProcess> postProcesses = new List<PostProcess>();
+        protected PostProcessingManager manager;
+
 
         public ModelDrawer modelDrawer;  //Used to draw entities for debug.
 
@@ -82,7 +83,6 @@ namespace ERoD
             //graphics.IsFullScreen = true;
 
             Content.RootDirectory = "Content";
-
             renderer = new DeferredRenderer(this);
 
             RenderDebug = false;
@@ -101,8 +101,11 @@ namespace ERoD
             Services.AddService(typeof(ITerrain), terrain);
 
             FreeCamera = new FreeCamera(this, 0.1f, 1000.0f, new Vector3(25f, 150.0f, 25f), 70.0f);
+
             this.Services.AddService(typeof(ICamera), FreeCamera);
             FreeCameraActive = true;
+
+            manager = new PostProcessingManager(this);
 
             GameLogic = new GameLogic(this);
             this.Services.AddService(typeof(GameLogic), GameLogic);
@@ -156,6 +159,7 @@ namespace ERoD
             ship.TextureEnabled = true;
             ship.standardEffect = objEffect;
             ship.shadowEffect = objShadow;
+            ship.Mask = true;
             Components.Add(ship);
             GameLogic.AddPlayer(ship, "Anton");
 
@@ -166,12 +170,14 @@ namespace ERoD
 
             space.ForceUpdater.Gravity = new BVector3(0, -20.0f, 0);
 
-            renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(50, 550, 450), Vector3.Zero, Color.LightYellow, 0.5f, true));
+            manager.AddEffect(new LightRay(this, new Vector3(50, 550, 450)));
+            //manager.AddEffect(new FullSSAO(this,0.2f,1.0f,1.5f,1f));
+            
 
+            renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(50, 550, 450), Vector3.Zero, Color.LightYellow, 0.5f, true));
             renderer.PointLights.Add(new PointLight(new Vector3(0, 25, 50), Color.Blue, 50.0f, 1.0f));
             renderer.PointLights.Add(new PointLight(new Vector3(50, 25, 0), Color.Red, 50.0f, 1.0f));
             renderer.PointLights.Add(new PointLight(new Vector3(-50, 25, 0), Color.Green, 50.0f, 1.0f));
-
             renderer.PointLights.Add(new PointLight(new Vector3(170, 25, -175), Color.Goldenrod, 50.0f, 1.0f));
             renderer.PointLights.Add(new PointLight(new Vector3(130, 25, -172), Color.Goldenrod, 50.0f, 1.0f));
             renderer.PointLights.Add(new PointLight(new Vector3(90, 25, -160), Color.Goldenrod, 50.0f, 1.0f));
@@ -313,16 +319,14 @@ namespace ERoD
 
             renderer.Draw(gameTime);
 
-            lightRay.Draw(gameTime);
+            //GraphicsDevice.Clear(Color.White);
 
-            GraphicsDevice.Clear(Color.Coral);
-
-            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque,
-            SamplerState.PointClamp, DepthStencilState.Default,
-            RasterizerState.CullCounterClockwise);
-            spriteBatch.Draw(renderer.finalBackBuffer, new Rectangle(0, 0, GraphicsDevice.Viewport.Width,
-            GraphicsDevice.Viewport.Height), Color.White);
-            spriteBatch.End();
+            //spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque,
+            //SamplerState.PointClamp, DepthStencilState.Default,
+            //RasterizerState.CullCounterClockwise);
+            //spriteBatch.Draw(renderer.finalBackBuffer, new Rectangle(0, 0, GraphicsDevice.Viewport.Width,
+            //GraphicsDevice.Viewport.Height), Color.White);
+            //spriteBatch.End();
 
             if (startTime < endTime) 
             {
@@ -336,11 +340,7 @@ namespace ERoD
                 spriteBatch.End();
             }
 
-
-            foreach (PostProcess postProcess in postProcesses)
-            {
-                //postProcess.Draw(gameTime);
-            }
+            manager.Draw(gameTime, renderer.finalBackBuffer, renderer.depthMap, renderer.normalMap);
 
             if (RenderDebug)
             {

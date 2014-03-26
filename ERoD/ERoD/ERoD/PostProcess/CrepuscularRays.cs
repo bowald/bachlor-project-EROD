@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace ERoD
 {
-    public class CrepuscularRays : PostProcess
+    public class CrepuscularRays : AdvancedPostProcess
     {
         public LightSourceMask lsMask;
         public LightSceneMask mask;
@@ -26,7 +26,7 @@ namespace ERoD
             set
             {
                 lsMask.lighSourcePos = value;
-                rays.lighSourcePos = value;
+                rays.lightSourcePos = value;
             }
             get
             {

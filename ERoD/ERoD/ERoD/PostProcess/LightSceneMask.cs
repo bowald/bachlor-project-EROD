@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace ERoD
 {
-    public class LightSceneMask : PostProcess
+    public class LightSceneMask : BasicPostProcess
     {
         Vector3 lighSourcePos;
         public LightSceneMask(ERoD game, Vector3 sourcePos)

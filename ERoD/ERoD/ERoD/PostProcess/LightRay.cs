@@ -9,9 +9,9 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace ERoD
 {
-    public class LightRay : PostProcess
+    public class LightRay : BasicPostProcess
     {
-        public Vector3 lighSourcePos;
+        public Vector3 lightSourcePos;
         public float Density = .5f;
         public float Decay = .95f;
         public float Weight = 1.0f;
@@ -20,12 +20,19 @@ namespace ERoD
         public LightRay(ERoD game, Vector3 sourcePos, float density, float decay, float weight, float exposure)
             : base(game)
         {
-            lighSourcePos = sourcePos;
+            lightSourcePos = sourcePos;
 
             Density = density;
             Decay = decay;
             Weight = weight;
             Exposure = exposure;
+            UsesVertexShader = true;
+        }
+
+        public LightRay(ERoD game, Vector3 sourcePos)
+            : base(game)
+        {
+            lightSourcePos = sourcePos;
             UsesVertexShader = true;
         }
 
@@ -44,7 +51,7 @@ namespace ERoD
             effect.Parameters["Weight"].SetValue(Weight);
             effect.Parameters["Exposure"].SetValue(Exposure);
 
-            effect.Parameters["lightPosition"].SetValue(lighSourcePos);
+            effect.Parameters["lightPosition"].SetValue(lightSourcePos);
             effect.Parameters["cameraPosition"].SetValue(camera.Position);
             effect.Parameters["matVP"].SetValue(camera.View * camera.Projection);
 
