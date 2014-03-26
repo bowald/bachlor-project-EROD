@@ -170,7 +170,7 @@ namespace ERoD
 
             space.ForceUpdater.Gravity = new BVector3(0, -20.0f, 0);
 
-            manager.AddEffect(new LightRay(this, new Vector3(50, 550, 450)));
+            manager.AddEffect(new LightRay(this, new Vector3(50, 25, 0)));
             //manager.AddEffect(new FullSSAO(this,0.2f,1.0f,1.5f,1f));
             
 
