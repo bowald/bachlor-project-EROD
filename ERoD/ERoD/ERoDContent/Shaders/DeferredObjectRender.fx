@@ -4,13 +4,8 @@ float4x4 Projection;
 
 float3 TexMult = 1;
 
-<<<<<<< HEAD
-bool mask = false;
+bool Mask = false;
 
-bool textureEnabled;
-texture diffuseTexture;
-sampler diffuseSampler = sampler_state
-=======
 // Color of the object.
 float3 Color = 1;
 
@@ -26,7 +21,6 @@ bool TextureEnabled;
 
 texture DiffuseTexture;
 sampler DiffuseSampler = sampler_state
->>>>>>> Develop
 {
 	texture = <DiffuseTexture>;
 	AddressU = Wrap;
@@ -142,8 +136,7 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input)
 		output.Color = float4(Color, 1);
 	}
 
-<<<<<<< HEAD
-	if (mask)
+	if (Mask)
 	{
 		output.Color.a = 0;
 	}
@@ -152,10 +145,7 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input)
 		output.Color.a = 1;
 	}
 
-	float3 bumpValue = bumpConstant * tex2D(BumpMapSampler, input.TexCoord);
-=======
 	float3 bumpValue = BumpConstant * (tex2D(BumpMapSampler, input.TexCoord) * 2.0f - 1.0f);
->>>>>>> Develop
 
 	float3 bumpNormal = input.Normal + (bumpValue.x * input.Tangent + bumpValue.y * input.Binormal);
 

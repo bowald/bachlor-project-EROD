@@ -38,14 +38,8 @@ sampler LightSampler = sampler_state
 	Mipfilter = LINEAR;
 };
 
-<<<<<<< HEAD
-texture depthMap;
-sampler depthSampler = sampler_state
-=======
-
 texture DepthMap;
 sampler DepthSampler = sampler_state
->>>>>>> Develop
 {
 	Texture = <DepthMap>;
 	AddressU = CLAMP;

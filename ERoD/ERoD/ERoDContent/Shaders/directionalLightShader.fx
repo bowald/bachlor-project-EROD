@@ -15,12 +15,7 @@ float2 HalfPixel;
 // Vector size of the shadow map in use.
 float2 ShadowMapSize;
 
-<<<<<<< HEAD
-int shadowMapSize;
 
-texture normalMap;
-sampler normalSampler = sampler_state
-=======
 // Length of the x and y sides of the far plane in view space from depth.
 float2 SidesLengthVS;
 
@@ -38,7 +33,6 @@ bool CastShadow;
 
 texture NormalMap;
 sampler NormalSampler = sampler_state
->>>>>>> Develop
 {
 	Texture = <NormalMap>;
 	AddressU = CLAMP;
@@ -103,58 +97,7 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 	return output;
 }
 
-<<<<<<< HEAD
-// Calculates the shadow term using PCF with edge tap smoothing
-float CalcShadowTermSoftPCF(float fLightDepth, float2 vTexCoord, int iSqrtSamples)
-{
-	float fShadowTerm = 0.0f;
-
-	float fRadius = (iSqrtSamples - 1.0f) / 2;
-	for (float y = -fRadius; y <= fRadius; y++)
-	{
-		for (float x = -fRadius; x <= fRadius; x++)
-		{
-			float2 vOffset = 0;
-			vOffset = float2(x/shadowMapSize, y/shadowMapSize);
-			float2 vSamplePoint = vTexCoord + vOffset;
-			float fDepth = tex2D(shadowSampler, vSamplePoint).r;
-			float fSample = (fLightDepth <= fDepth + shadowBias);
-
-			// Edge tap smoothing
-			float xWeight = 1;
-			float yWeight = 1;
-
-			if (x == -fRadius)
-			{
-				xWeight = 1 - frac(vTexCoord.x * shadowMapSize);
-			}
-			else if (x == fRadius)
-			{
-				xWeight = frac(vTexCoord.x * shadowMapSize);
-			}
-
-			if (y == -fRadius)
-			{
-				yWeight = 1 - frac(vTexCoord.y * shadowMapSize);
-			}
-			else if (y == fRadius)
-			{
-				yWeight = frac(vTexCoord.y * shadowMapSize);
-			}
-
-			fShadowTerm += fSample * xWeight * yWeight;
-		}
-	}
-
-	fShadowTerm /= ((iSqrtSamples - 1) * (iSqrtSamples - 1));
-
-	return fShadowTerm;
-}
-
-float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
-=======
 float CalcShadowTermPCF(float lightDepth, float2 shadowTexCoord)
->>>>>>> Develop
 {
 	float shadowTerm = 0.0f;
 
@@ -246,13 +189,6 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 
 	float shading = 1.0f;
 
-<<<<<<< HEAD
-	float shading = 0.5f;// CalcShadowTermSoftPCF(distanceStoredInDepthMap, lightSamplePos, 4);
-	if (!castShadow || !shadowCondition)
-	{
-		shading = 1.0;
-	} 
-=======
 	if (CastShadow)
 	{
 		// Get position in light viewspace and light clip-space.
@@ -269,7 +205,6 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 		// Get soft shadows
 		shading = CalcShadowTermSoftPCF(lightDepth, shadowTexCoord, 7);
 	}
->>>>>>> Develop
 
 	// Light calculation
 	// Get normals
