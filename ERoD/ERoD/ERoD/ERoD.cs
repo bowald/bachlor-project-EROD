@@ -4,7 +4,6 @@ using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Content;
-using Microsoft.Xna.Framework.GamerServices;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
@@ -72,6 +71,8 @@ namespace ERoD
 
         public GamePadState GamePadState { get; set; }
         public GamePadState LastGamePadState { get; set; }
+
+        private LightRay lightRay;
 
         public ERoD()
         {
@@ -146,6 +147,8 @@ namespace ERoD
             Entity entity = LoadEntityObject(shipModel, shipPosition, shipScale);
 
             Ship ship = new Ship(entity, shipModelT, Matrix.CreateScale(shipScale), this);
+
+            lightRay = new LightRay(this, new Vector3(0, 50, 0), 1, 1, 1, 1);
 
             space.Add(entity);
             ship.Texture = Content.Load<Texture2D>("Textures/Ship2/diffuse");
@@ -309,6 +312,9 @@ namespace ERoD
             }
 
             renderer.Draw(gameTime);
+
+            lightRay.Draw(gameTime);
+
             GraphicsDevice.Clear(Color.Coral);
 
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque,
@@ -333,7 +339,7 @@ namespace ERoD
 
             foreach (PostProcess postProcess in postProcesses)
             {
-            //    postProcess.Draw(gameTime);
+                //postProcess.Draw(gameTime);
             }
 
             if (RenderDebug)

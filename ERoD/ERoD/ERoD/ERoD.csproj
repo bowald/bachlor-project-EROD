@@ -101,8 +101,13 @@
     <Compile Include="Logic\GameLogic.cs" />
     <Compile Include="Light\DirectionalLight.cs" />
     <Compile Include="Logic\Player.cs" />
+    <Compile Include="PostProcess\BrightPass.cs" />
     <Compile Include="Logic\Triggers\Checkpoint.cs" />
+    <Compile Include="PostProcess\CrepuscularRays.cs" />
+    <Compile Include="PostProcess\LightSceneMask.cs" />
+    <Compile Include="PostProcess\LightSourceMask.cs" />
     <Compile Include="Logic\Triggers\Powerup.cs" />
+    <Compile Include="PostProcess\SceneBlend.cs" />
     <Compile Include="Logic\Triggers\Trigger.cs" />
     <Compile Include="Object\BaseObject.cs" />
     <Compile Include="Object\EntityObject.cs" />
@@ -111,6 +116,7 @@
     <Compile Include="Object\ObjectConstants.cs" />
     <Compile Include="Object\Ship.cs" />
     <Compile Include="Object\StaticObject.cs" />
+    <Compile Include="PostProcess\LightRay.cs" />
     <Compile Include="PostProcess\MotionBlur.cs" />
     <Compile Include="PostProcess\PostProcess.cs" />
     <Compile Include="Object\Terrain\HeightTerrainCDLOD.cs" />

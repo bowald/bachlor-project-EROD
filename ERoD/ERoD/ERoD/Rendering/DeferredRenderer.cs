@@ -82,7 +82,7 @@ namespace ERoD
             //blendedDepthBuffer = new RenderTarget2D(GraphicsDevice, width, height, false,
             //    SurfaceFormat.Rg32, DepthFormat.None);
 
-            skybox = new Skybox("Skyboxes/skybox", Game.Content);
+            skybox = new Skybox("Skyboxes/skybox2", Game.Content);
 
             directionalLightShader = Game.Content.Load<Effect>("Shaders/DirectionalLightShader");
 
