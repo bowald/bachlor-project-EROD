@@ -76,13 +76,13 @@ namespace ERoD
                         postProcesses[p].HalfPixel = HalfPixel;
 
                     // Set original scene
-                    postProcesses[p].OrgScene = OrgScene;
+                    postProcesses[p].Original = OrgScene;
 
                     // Ready render target if needed.
-                    if (postProcesses[p].NewScene == null)
-                        postProcesses[p].NewScene = new RenderTarget2D(Game.GraphicsDevice, Game.GraphicsDevice.Viewport.Width, Game.GraphicsDevice.Viewport.Height, false, postProcesses[p].newSceneSurfaceFormat, DepthFormat.None);
+                    if (postProcesses[p].Target == null)
+                        postProcesses[p].Target = new RenderTarget2D(Game.GraphicsDevice, Game.GraphicsDevice.Viewport.Width, Game.GraphicsDevice.Viewport.Height, false, postProcesses[p].newSceneSurfaceFormat, DepthFormat.None);
 
-                    Game.GraphicsDevice.SetRenderTarget(postProcesses[p].NewScene);
+                    Game.GraphicsDevice.SetRenderTarget(postProcesses[p].Target);
                     
                     Game.GraphicsDevice.Clear(Color.Black);
                     
@@ -90,16 +90,16 @@ namespace ERoD
                     if (LastScene == null)
                         LastScene = OrgScene;
 
-                    postProcesses[p].OrgScene = LastScene;
+                    postProcesses[p].AfterEffect = LastScene;
 
                     //postProcesses[p].DepthBuffer = depth;
                     //postProcesses[p].normalBuffer = normal;
-                    Game.GraphicsDevice.Textures[0] = postProcesses[p].OrgScene;
+                    Game.GraphicsDevice.Textures[0] = postProcesses[p].AfterEffect;
                     postProcesses[p].Draw(gameTime);
 
                     Game.GraphicsDevice.SetRenderTarget(null);
 
-                    LastScene = postProcesses[p].NewScene;
+                    LastScene = postProcesses[p].Target;
                 }
             }
 

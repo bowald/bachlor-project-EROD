@@ -23,7 +23,7 @@ namespace ERoD
 
                 effect.CurrentTechnique = effect.Techniques["Blend"];
 
-            effect.Parameters["OrgScene"].SetValue(orgScene);
+                effect.Parameters["OrgScene"].SetValue(Original);
             // Set Params.
             base.Draw(gameTime);
 

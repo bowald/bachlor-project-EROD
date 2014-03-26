@@ -21,27 +21,11 @@ namespace ERoD
         {
             get { return (SpriteBatch)Game.Services.GetService(typeof(SpriteBatch)); }
         }
+        public Vector2 HalfPixel;
+        public Texture2D AfterEffect;    //
+        public Texture2D Original;
+        public RenderTarget2D Target;
 
-        protected Vector2 halfPixel;
-        public Vector2 HalfPixel
-        {
-            get { return halfPixel; }
-            set { halfPixel = value; }
-        }
-
-        public RenderTarget2D newScene;
-        public RenderTarget2D NewScene
-        {
-            get { return newScene; }
-            set { newScene = value; }
-        }
-
-        protected Texture2D orgScene;
-        public Texture2D OrgScene
-        {
-            get { return orgScene; }
-            set { orgScene = value; }
-        }
         public Texture2D DepthBuffer;
         public Texture2D normalBuffer;
 
@@ -92,7 +76,7 @@ namespace ERoD
                     sq.Draw(-Vector2.One, Vector2.One);
                 else
                 {
-                    spriteBatch.Draw(newScene, new Rectangle(0, 0, Game.GraphicsDevice.Viewport.Width, Game.GraphicsDevice.Viewport.Height), Color.White);
+                    spriteBatch.Draw(AfterEffect, new Rectangle(0, 0, Game.GraphicsDevice.Viewport.Width, Game.GraphicsDevice.Viewport.Height), Color.White);
                     spriteBatch.End();
                 }
             }
