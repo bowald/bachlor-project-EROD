@@ -107,7 +107,6 @@
     <Compile Include="Object\BaseObject.cs" />
     <Compile Include="Object\EntityObject.cs" />
     <Compile Include="Object\Ground.cs" />
-    <Compile Include="Object\HeightTerrainOld.cs" />
     <Compile Include="Object\ObjectConstants.cs" />
     <Compile Include="Object\Ship.cs" />
     <Compile Include="Object\StaticObject.cs" />

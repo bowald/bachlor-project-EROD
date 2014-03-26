@@ -1,15 +1,34 @@
 float4x4 World;
-float4x4 wvp : WorldViewProjection;
+float4x4 View;
+float4x4 Projection;
 
-float3 color = 1;
+float3 TexMult = 1;
 
+<<<<<<< HEAD
 bool mask = false;
 
 bool textureEnabled;
 texture diffuseTexture;
 sampler diffuseSampler = sampler_state
+=======
+// Color of the object.
+float3 Color = 1;
+
+// Distance to the far plane.
+float FarPlane;
+
+// Strength of normalmap.
+float BumpConstant = 0.0f;
+
+// Diffuse texture enabled.
+bool TextureEnabled;
+
+
+texture DiffuseTexture;
+sampler DiffuseSampler = sampler_state
+>>>>>>> Develop
 {
-	texture = <diffuseTexture>;
+	texture = <DiffuseTexture>;
 	AddressU = Wrap;
 	AddressV = Wrap;
 	MipFilter = LINEAR;
@@ -17,11 +36,10 @@ sampler diffuseSampler = sampler_state
 	MagFilter = LINEAR;
 };
 
-float bumpConstant = 1.0f;
-texture bumpMap;
+texture BumpMap;
 sampler BumpMapSampler = sampler_state
 {
-	Texture = <bumpMap>;
+	Texture = <BumpMap>;
 	AddressU = Wrap;
 	AddressV = Wrap;
 	MipFilter = LINEAR;
@@ -29,10 +47,10 @@ sampler BumpMapSampler = sampler_state
 	MagFilter = LINEAR;
 };
 
-texture specularMap;
+texture SpecularMap;
 sampler SpecularSampler = sampler_state
 {
-	Texture = <specularMap>;
+	Texture = <SpecularMap>;
 	AddressU = Wrap;
 	AddressV = Wrap;
 	MipFilter = LINEAR;
@@ -40,10 +58,10 @@ sampler SpecularSampler = sampler_state
 	MagFilter = LINEAR;
 };
 
-//texture glowMap;
+//texture GlowMap;
 //sampler GlowSampler = sampler_state
 //{
-//	Texture = <glowMap>;
+//	Texture = <GlowMap>;
 //	AddressU = Wrap;
 //	AddressV = Wrap;
 //	MipFilter = LINEAR;
@@ -51,10 +69,10 @@ sampler SpecularSampler = sampler_state
 //	MagFilter = LINEAR;
 //};
 
-//texture reflectionMap;
+//texture ReflectionMap;
 //sampler ReflectionMap = sampler_state
 //{
-//	Texture = <reflectionMap>;
+//	Texture = <ReflectionMap>;
 //	AddressU = Wrap;
 //	AddressV = Wrap;
 //	MipFilter = LINEAR;
@@ -85,11 +103,13 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 {
     VertexShaderOutput output;
 
-    output.Position = mul(input.Position, wvp);
-
+    float4 worldPos = mul(input.Position, World);
+	float4 viewPos = mul(worldPos, View);
+	output.Position = mul(viewPos, Projection);
+		
 	output.TexCoord = input.TexCoord;
 
-	output.Depth = 1 - (output.Position.z / output.Position.w);
+	output.Depth = viewPos.z;
 
 	output.Normal = mul(input.Normal, World);
 
@@ -111,15 +131,18 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input)
 {
 	PixelShaderOutput output = (PixelShaderOutput)0;
 
-	if (textureEnabled)
+	input.TexCoord *= (1 / TexMult);
+
+	if (TextureEnabled)
 	{
-		output.Color = tex2D(diffuseSampler, input.TexCoord) * float4(color, 1);
+		output.Color = tex2D(DiffuseSampler, input.TexCoord) * float4(Color, 1);
 	}
 	else
 	{
-		output.Color = float4(color, 1);
+		output.Color = float4(Color, 1);
 	}
 
+<<<<<<< HEAD
 	if (mask)
 	{
 		output.Color.a = 0;
@@ -130,13 +153,17 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input)
 	}
 
 	float3 bumpValue = bumpConstant * tex2D(BumpMapSampler, input.TexCoord);
+=======
+	float3 bumpValue = BumpConstant * (tex2D(BumpMapSampler, input.TexCoord) * 2.0f - 1.0f);
+>>>>>>> Develop
 
 	float3 bumpNormal = input.Normal + (bumpValue.x * input.Tangent + bumpValue.y * input.Binormal);
 
 	output.Normal.xyz = (normalize(bumpNormal).xyz / 2) + 0.5f;
 	output.Normal.a = 1;
 
-	output.Depth = float4(input.Depth.x, 0, 0, 1);
+	float depth = 1 - (-input.Depth / FarPlane);
+	output.Depth = float4(depth, 0, 0, 1);
 
 	output.SGR.r = tex2D(SpecularSampler, input.TexCoord);
 	output.SGR.g = 0;//tex2D(GlowSampler, input.TexCoord);

@@ -51,8 +51,8 @@ namespace ERoD
         GameLogic GameLogic;
 
         public Boolean DebugEnabled;
-        public StaticMesh testVarGround;
-
+        StaticMesh rockMesh;
+        
         HeightTerrainCDLOD terrain;
 
         public Space Space
@@ -78,7 +78,7 @@ namespace ERoD
         {
             graphics = new GraphicsDeviceManager(this);
             graphics.PreferredBackBufferHeight = 768;
-            graphics.PreferredBackBufferWidth = 1366;
+            graphics.PreferredBackBufferWidth = 1360;
             //graphics.IsFullScreen = true;
 
             Content.RootDirectory = "Content";
@@ -99,7 +99,7 @@ namespace ERoD
             Components.Add(terrain);
             Services.AddService(typeof(ITerrain), terrain);
 
-            FreeCamera = new FreeCamera(this, 0.1f, 1000.0f, new Vector3(25f, 150.0f, 25f), 70.0f);
+            FreeCamera = new FreeCamera(this, 0.1f, 7000.0f, new Vector3(25f, 150.0f, 25f), 270.0f);
 
             this.Services.AddService(typeof(ICamera), FreeCamera);
             FreeCameraActive = true;
@@ -130,11 +130,6 @@ namespace ERoD
 
             Model cubeModel = Content.Load<Model>("Models/cube");
 
-            Model shipModel = Content.Load<Model>("Models/space_frigate");
-            Model shipModelT = Content.Load<Model>("Models/space_frigate_tangentOn");
-            Vector3 shipScale = new Vector3(0.01f, 0.01f, 0.01f);
-            Vector3 shipPosition = new Vector3(10, 20, 30);
-
             Effect objEffect = Content.Load<Effect>("Shaders/DeferredObjectRender");
             Effect objShadow = Content.Load<Effect>("Shaders/DeferredShadowShader");
             
@@ -143,16 +138,22 @@ namespace ERoD
 
             space.Add(((ITerrain)Services.GetService(typeof(ITerrain))).PhysicTerrain);
 
-            //Console.WriteLine("Max {0}, Min {1}", terrain.PhysicTerrain.BoundingBox.Max, terrain.PhysicTerrain.BoundingBox.Min);
 
-            // Fix ship loading
+            #region Ship loading
+
+            Model shipModel = Content.Load<Model>("Models/space_frigate");
+            Model shipModelT = Content.Load<Model>("Models/space_frigate_tangentOn");
+            Vector3 shipScale = new Vector3(0.06f, 0.06f, 0.06f);
+            Vector3 shipPosition = new Vector3(150, 20, 300);
+
+
             Entity entity = LoadEntityObject(shipModel, shipPosition, shipScale);
 
-            Ship ship = new Ship(entity, shipModelT, Matrix.CreateScale(shipScale), this);
+            Ship ship = new Ship(entity, shipModelT, shipScale, this);
 
             space.Add(entity);
-            ship.Texture = Content.Load<Texture2D>("Textures/Ship2/diffuse");
-            ship.SpecularMap = Content.Load<Texture2D>("Textures/Ship2/specular");
+            ship.Texture = Content.Load<Texture2D>("Textures/Ship/diffuse");
+            ship.SpecularMap = Content.Load<Texture2D>("Textures/Ship/specular");
             ship.TextureEnabled = true;
             ship.standardEffect = objEffect;
             ship.shadowEffect = objShadow;
@@ -160,16 +161,68 @@ namespace ERoD
             Components.Add(ship);
             GameLogic.AddPlayer(ship, "Anton");
 
-            ChaseCamera = new ChaseCamera(ship.Entity, new BEPUutilities.Vector3(0.0f, 0.7f, 0.0f), true, 4.0f, 0.1f, 1000.0f, this);
+            #endregion
+
+            ChaseCamera = new ChaseCamera(ship.Entity, new BEPUutilities.Vector3(0.0f, 0.0f, 0.0f), true, 25.0f, 0.1f, 7000.0f, this);
             ((ChaseCamera)ChaseCamera).Initialize();
+
+            #region Bridge
+
+            // Load the bridge model
+            Model bridgeModel = Content.Load<Model>("Models/bridge");
+            AffineTransform bridgeTransform = new AffineTransform(
+                new BVector3(6f, 6f, 6f), 
+                BQuaternion.Identity, 
+                new BVector3(138.5f, -71, -145));
+            var bridgeMesh = LoadStaticObject(bridgeModel, bridgeTransform);
+            StaticObject bridge = new StaticObject(bridgeModel, bridgeMesh, this);
+            bridge.SpecularMap  = Content.Load<Texture2D>("Textures/Bridge/specular");
+            bridge.Texture = Content.Load<Texture2D>("Textures/Bridge/diffuse");
+            bridge.BumpMap = Content.Load<Texture2D>("Textures/Bridge/normal");
+            bridge.TextureEnabled = true;
+            bridge.TexMult = 3f; // make the texture cover 3x more area before repeating.
+            bridge.BumpConstant = 1f;
+            bridge.standardEffect = objEffect;
+            bridge.shadowEffect = objShadow;
+
+            space.Add(bridgeMesh);
+            Components.Add(bridge);
+            ship.AddCollidable(bridgeMesh);
+
+            #endregion
+
+            #region Rock
+
+            Model rockModel = Content.Load<Model>("Models/rock");
+            AffineTransform rockTransform = new AffineTransform(
+                new BVector3(10, 10, 10),
+                BQuaternion.Identity,
+                new BVector3(150, -40, 300));
+            //var rockMesh
+            rockMesh = LoadStaticObject(rockModel, rockTransform);
+            StaticObject rock = new StaticObject(rockModel, rockMesh, this);
+            rock.SpecularMap = Content.Load<Texture2D>("Textures/Rock/specular");
+            rock.Texture = Content.Load<Texture2D>("Textures/Rock/diffuse");
+            rock.BumpMap = Content.Load<Texture2D>("Textures/Rock/normal");
+            rock.TextureEnabled = true;
+            rock.BumpConstant = 1f;
+            rock.standardEffect = objEffect;
+            rock.shadowEffect = objShadow;
+
+            space.Add(rockMesh);
+            Components.Add(rock);
+            //ship.AddCollidable(bridgeMesh);
+
+            #endregion
 
             CreateCheckPoints(objEffect, cubeModel);
 
-            space.ForceUpdater.Gravity = new BVector3(0, -20.0f, 0);
+            space.ForceUpdater.Gravity = new BVector3(0, GameConstants.Gravity, 0);
 
             manager.AddEffect(new MotionBlur(this));
             manager.AddEffect(new FullSSAO(this,0.2f,1.0f,1.5f,1f));
-            
+
+            renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(2500, 2000, 2500), Vector3.Zero, Color.LightYellow, 0.5f, true));
 
             renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(50, 550, 450), Vector3.Zero, Color.LightYellow, 0.5f, true));
             renderer.PointLights.Add(new PointLight(new Vector3(0, 25, 50), Color.Blue, 50.0f, 1.0f));
@@ -216,14 +269,12 @@ namespace ERoD
             return entity;
         }
 
-        private StaticObject LoadStaticObject(Model model, AffineTransform transform) 
+        private StaticMesh LoadStaticObject(Model model, AffineTransform transform) 
         {
             BVector3[] vertices;
             int[] indices;
             ModelDataExtractor.GetVerticesAndIndicesFromModel(model, out vertices, out indices);
-            var mesh = new StaticMesh(vertices, indices, transform);
-            space.Add(mesh);
-            return new StaticObject(model, MathConverter.Convert(mesh.WorldTransform.Matrix), this);
+            return new StaticMesh(vertices, indices, transform);
         }
 
         /// <summary>
@@ -272,9 +323,54 @@ namespace ERoD
 
             space.Update();
 
+            PlaceRockUpdate();
+
             LastGamePadState = GamePadState;
             base.Update(gameTime);
         }
+
+        private void PlaceRockUpdate()
+        {
+            KeyboardState keyState = Keyboard.GetState();
+            BVector3 translation = rockMesh.WorldTransform.Translation;
+            if (keyState.IsKeyDown(Keys.W))
+            {
+                //+z
+                translation.Z += 1;
+            }
+            if (keyState.IsKeyDown(Keys.S))
+            {
+                //-z
+                translation.Z -= 1;
+            }
+            if (keyState.IsKeyDown(Keys.A))
+            {
+                //-x
+                translation.X += 1;
+            }
+            if (keyState.IsKeyDown(Keys.D))
+            {
+                //+x
+                translation.X -= 1;
+            }
+            if (keyState.IsKeyDown(Keys.Q))
+            {
+                //+y
+                translation.Y += 1;
+            }
+            if (keyState.IsKeyDown(Keys.E))
+            {
+                //-y
+                translation.Y -= 1;
+            }
+            if (keyState.IsKeyDown(Keys.R))
+            {
+                Console.WriteLine("X: {0}, Y: {1}, Z: {2}", translation.X, translation.Y, translation.Z);
+            }
+            rockMesh.WorldTransform = new AffineTransform(new BVector3(10,10,10), BQuaternion.Identity, translation);
+        }
+
+        #region Message and FPS
 
         SpriteFont font;
         Microsoft.Xna.Framework.Vector2 fontPos;
@@ -290,19 +386,28 @@ namespace ERoD
             Console.WriteLine("---");
         }
 
+        private void PrintMessage()
+        {
+            if (startTime < endTime)
+            {
+
+                spriteBatch.Begin();
+                // Draw sprites
+                Microsoft.Xna.Framework.Vector2 FontOrigin = font.MeasureString(message) / 2;
+                spriteBatch.DrawString(font, message, fontPos, Color.DeepPink,
+                    0, FontOrigin, 1.0f, SpriteEffects.None, 0.5f);
+
+                spriteBatch.End();
+            }
+        }
+
         int x = 0;
         double totTime = 0;
         double time2 = 0;
-
-        /// <summary>
-        /// This is called when the game should draw itself.
-        /// </summary>
-        /// <param name="gameTime">Provides a snapshot of timing values.</param>
-        protected override void Draw(GameTime gameTime)
+        private void logFPS(GameTime gameTime)
         {
-
             float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
-            startTime = (float)gameTime.TotalGameTime.TotalSeconds; 
+            startTime = (float)gameTime.TotalGameTime.TotalSeconds;
             totTime += dt;
             if (totTime > 2)
             {
@@ -313,7 +418,16 @@ namespace ERoD
             {
                 //Console.WriteLine(x / time2);
             }
+        }
 
+        #endregion
+
+        /// <summary>
+        /// This is called when the game should draw itself.
+        /// </summary>
+        /// <param name="gameTime">Provides a snapshot of timing values.</param>
+        protected override void Draw(GameTime gameTime)
+        {
             renderer.Draw(gameTime);
 
             //GraphicsDevice.Clear(Color.Coral);
@@ -325,18 +439,9 @@ namespace ERoD
             GraphicsDevice.Viewport.Height), Color.White);
             spriteBatch.End();
 
-            if (startTime < endTime) 
-            {
+            logFPS(gameTime);
 
-                spriteBatch.Begin();
-                // Draw sprites
-                Microsoft.Xna.Framework.Vector2 FontOrigin = font.MeasureString(message) / 2;
-                spriteBatch.DrawString(font, message, fontPos, Color.DeepPink,
-                    0, FontOrigin, 1.0f, SpriteEffects.None, 0.5f);
-
-                spriteBatch.End();
-            }
-
+            PrintMessage();
 
             manager.Draw(gameTime, renderer.finalBackBuffer, renderer.depthMap, renderer.normalMap);
             //manager.Draw(gameTime);

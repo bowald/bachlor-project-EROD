@@ -90,8 +90,8 @@ namespace ERoD
             /// subdivide the patch from 2 triangles to 8
             Subdivide(vertices, indices, true);
             Subdivide(vertices, indices, true);
-            Subdivide(vertices, indices, true);
-
+            //Subdivide(vertices, indices, true);
+            //Subdivide(vertices, indices, true);
 
             vertexBuffer = new VertexBuffer(Game.GraphicsDevice, VertexPositionNormalTexture.VertexDeclaration, vertices.Count, BufferUsage.WriteOnly);
             vertexBuffer.SetData(vertices.ToArray());
@@ -216,8 +216,6 @@ namespace ERoD
 
                 // find the size of the selected node.
                 float size = Math.Min(boundsMax.X - boundsMin.X, boundsMax.Z - boundsMin.Z);
-                //Console.WriteLine(node.BoundingBox);
-                //Console.WriteLine(size);
                 
                 // Set morph info to send to shader.
                 float rangeStart = morphRanges[node.Level - 1];
@@ -287,7 +285,7 @@ namespace ERoD
 
 
             // Load heightdata
-            Texture2D tempHeight = Game.Content.Load<Texture2D>("HeightMap/heightNC");
+            Texture2D tempHeight = Game.Content.Load<Texture2D>("HeightMap/height");
 
             Microsoft.Xna.Framework.Graphics.PackedVector.Rgba64[] heightValues = new Microsoft.Xna.Framework.Graphics.PackedVector.Rgba64[tempHeight.Width * tempHeight.Height];
             tempHeight.GetData(heightValues);
@@ -308,8 +306,6 @@ namespace ERoD
             float scaleX = ObjectConstants.WorldSize / (float)tempHeight.Width;
             float scaleZ = ObjectConstants.WorldSize / (float)tempHeight.Height;
 
-            Console.WriteLine(scaleX);
-
             cTerrain = new Terrain(physHeightData, new BEPUutilities.AffineTransform(
                         new BEPUutilities.Vector3(scaleX, 1, scaleZ),
                         BEPUutilities.Quaternion.Identity,
@@ -323,7 +319,7 @@ namespace ERoD
             texture = Game.Content.Load<Texture2D>("HeightMap/color");
 
             // generate morph ranges (can be done in shaders??)
-            var ranges = Enumerable.Range(0, levels + 1).Select(i => (float)Math.Pow(2, i - 1)/1.5f).ToList();
+            var ranges = Enumerable.Range(0, levels + 1).Select(i => (float)Math.Pow(2, i - 1)/2f).ToList();
             ranges.Add(0);
             ranges.Sort((a, b) => a.CompareTo(b));
             
@@ -336,10 +332,10 @@ namespace ERoD
         public void SetEffectParameters(GameTime gameTime, Effect effect)
         {
             effect.Parameters["World"].SetValue(WorldMatrix);
-
             effect.Parameters["View"].SetValue(Camera.View);
             effect.Parameters["Projection"].SetValue(Camera.Projection);
-            effect.Parameters["WorldViewProjection"].SetValue(WorldMatrix * Camera.View * Camera.Projection);
+
+            effect.Parameters["FarPlane"].SetValue(Camera.FarPlane);
 
             effect.Parameters["HeightMap"].SetValue(heightMap);
             effect.Parameters["NormalMap"].SetValue(normalMap);
@@ -396,12 +392,13 @@ namespace ERoD
             base.Draw(gameTime);
         }
 
-        public void DrawShadow(GameTime gameTime, Matrix lightViewProjection)
+        public void DrawShadow(GameTime gameTime, Matrix lightView, Matrix lightProjection)
         {
             baseEffect.CurrentTechnique = baseEffect.Techniques["Shadow"];
 
             SetEffectParameters(gameTime, baseEffect);
-            baseEffect.Parameters["LightViewProjection"].SetValue(lightViewProjection);
+            baseEffect.Parameters["LightView"].SetValue(lightView);
+            baseEffect.Parameters["LightProjection"].SetValue(lightProjection);
 
             if (activePatchCount > 0)
             {
