@@ -27,5 +27,6 @@ namespace ERoD
     {
         Vector3 Target { get; set; }
         Vector3 Direction { get; }
+        float ShadowDistance { get; }
     }
 }

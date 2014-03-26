@@ -90,8 +90,8 @@ namespace ERoD
             /// subdivide the patch from 2 triangles to 8
             Subdivide(vertices, indices, true);
             Subdivide(vertices, indices, true);
-            Subdivide(vertices, indices, true);
-
+            //Subdivide(vertices, indices, true);
+            //Subdivide(vertices, indices, true);
 
             vertexBuffer = new VertexBuffer(Game.GraphicsDevice, VertexPositionNormalTexture.VertexDeclaration, vertices.Count, BufferUsage.WriteOnly);
             vertexBuffer.SetData(vertices.ToArray());
@@ -285,7 +285,7 @@ namespace ERoD
 
 
             // Load heightdata
-            Texture2D tempHeight = Game.Content.Load<Texture2D>("HeightMap/heightNC");
+            Texture2D tempHeight = Game.Content.Load<Texture2D>("HeightMap/height");
 
             Microsoft.Xna.Framework.Graphics.PackedVector.Rgba64[] heightValues = new Microsoft.Xna.Framework.Graphics.PackedVector.Rgba64[tempHeight.Width * tempHeight.Height];
             tempHeight.GetData(heightValues);
@@ -319,7 +319,7 @@ namespace ERoD
             texture = Game.Content.Load<Texture2D>("HeightMap/color");
 
             // generate morph ranges (can be done in shaders??)
-            var ranges = Enumerable.Range(0, levels + 1).Select(i => (float)Math.Pow(2, i - 1)/1.5f).ToList();
+            var ranges = Enumerable.Range(0, levels + 1).Select(i => (float)Math.Pow(2, i - 1)/2f).ToList();
             ranges.Add(0);
             ranges.Sort((a, b) => a.CompareTo(b));
             
@@ -334,6 +334,7 @@ namespace ERoD
             effect.Parameters["World"].SetValue(WorldMatrix);
             effect.Parameters["View"].SetValue(Camera.View);
             effect.Parameters["Projection"].SetValue(Camera.Projection);
+
             effect.Parameters["FarPlane"].SetValue(Camera.FarPlane);
 
             effect.Parameters["HeightMap"].SetValue(heightMap);

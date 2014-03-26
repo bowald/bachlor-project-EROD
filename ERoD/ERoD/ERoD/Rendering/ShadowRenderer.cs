@@ -74,14 +74,14 @@ namespace ERoD
             // split is larger than the previous, giving the closest split the most amount
             // of shadow detail.  
             float near = camera.NearPlane;
-            float far = camera.FarPlane;
+            float far = MathHelper.Min(camera.FarPlane, light.ShadowDistance);
             splitDepths[0] = near;
             splitDepths[NumSplits] = far;
             const float splitConstant = 0.95f;
             for (int i = 1; i < splitDepths.Length - 1; i++)
             {
                 splitDepths[i] = near + (far - near) * (float)Math.Pow((i / ((float)NumSplits)), 2);
-                //splitDepths[i] = splitConstant * near * (float)Math.Pow(far / near, i / N) + (1.0f - splitConstant) * ((near + (i / N)) * (far - near));
+                //splitDepths[i] = splitConstant * near * (float)Math.Pow(far / near, i / NumSplits) + (1.0f - splitConstant) * ((near + (i / NumSplits)) * (far - near));
             }
 
             Viewport splitViewport = new Viewport();
@@ -176,7 +176,7 @@ namespace ERoD
             }
             BoundingBox _lightBox = new BoundingBox(mins, maxes);
 
-            bool fixShadowJittering = false;
+            bool fixShadowJittering = true;
             if (fixShadowJittering)
             {
                 // I borrowed this code from some forum that I don't remember anymore =/

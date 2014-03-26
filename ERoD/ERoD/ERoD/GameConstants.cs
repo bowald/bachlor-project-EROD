@@ -9,5 +9,7 @@ namespace ERoD
     {
         public const int NumberOfLaps = 2;
         public const int NumberOfCheckpoints = 4;
+
+        public const float Gravity = -9.82f;
     }
 }

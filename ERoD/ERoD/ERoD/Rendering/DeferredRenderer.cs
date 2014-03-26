@@ -318,6 +318,7 @@ namespace ERoD
             ////spriteBatch.Draw(SGRMap, new Rectangle((w * 4) + 4, 1, w, h), Color.White);
             //spriteBatch.Draw(normalMap, new Rectangle(w + 2, 1, w, h), Color.White);
 
+
             //GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
 
             //spriteBatch.Draw(lightMap, new Rectangle((w * 3) + 4, 1, w, h), Color.White);

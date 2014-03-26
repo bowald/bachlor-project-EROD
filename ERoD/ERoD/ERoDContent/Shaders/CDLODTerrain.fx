@@ -96,7 +96,7 @@ VertexShaderOutputShadow VertexShaderFunctionShadow(VertexShaderInput input)
 
 	float cameraDistance = distance(EyePosition, position);
 	float morphFactor = MORPH_FACTOR(cameraDistance);
-	morphFactor = saturate((morphFactor - 0.25) / 0.25);
+	morphFactor = saturate((morphFactor - 0.25) / 0.5);
 
 	position = lerp(position, input.morphTarget, morphFactor);
 
@@ -128,7 +128,7 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 
 	float cameraDistance = distance(EyePosition, position);
 	float morphFactor = MORPH_FACTOR(cameraDistance);
-	morphFactor = saturate((morphFactor - 0.25) / 0.25);
+	morphFactor = saturate((morphFactor - 0.25) / 0.5);
 
 	position = lerp(position, input.morphTarget, morphFactor);
 
@@ -147,7 +147,6 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input)
 {
 	PixelShaderOutput output;
 
-	/// perform some very basic lighting
 	float4 normal = tex2D(NormalSampler, input.texCoord);
 	float y = normal.z;
 	float x = normal.x;
@@ -158,6 +157,7 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input)
 	/// grab the color used for this level of the source quadtree
 	//output.Color = float4(levelColors[input.treeLevel], 1);
 	output.Color = tex2D(TextureSampler, input.texCoord);
+
 
 	float depth = 1 - (-input.Depth / FarPlane);
 	output.Depth = float4(depth, 0, 0, 1);

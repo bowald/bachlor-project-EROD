@@ -45,7 +45,19 @@ namespace ERoD
         /// </summary>
         public BEPUutilities.Vector3 ViewDirection
         {
-            get { return ChasedEntity.OrientationMatrix.Forward; }
+            get 
+            {
+                // Find horizontal speed.
+                float x = ChasedEntity.LinearVelocity.X;
+                float z = ChasedEntity.LinearVelocity.Z;
+                float speed = Math.Min(ObjectConstants.MaxSpeed, (new BEPUutilities.Vector2(x, z)).Length());
+                
+                // Use horizontal speed to apply different amounts of angle to the viewdirection
+                BEPUutilities.Vector3 result = ChasedEntity.OrientationMatrix.Forward;
+                result += ((((ObjectConstants.MaxSpeed - speed) / ObjectConstants.MaxSpeed) * ObjectConstants.ChaseCameraSpeedAngle + ObjectConstants.ChaseCameraBaseAngle) * BEPUutilities.Vector3.Down);
+                result.Normalize();
+                return result;
+            }
         }
 
         /// <summary>
@@ -105,6 +117,8 @@ namespace ERoD
             Position = ConversionHelper.MathConverter.Convert(pos); //Put the camera just before any hit spot.
             //Set the Up direction to be the same as the chased entity's
             View = ConversionHelper.MathConverter.Convert(BEPUutilities.Matrix.CreateViewRH(pos, ViewDirection, Up));
+            world = Microsoft.Xna.Framework.Matrix.Invert(View);
+            frustum.Matrix = View * Projection;
 
             base.Update(gameTime);
         }

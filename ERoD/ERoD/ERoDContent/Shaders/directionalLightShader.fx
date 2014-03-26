@@ -19,7 +19,6 @@ float SpecularModifier = 3;
 
 float2 HalfPixel;
 
-
 float2	ClipPlanes[NUM_SPLITS];
 
 // Vector size of the shadow map in use.
@@ -31,8 +30,7 @@ float2 SidesLengthVS;
 // Distance to the far plane.
 float FarPlane;
 
-// Bias term for shadows.
-float BIAS = 0.005f;
+float StaticBias = 2.0f;
 
 // color of the light 
 float3 Color;
@@ -106,32 +104,29 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 	return output;
 }
 
-float CalcShadowTermPCF(float lightDepth, float2 shadowTexCoord)
+float CalcShadowBias(float3 weights)
 {
-	float shadowTerm = 0.0f;
 
-	// transform to texel space
-	float2 shadowMapCoord = ShadowMapSize * shadowTexCoord;
+	float BIAS[NUM_SPLITS];
 
-	// Determine the lerp amounts           
-	float2 lerps = frac(shadowMapCoord);
+	for (int i = 1; i <= NUM_SPLITS; i++)
+	{
+		BIAS[i-1] = StaticBias * ((i / NUM_SPLITS) * (i / NUM_SPLITS));
+	}
 
-	// Read in the 4 samples, doing a depth check for each
-	float samples[4];
-	samples[0] = (1-tex2D(ShadowSampler, shadowTexCoord).x + BIAS < lightDepth) ? 0.0f : 1.0f;
-	samples[1] = (1 - tex2D(ShadowSampler, shadowTexCoord + float2(1.0 / ShadowMapSize.x, 0)).x + BIAS < lightDepth) ? 0.0f : 1.0f;
-	samples[2] = (1 - tex2D(ShadowSampler, shadowTexCoord + float2(0, 1.0 / ShadowMapSize.y)).x + BIAS < lightDepth) ? 0.0f : 1.0f;
-	samples[3] = (1 - tex2D(ShadowSampler, shadowTexCoord + float2(1.0 / ShadowMapSize.x, 1.0 / ShadowMapSize.y)).x + BIAS < lightDepth) ? 0.0f : 1.0f;
+	float3 biases;
+	biases.x = 0.0015f;
+	biases.y = 0.0052f;
+	biases.z = 0.0095f;
 
-	// lerp between the shadow values to calculate our light amount
-	shadowTerm = lerp(lerp(samples[0], samples[1], lerps.x), lerp(samples[2], samples[3], lerps.x), lerps.y);
+	float finalBias = biases.x * weights.x + biases.y * weights.y + biases.z * weights.z;
 
-	return shadowTerm;
+	return finalBias;
 }
 
 // Calculates the shadow term using PCF soft-shadowing
 // sqrtSamples = number of samples, higher number -> softer shadows [1..7]
-float CalcShadowTermSoftPCF(float lightDepth, float2 shadowTexCoord, int sqrtSamples)
+float CalcShadowTermSoftPCF(float lightDepth, float2 shadowTexCoord, float shadowBias, int sqrtSamples)
 {
 	float shadowTerm = 0.0f;
 
@@ -147,7 +142,7 @@ float CalcShadowTermSoftPCF(float lightDepth, float2 shadowTexCoord, int sqrtSam
 			offset /= ShadowMapSize;
 			float2 samplePoint = shadowTexCoord + offset;
 			float depth = 1 - tex2D(ShadowSampler, samplePoint).x;
-			float sampleVal = (lightDepth <= depth + BIAS);
+			float sampleVal = (lightDepth <= depth + shadowBias);
 
 			// Edge tap smoothing
 			float xWeight = 1;
@@ -242,8 +237,10 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 		shadowTexCoord.x = shadowTexCoord.x * 0.3333333f + offset;
 		shadowTexCoord.y = 1 - shadowTexCoord.y;
 
+		float shadowBias = CalcShadowBias(weights);
+
 		// Get soft shadows
-		shading = CalcShadowTermSoftPCF(lightDepth, shadowTexCoord, 5);
+		shading = CalcShadowTermSoftPCF(lightDepth, shadowTexCoord, shadowBias, 7);
 	}
 
 	

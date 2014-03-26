@@ -9,6 +9,7 @@ namespace ERoD
     class DirectionalLight : BaseLight, IDirectionalLight
     {
         protected Vector3 target;
+        protected float shadowDistance;
 
         public new Matrix View
         {
@@ -29,10 +30,11 @@ namespace ERoD
             }
         }
 
-        public DirectionalLight(Game game, Vector3 position, Vector3 target, Color color, float intensity, bool castShadow)
+        public DirectionalLight(Game game, Vector3 position, Vector3 target, Color color, float intensity, float shadowDistance, bool castShadow)
             : base(game, position, color, intensity, castShadow)
         {
             this.target = target;
+            this.shadowDistance = shadowDistance;
         }
 
         #region IDirectionalLight Members
@@ -46,6 +48,11 @@ namespace ERoD
         public Vector3 Direction
         {
             get { return target - position; }
+        }
+
+        public float ShadowDistance
+        {
+            get { return shadowDistance; }
         }
 
         #endregion
