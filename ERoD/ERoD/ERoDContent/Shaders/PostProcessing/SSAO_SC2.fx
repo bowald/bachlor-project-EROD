@@ -1,6 +1,6 @@
-#define SampleCount 11
+#define SampleCount 12
 
-uniform extern float4 SSAOSamplePoints[SampleCount];
+uniform extern float3 SSAOSamplePoints[SampleCount];
 
 //VertexShader globals
 float2 HalfPixel;
@@ -54,7 +54,7 @@ float OcclusionFunction(float distance, float FullOcclusionThreshold, float NoOc
 		}
 		else 
 		{
-			return max(1.0f - pow( (distance - FullOcclusionThreshold) / noOcclusionRange, OcclusionPower), 0.0f);
+			return max(1.0f - pow( abs((distance - FullOcclusionThreshold) / noOcclusionRange), OcclusionPower), 0.0f);
 		}
 	}
 	else
