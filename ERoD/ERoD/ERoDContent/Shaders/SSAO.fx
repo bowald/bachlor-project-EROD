@@ -77,19 +77,6 @@ struct PS_OUTPUT
 
 float3 getPosition(in float2 uv)
 {
-	/*float depth = tex2D(depthSampler, uv).r;
-
-	float4 screenPos;
-	screenPos.x = uv.x * 2.0f - 1.0f;
-	screenPos.y = -(uv.y * 2.0f - 1.0f);
-
-	screenPos.z = depth;
-	screenPos.w = 1.0f;
-
-	float4 worldPos = mul(screenPos, ViewProjectionInv);
-	worldPos /= worldPos.w;
-	return worldPos.xyz; */
-
 	// Reconstruct position
 	float depth = 1 - tex2D(DepthSampler, uv).r;
 

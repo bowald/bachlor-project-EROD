@@ -1,5 +1,5 @@
-// Pixel shader applies a one dimensional gaussian blur filter.
-// This is used twice by the bloom postprocess, first to
+// Pixel shader applies a one dimensional biliterad Blur.
+// This is used twice by the fullSSAO postprocess, first to
 // blur horizontally, and then again to blur vertically.
 
 #define SAMPLE_COUNT 11
