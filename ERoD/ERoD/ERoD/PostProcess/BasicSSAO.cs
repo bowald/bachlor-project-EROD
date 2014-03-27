@@ -53,12 +53,15 @@ namespace ERoD
             effect.Parameters["ScreenSize"].SetValue(new Vector2(camera.Viewport.Width, camera.Viewport.Height));
             effect.Parameters["Random"].SetValue(randomTexture);
             effect.Parameters["Random_size"].SetValue(new Vector2(randomTexture.Width, randomTexture.Height));
-            effect.Parameters["ViewProjectionInv"].SetValue(Matrix.Invert(camera.View
-                * camera.Projection));
+            //effect.Parameters["ViewProjectionInv"].SetValue(Matrix.Invert(camera.View
+            //    * camera.Projection));
+            effect.Parameters["ViewInverse"].SetValue(Matrix.Invert(camera.View));
             effect.Parameters["Sample_rad"].SetValue(rad);
             effect.Parameters["Intensity"].SetValue(intensity);
             effect.Parameters["Scale"].SetValue(scale);
             effect.Parameters["Bias"].SetValue(bias);
+            effect.Parameters["SidesLengthVS"].SetValue(new Vector2(camera.TanFovy * camera.AspectRatio, -camera.TanFovy));
+            effect.Parameters["FarPlane"].SetValue(camera.FarPlane);
 
             //Game.GraphicsDevice.BlendState = BlendState.Opaque;
             base.Draw(gameTime);

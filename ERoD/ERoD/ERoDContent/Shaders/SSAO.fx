@@ -2,13 +2,21 @@
 
 float2 HalfPixel;
 float4x4 View;
-float4x4 ViewProjectionInv;
+//float4x4 ViewProjectionInv;
+float4x4 ViewInverse;
 float2 Random_size;
 float Sample_rad = .1f;
 float Intensity = 1;
 float Scale = .1;
 float Bias = .1;
 float2 ScreenSize;
+
+// Length of the x and y sides of the far plane in view space from depth.
+float2 SidesLengthVS;
+
+// Distance to the far plane.
+float FarPlane;
+
 
 texture NormalMap;
 sampler normalSampler = sampler_state
@@ -25,7 +33,7 @@ sampler randomSampler = sampler_state
 };
 
 texture DepthMap;
-sampler depthSampler = sampler_state
+sampler DepthSampler = sampler_state
 {
 	Texture = <DepthMap>;
 	AddressU = CLAMP;
@@ -69,7 +77,7 @@ struct PS_OUTPUT
 
 float3 getPosition(in float2 uv)
 {
-	float depth = tex2D(depthSampler, uv).r;
+	/*float depth = tex2D(depthSampler, uv).r;
 
 	float4 screenPos;
 	screenPos.x = uv.x * 2.0f - 1.0f;
@@ -80,9 +88,19 @@ float3 getPosition(in float2 uv)
 
 	float4 worldPos = mul(screenPos, ViewProjectionInv);
 	worldPos /= worldPos.w;
-	return worldPos.xyz;
+	return worldPos.xyz; */
 
+	// Reconstruct position
+	float depth = 1 - tex2D(DepthSampler, uv).r;
 
+	float2 screenPos = uv * 2.0f - 1.0f;
+
+		depth *= FarPlane;
+
+	// Camera View Space
+	float4 positionCVS = float4(float3(SidesLengthVS * screenPos * depth, -depth), 1);
+		// World Space
+		return mul(positionCVS, ViewInverse);
 }
 
 

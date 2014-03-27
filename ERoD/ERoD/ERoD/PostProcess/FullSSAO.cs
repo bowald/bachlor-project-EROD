@@ -41,8 +41,8 @@ namespace ERoD
         {
             ssao = new BasicSSAO(game, radius, intensity, scale, bias);
 
-            BlurV = new BiliteradBlurV(game, 1.5f);
-            BlurH = new BiliteradBlurH(game, 1.5f);
+            BlurV = new BiliteradBlurV(game, 2.0f);
+            BlurH = new BiliteradBlurH(game, 2.0f);
 
             blend = new Blend(game);
 
