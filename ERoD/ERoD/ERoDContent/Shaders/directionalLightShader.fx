@@ -2,9 +2,9 @@ float4x4 ViewInv;
 float4x4 LightView;
 float4x4 LightProj;
 
-float3 CascadeDistances;
+float4 CascadeDistances;
 
-static const int NUM_SPLITS = 3;
+static const int NUM_SPLITS = 4;
 
 float4x4 ViewMatrices[NUM_SPLITS];
 float4x4 ProjectionMatrices[NUM_SPLITS];
@@ -104,7 +104,7 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 	return output;
 }
 
-float CalcShadowBias(float3 weights)
+float CalcShadowBias(float4 weights)
 {
 
 	float BIAS[NUM_SPLITS];
@@ -114,14 +114,50 @@ float CalcShadowBias(float3 weights)
 		BIAS[i-1] = StaticBias * ((i / NUM_SPLITS) * (i / NUM_SPLITS));
 	}
 
-	float3 biases;
-	biases.x = 0.0015f;
-	biases.y = 0.0052f;
-	biases.z = 0.0095f;
+	float4 biases;
+	biases.x = 0.0007f;
+	biases.y = 0.0020f;
+	biases.z = 0.0054f;
+	biases.w = 0.0085f;
 
-	float finalBias = biases.x * weights.x + biases.y * weights.y + biases.z * weights.z;
+	float finalBias = biases.x * weights.x + biases.y * weights.y + biases.z * weights.z + biases.w * weights.w;
 
 	return finalBias;
+}
+
+float2 CalcShadowTexCoord(float4 weights, float4 positionWS)
+{
+	float4x4 lightView = ViewMatrices[0] * weights.x + ViewMatrices[1] * weights.y + ViewMatrices[2] * weights.z + ViewMatrices[3] * weights.w;
+	float4x4 lightProj = ProjectionMatrices[0] * weights.x + ProjectionMatrices[1] * weights.y + ProjectionMatrices[2] * weights.z + ProjectionMatrices[3] * weights.w;
+
+	//remember that we need to find the correct cascade into our cascade atlas
+	//float offset = weights.y*0.25f + weights.z*0.50f + weights.w * 0.75f;
+
+	float offsetx = weights.y * 0.5f + weights.w * 0.5f;
+	float offsety = weights.z * 0.5f + weights.w * 0.5f;
+
+	// Get position in light viewspace and light clip-space.
+	float4 positionLightVS = mul(positionWS, lightView);
+	float4 positionLightCS = mul(positionLightVS, lightProj);
+
+	// Get the coordinates for sampling the shadowmap.
+	float2 shadowTexCoord = 0.5f * positionLightCS.xy / positionLightCS.w + float2(0.5f, 0.5f);
+	shadowTexCoord.x = shadowTexCoord.x * 0.5f + offsetx;
+	shadowTexCoord.y = (1 - shadowTexCoord.y) * 0.5f + offsety;
+
+	return shadowTexCoord;
+
+}
+
+float CalcLightDepth(float4 weights, float4 positionWS)
+{
+	float4x4 lightView = ViewMatrices[0] * weights.x + ViewMatrices[1] * weights.y + ViewMatrices[2] * weights.z + ViewMatrices[3] * weights.w;
+	float4 positionLightVS = mul(positionWS, lightView);
+
+	// Get the distance from the camera in light viewspace depth
+	float lightDepth = -positionLightVS.z / FarPlane;
+
+	return lightDepth;
 }
 
 // Calculates the shadow term using PCF soft-shadowing
@@ -194,19 +230,9 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 	// World Space
 	float4 positionWS = mul(positionCVS, ViewInv);
 
-	/*float4x4 lightView = ViewMatrices[0];
-	float4x4 lightProj = ProjectionMatrices[0];
-	float offset = 0;*/
-
 	// Figure out which split this pixel belongs to, based on view-space depth.
-	float3 weights = (positionCVS.z < CascadeDistances);
-	weights.xy -= weights.yz;
-
-	float4x4 lightView = ViewMatrices[0] * weights.x + ViewMatrices[1] * weights.y + ViewMatrices[2] * weights.z;
-	float4x4 lightProj = ProjectionMatrices[0] * weights.x + ProjectionMatrices[1] * weights.y + ProjectionMatrices[2] * weights.z;
-
-	//remember that we need to find the correct cascade into our cascade atlas
-	float offset = weights.y*0.33333f + weights.z*0.666666f;
+	float4 weights = (positionCVS.z < CascadeDistances);
+	weights.xyz -= weights.yzw;
 
 	// Light calculation
 	// Get normals
@@ -225,22 +251,27 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 
 	if (CastShadow)
 	{
-		// Get position in light viewspace and light clip-space.
-		float4 positionLightVS = mul(positionWS, lightView);
-		float4 positionLightCS = mul(positionLightVS, lightProj);
-
-		// Get the distance from the camera in light viewspace depth
-		float lightDepth = -positionLightVS.z / FarPlane;
-
-		// Get the coordinates for sampling the shadowmap.
-		float2 shadowTexCoord = 0.5f * positionLightCS.xy / positionLightCS.w + float2(0.5f, 0.5f);
-		shadowTexCoord.x = shadowTexCoord.x * 0.3333333f + offset;
-		shadowTexCoord.y = 1 - shadowTexCoord.y;
+		float2 shadowTexCoord = CalcShadowTexCoord(weights, positionWS);
 
 		float shadowBias = CalcShadowBias(weights);
 
+		float lightDepth = CalcLightDepth(weights, positionWS);
+
+		float lerpBand = ((weights.x * CascadeDistances.y) + (weights.y * CascadeDistances.z) + (weights.z * CascadeDistances.w));
+		
 		// Get soft shadows
 		shading = CalcShadowTermSoftPCF(lightDepth, shadowTexCoord, shadowBias, 7);
+
+		if (lerpBand * 0.8 > positionCVS.z && lerpBand < positionCVS.z)
+		{
+			weights.w = weights.z;
+			weights.z = weights.y;
+			weights.y = weights.x;
+			weights.x = 0;
+			float shading2 = CalcShadowTermSoftPCF(CalcLightDepth(weights, positionWS), CalcShadowTexCoord(weights, positionWS), CalcShadowBias(weights), 7);
+			float shadowDistribution = ((positionCVS.z - 0.8 * lerpBand) / (0.2 * lerpBand));
+			shading = lerp(shading, shading2, shadowDistribution);
+		}
 	}
 
 	

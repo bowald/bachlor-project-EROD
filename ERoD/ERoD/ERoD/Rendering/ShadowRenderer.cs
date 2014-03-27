@@ -24,8 +24,8 @@ namespace ERoD
             public Matrix LightProjection;
         }
 
-        public const int ShadowMapSize = 1024;
-        public const int NumSplits = 3;
+        public const int ShadowMapSize = 2048;
+        public const int NumSplits = 4;
 
         DeferredRenderer renderer;
         Game game;
@@ -50,8 +50,8 @@ namespace ERoD
 
         public RenderTarget2D AssignShadowMap()
         {
-            RenderTarget2D shadowMap = new RenderTarget2D(renderer.GraphicsDevice, ShadowMapSize * NumSplits,
-                                                   ShadowMapSize, false, SurfaceFormat.Single,
+            RenderTarget2D shadowMap = new RenderTarget2D(renderer.GraphicsDevice, ShadowMapSize * 2,
+                                                   ShadowMapSize * 2, false, SurfaceFormat.Single,
                                                    DepthFormat.Depth24Stencil8, 0, RenderTargetUsage.DiscardContents);
             return shadowMap;
         }
@@ -77,11 +77,9 @@ namespace ERoD
             float far = MathHelper.Min(camera.FarPlane, light.ShadowDistance);
             splitDepths[0] = near;
             splitDepths[NumSplits] = far;
-            const float splitConstant = 0.95f;
             for (int i = 1; i < splitDepths.Length - 1; i++)
             {
                 splitDepths[i] = near + (far - near) * (float)Math.Pow((i / ((float)NumSplits)), 2);
-                //splitDepths[i] = splitConstant * near * (float)Math.Pow(far / near, i / NumSplits) + (1.0f - splitConstant) * ((near + (i / NumSplits)) * (far - near));
             }
 
             Viewport splitViewport = new Viewport();
@@ -92,15 +90,15 @@ namespace ERoD
                 light.ShadowMapEntry.LightClipPlanes[i].X = -splitDepths[i];
                 light.ShadowMapEntry.LightClipPlanes[i].Y = -splitDepths[i + 1];
 
-                light.ShadowMapEntry.LightViewProjectionMatrices[i] = CreateLightViewProjectionMatrix(lightDir, far, camera, splitDepths[i], splitDepths[i + 1], i);
+                light.ShadowMapEntry.LightViewProjectionMatrices[i] = CreateLightViewProjectionMatrix(lightDir, far, camera, near, splitDepths[i + 1], i);
 
                 // Set the viewport for the current split     
                 splitViewport.MinDepth = 0;
                 splitViewport.MaxDepth = 1;
                 splitViewport.Width = ShadowMapSize;
                 splitViewport.Height = ShadowMapSize;
-                splitViewport.X = i * ShadowMapSize;
-                splitViewport.Y = 0;
+                splitViewport.X = (i%2) * ShadowMapSize;
+                splitViewport.Y = (i/2) * ShadowMapSize;
                 renderer.GraphicsDevice.Viewport = splitViewport;
 
                 foreach (GameComponent component in game.Components)
@@ -206,16 +204,13 @@ namespace ERoD
 
             Vector3 boxSize = _lightBox.Max - _lightBox.Min;
             if (boxSize.X == 0 || boxSize.Y == 0 || boxSize.Z == 0)
-                boxSize = Vector3.One;
+            boxSize = Vector3.One;
             Vector3 halfBoxSize = boxSize * 0.5f;
 
             // The position of the light should be in the center of the back
             // pannel of the box. 
             Vector3 lightPosition = _lightBox.Min + halfBoxSize;
-            //if (index != 0)
-            //{
-            //    lightPosition.Z = _lightBox.Min.Z;
-            //}
+            lightPosition.Z = _lightBox.Max.Z;
             
 
             // We need the position back in world coordinates so we transform 

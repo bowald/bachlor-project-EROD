@@ -225,10 +225,11 @@ namespace ERoD
                 }
                 directionalLightShader.Parameters["ViewMatrices"].SetValue(viewMatrices);
                 directionalLightShader.Parameters["ProjectionMatrices"].SetValue(projectionMatrices);
-                Vector3 cascadeDistances = Vector3.Zero;
+                Vector4 cascadeDistances = Vector4.Zero;
                 cascadeDistances.X = directionalLight.ShadowMapEntry.LightClipPlanes[0].X;
                 cascadeDistances.Y = directionalLight.ShadowMapEntry.LightClipPlanes[1].X;
                 cascadeDistances.Z = directionalLight.ShadowMapEntry.LightClipPlanes[2].X;
+                cascadeDistances.W = directionalLight.ShadowMapEntry.LightClipPlanes[3].X;
                 directionalLightShader.Parameters["CascadeDistances"].SetValue(cascadeDistances);
             }
 
