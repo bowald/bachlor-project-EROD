@@ -33,7 +33,7 @@ namespace ERoD
 
 
         // Particles //
-        private BaseEmitter particleEffect;
+        //private BaseEmitter particleEffect;
 
         Model pointLightMesh;
         Matrix[] boneTransforms;
@@ -45,6 +45,8 @@ namespace ERoD
         public List<IPointLight> PointLights = new List<IPointLight>();
         public List<IDirectionalLight> DirectionalLights = new List<IDirectionalLight>();
 
+        public List<BaseEmitter> Emitters = new List<BaseEmitter>();
+
         Vector2 halfPixel;
 
         ScreenQuad sceneQuad;
@@ -54,7 +56,7 @@ namespace ERoD
             game.Components.Add(this);
             sceneQuad = new ScreenQuad(game);
             shadowRenderer = new ShadowRenderer(this, game);
-            particleEffect = new BaseEmitter(2000, 7500, 2, 2f);
+            //particleEffect = new BaseEmitter(2000, 7500, 2, 2f, Vector3.Zero);
         }
 
         protected override void LoadContent()
@@ -94,11 +96,7 @@ namespace ERoD
 
 
             TextureQuad.ParticleEffect = Game.Content.Load<Effect>("Shaders/ParticleEffect");
-            // Particles
-            List<Texture2D> textures = new List<Texture2D> { Game.Content.Load<Texture2D>("Textures/horde") };
-            particleEffect.LoadContent(textures, GraphicsDevice);
-            
-
+          
             // Debug depth renderer
             DepthRender = Game.Content.Load<Effect>("Shaders/depthRender");
             w = GraphicsDevice.Viewport.Width / 5;
@@ -126,10 +124,11 @@ namespace ERoD
 
         public override void Update(GameTime gameTime)
         {
-
-            // Particles
-            particleEffect.Emit(gameTime, Vector3.Zero);
-            particleEffect.Update(gameTime);
+            foreach (BaseEmitter emitter in Emitters)
+            {
+                emitter.Emit(gameTime);
+                emitter.Update(gameTime);
+            }
         }
 
         private void RenderDeferred(GameTime gameTime)
@@ -170,7 +169,11 @@ namespace ERoD
             // Particles
             TextureQuad.ParticleEffect.Parameters["DepthMap"].SetValue(depthMap);
             TextureQuad.ParticleEffect.Parameters["HalfPixel"].SetValue(halfPixel);
-            particleEffect.Draw(GraphicsDevice, Camera);
+
+            foreach(BaseEmitter emitter in Emitters)
+            {
+                emitter.Draw(GraphicsDevice, Camera);
+            }
         }
 
         private void DeferredShadows(GameTime gameTime)

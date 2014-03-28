@@ -158,6 +158,8 @@ namespace ERoD
 
             #endregion
 
+            
+            
             ChaseCamera = new ChaseCamera(ship.Entity, new BEPUutilities.Vector3(0.0f, 0.0f, 0.0f), true, 25.0f, 0.1f, 3000.0f, this);
             ((ChaseCamera)ChaseCamera).Initialize();
 
@@ -213,6 +215,16 @@ namespace ERoD
             CreateCheckPoints(objEffect, cubeModel);
 
             space.ForceUpdater.Gravity = new BVector3(0, GameConstants.Gravity, 0);
+
+            renderer.Emitters.Add(new ThrusterEmitter(6000, 80, 400, 1.5f, 0.0005f, entity));
+
+
+            List<Texture2D> textures = new List<Texture2D> { Content.Load<Texture2D>("Textures/Particles/Fire") };
+
+            foreach (BaseEmitter emitter in renderer.Emitters)
+            {
+                emitter.LoadContent(textures, GraphicsDevice);
+            }
 
             renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(2500, 2000, 2500), Vector3.Zero, Color.LightYellow, 0.9f, 7000.0f, true));
 

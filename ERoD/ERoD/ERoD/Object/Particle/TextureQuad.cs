@@ -7,7 +7,7 @@ using System.Text;
 
 namespace ERoD
 {
-    class TextureQuad
+    public class TextureQuad
     {
         private static readonly Vector2 UpperLeft = new Vector2(0, 0);
         private static readonly Vector2 UpperRight = new Vector2(1, 0);

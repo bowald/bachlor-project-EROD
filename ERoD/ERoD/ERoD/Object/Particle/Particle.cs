@@ -7,7 +7,7 @@ using System.Text;
 
 namespace ERoD
 {
-    class Particle
+    public class Particle
     {
 
         public float BirthTime { get; set; }
@@ -46,8 +46,7 @@ namespace ERoD
         public void Draw(GraphicsDevice graphicsDevice, ICamera camera)
         {
             textureQuad.Draw(camera.View, camera.Projection
-                , Matrix.CreateScale(0.01f) 
-                * Matrix.CreateBillboard(Position, camera.Position, camera.World.Up, camera.World.Forward)
+                , Matrix.CreateScale(Scaling) * Matrix.CreateBillboard(Position, camera.Position, camera.World.Up, camera.World.Forward)
                 , camera.FarPlane);
         }
     }

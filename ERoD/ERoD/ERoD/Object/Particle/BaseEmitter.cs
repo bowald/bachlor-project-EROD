@@ -9,20 +9,24 @@ namespace ERoD
 {
     public class BaseEmitter
     {
-        private readonly int particleLifeSpan;
-        private readonly int emitAmount;
-        private readonly float particleSpeed;
-        private readonly Queue<Particle> freeParticles;
-        private readonly Particle[] particles;
+        protected int particleLifeSpan;
+        protected int emitAmount;
+        protected float particleSpeed;
+        protected float particleScaling;
+        protected Vector3 Position;
+        protected Queue<Particle> freeParticles;
+        protected Particle[] particles;
         //private readonly List<Modifier> modifiers = new List<Modifier>();
 
-        private readonly Random random = new Random();
+        protected Random random = new Random();
 
-        public BaseEmitter(int maxParticles, int particleLifespan, int emitAmount, float particleSpeed)
+        public BaseEmitter(int maxParticles, int particleLifespan, int emitAmount, float particleSpeed, float scaling, Vector3 position)
         {
             this.particleLifeSpan = particleLifespan;
             this.emitAmount = emitAmount;
             this.particleSpeed = particleSpeed;
+            this.Position = position;
+            this.particleScaling = scaling;
 
             particles = new Particle[maxParticles];
             freeParticles = new Queue<Particle>(maxParticles);
@@ -40,7 +44,7 @@ namespace ERoD
             }
         }
 
-        public void Emit(GameTime gameTime, Vector3 position)
+        public virtual void Emit(GameTime gameTime)
         {
             float totalMilliseconds = (float)gameTime.TotalGameTime.TotalMilliseconds;
 
@@ -48,8 +52,9 @@ namespace ERoD
             {
                 Particle particle = freeParticles.Dequeue();
                 particle.IsAlive = true;
-                particle.Position = position;
+                particle.Position = Position;
                 particle.BirthTime = totalMilliseconds;
+                particle.Scaling = particleScaling;
 
                 Vector3 velocity = new Vector3((float)random.NextDouble() * particleSpeed, 0, 0);
 
