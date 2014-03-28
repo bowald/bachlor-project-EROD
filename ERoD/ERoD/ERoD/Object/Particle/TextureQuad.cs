@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace ERoD.Object.Particle
+namespace ERoD
 {
     class TextureQuad
     {
@@ -15,15 +15,36 @@ namespace ERoD.Object.Particle
         private static readonly Vector2 BottomRight = new Vector2(1, 1);
 
         private readonly VertexBuffer vertexBuffer;
-        private readonly BasicEffect effect;
+
+        public static Effect ParticleEffect { get; set; }
+
+        private float alpha;
+        public float Alpha
+        {
+            get { return alpha; }
+            set 
+            {
+                alpha = value;
+            }
+        }
+
+        private Texture2D texture;
+        public Texture2D Texture
+        {
+            get { return texture; }
+            set 
+            {
+                texture = value;
+                ParticleEffect.Parameters["Diffuse"].SetValue(texture);
+            }
+        }
 
         public TextureQuad(GraphicsDevice graphicsDevice, Texture2D texture, int width, int height)
         {
             VertexPositionTexture[] vertices = CreateQuadVertices(width, height);
             vertexBuffer = new VertexBuffer(graphicsDevice, typeof(VertexPositionTexture), vertices.Length, BufferUsage.None);
             vertexBuffer.SetData(vertices);
-
-            effect = new BasicEffect(graphicsDevice) { TextureEnabled = true, Texture = texture };
+            this.Texture = texture;
         }
 
         private static VertexPositionTexture[] CreateQuadVertices(int width, int height)
@@ -41,25 +62,21 @@ namespace ERoD.Object.Particle
             return vertices;
         }
 
-        public void Draw(Matrix viewMatrix, Matrix projectionMatrix, Matrix worldMatrix)
+        public void Draw(Matrix viewMatrix, Matrix projectionMatrix, Matrix worldMatrix, float farPlane)
         {
-            effect.GraphicsDevice.SetVertexBuffer(vertexBuffer);
+            ParticleEffect.GraphicsDevice.SetVertexBuffer(vertexBuffer);
 
-            effect.World = worldMatrix;
-            effect.View = viewMatrix;
-            effect.Projection = projectionMatrix;
+            ParticleEffect.Parameters["World"].SetValue(worldMatrix);
+            ParticleEffect.Parameters["View"].SetValue(viewMatrix);
+            ParticleEffect.Parameters["Projection"].SetValue(projectionMatrix);
+            ParticleEffect.Parameters["Alpha"].SetValue(alpha);
+            ParticleEffect.Parameters["FarPlane"].SetValue(farPlane);
 
-            foreach (EffectPass pass in effect.CurrentTechnique.Passes)
+            foreach (EffectPass pass in ParticleEffect.CurrentTechnique.Passes)
             {
                 pass.Apply();
-                effect.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleStrip, 0, 2);
+                ParticleEffect.GraphicsDevice.DrawPrimitives(PrimitiveType.TriangleStrip, 0, 2);
             }
-        }
-
-        public float Alpha
-        {
-            get { return effect.Alpha; }
-            set { effect.Alpha = value; }
         }
     }
 }

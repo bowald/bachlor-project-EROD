@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using ERoD.Object.Particle;
 
 namespace ERoD
 {
@@ -48,7 +47,8 @@ namespace ERoD
         {
             textureQuad.Draw(camera.View, camera.Projection
                 , Matrix.CreateScale(0.01f) 
-                * Matrix.CreateBillboard(Position, camera.Position, camera.World.Up, camera.World.Forward));
+                * Matrix.CreateBillboard(Position, camera.Position, camera.World.Up, camera.World.Forward)
+                , camera.FarPlane);
         }
     }
 }

@@ -46,9 +46,6 @@ namespace ERoD
         public BaseCamera FreeCamera;
         Boolean FreeCameraActive;
 
-        // Particles
-        private BaseEmitter particleEffect;
-
         // GameLogic //
         GameLogic GameLogic;
 
@@ -108,8 +105,6 @@ namespace ERoD
             GameLogic = new GameLogic(this);
             this.Services.AddService(typeof(GameLogic), GameLogic);
 
-            particleEffect = new BaseEmitter(2000, 7500, 2, 2f);
-
             base.Initialize();
         }
 
@@ -125,6 +120,7 @@ namespace ERoD
             spriteBatch = new SpriteBatch(GraphicsDevice);
             font = Content.Load<SpriteFont>("Sprites/Lap1");
 
+
             // TODO: Load your game content here            
             fontPos = new Microsoft.Xna.Framework.Vector2(graphics.GraphicsDevice.Viewport.Width / 2,
                 graphics.GraphicsDevice.Viewport.Height / 2);
@@ -138,12 +134,7 @@ namespace ERoD
             Services.AddService(typeof(Space), space);
 
             space.Add(((ITerrain)Services.GetService(typeof(ITerrain))).PhysicTerrain);
-
-            //Particles
-            List<Texture2D> textures = new List<Texture2D> { Content.Load<Texture2D>("Textures/horde") };
-            particleEffect.LoadContent(textures, GraphicsDevice);
-
-
+            
             #region Ship loading
 
             Model shipModel = Content.Load<Model>("Models/space_frigate");
@@ -328,10 +319,6 @@ namespace ERoD
 
             LastGamePadState = GamePadState;
 
-            // Particles
-            particleEffect.Emit(gameTime, Vector3.Zero);
-            particleEffect.Update(gameTime);
-
             base.Update(gameTime);
         }
 
@@ -447,9 +434,6 @@ namespace ERoD
             logFPS(gameTime);
 
             PrintMessage();
-
-            // Particles
-            particleEffect.Draw(GraphicsDevice, renderer.Camera);
 
             foreach (PostProcess postProcess in postProcesses)
             {

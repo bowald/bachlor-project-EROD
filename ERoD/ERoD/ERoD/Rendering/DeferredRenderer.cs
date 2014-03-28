@@ -31,6 +31,10 @@ namespace ERoD
         // Skybox //
         Skybox skybox;
 
+
+        // Particles //
+        private BaseEmitter particleEffect;
+
         Model pointLightMesh;
         Matrix[] boneTransforms;
 
@@ -50,6 +54,7 @@ namespace ERoD
             game.Components.Add(this);
             sceneQuad = new ScreenQuad(game);
             shadowRenderer = new ShadowRenderer(this, game);
+            particleEffect = new BaseEmitter(2000, 7500, 2, 2f);
         }
 
         protected override void LoadContent()
@@ -86,7 +91,14 @@ namespace ERoD
 
             pointLightShader = Game.Content.Load<Effect>("Shaders/PointLightShader");
             deferredShader = Game.Content.Load<Effect>("Shaders/DeferredRender");
+
+
+            TextureQuad.ParticleEffect = Game.Content.Load<Effect>("Shaders/ParticleEffect");
+            // Particles
+            List<Texture2D> textures = new List<Texture2D> { Game.Content.Load<Texture2D>("Textures/horde") };
+            particleEffect.LoadContent(textures, GraphicsDevice);
             
+
             // Debug depth renderer
             DepthRender = Game.Content.Load<Effect>("Shaders/depthRender");
             w = GraphicsDevice.Viewport.Width / 5;
@@ -110,6 +122,14 @@ namespace ERoD
         public override void Draw(GameTime gameTime)
         {
             RenderDeferred(gameTime);
+        }
+
+        public override void Update(GameTime gameTime)
+        {
+
+            // Particles
+            particleEffect.Emit(gameTime, Vector3.Zero);
+            particleEffect.Update(gameTime);
         }
 
         private void RenderDeferred(GameTime gameTime)
@@ -140,7 +160,17 @@ namespace ERoD
 
             DrawDeferred();
 
+            DrawParticles();
+
             GraphicsDevice.SetRenderTarget(null);
+        }
+
+        private void DrawParticles()
+        {
+            // Particles
+            TextureQuad.ParticleEffect.Parameters["DepthMap"].SetValue(depthMap);
+            TextureQuad.ParticleEffect.Parameters["HalfPixel"].SetValue(halfPixel);
+            particleEffect.Draw(GraphicsDevice, Camera);
         }
 
         private void DeferredShadows(GameTime gameTime)
