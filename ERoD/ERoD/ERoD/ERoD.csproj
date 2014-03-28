@@ -121,6 +121,7 @@
     <Compile Include="Light\BaseLight.cs" />
     <Compile Include="Light\PointLight.cs" />
     <Compile Include="Rendering\ScreenQuad.cs" />
+    <Compile Include="Rendering\ShadowRenderer.cs" />
     <Compile Include="Rendering\Skybox.cs" />
     <Compile Include="Rendering\VertexType.cs" />
   </ItemGroup>

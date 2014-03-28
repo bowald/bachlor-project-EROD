@@ -15,7 +15,7 @@ namespace ERoD
         Matrix View { get; }
         Matrix Projection { get; }
         bool CastShadow { get; set; }
-        RenderTarget2D ShadowMap { get; set; }
+        ShadowRenderer.CascadeShadowMapEntry ShadowMapEntry { get; set; }
     }
 
     public interface IPointLight : ILight
@@ -27,5 +27,6 @@ namespace ERoD
     {
         Vector3 Target { get; set; }
         Vector3 Direction { get; }
+        float ShadowDistance { get; }
     }
 }
