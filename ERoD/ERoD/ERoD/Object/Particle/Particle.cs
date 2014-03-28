@@ -44,9 +44,11 @@ namespace ERoD
             }
         }
 
-        public void Draw(GraphicsDevice graphicsDevice, Matrix viewMatrix, Matrix projectionMatrix)
+        public void Draw(GraphicsDevice graphicsDevice, ICamera camera)
         {
-            textureQuad.Draw(viewMatrix, projectionMatrix, Matrix.CreateScale(0.01f) * Matrix.CreateTranslation(Position));
+            textureQuad.Draw(camera.View, camera.Projection
+                , Matrix.CreateScale(0.01f) 
+                * Matrix.CreateBillboard(Position, camera.Position, camera.World.Up, camera.World.Forward));
         }
     }
 }

@@ -79,14 +79,14 @@ namespace ERoD
             }
         }
 
-        public void Draw(GraphicsDevice graphicsDevice, Matrix viewMatrix, Matrix projectionMatrix)
+        public void Draw(GraphicsDevice graphicsDevice, ICamera camera)
         {
             ConfigureEffectGraphics(graphicsDevice);
 
             foreach (Particle particle in particles)
             {
                 if(particle.IsAlive)
-                    particle.Draw(graphicsDevice, viewMatrix, projectionMatrix);
+                    particle.Draw(graphicsDevice, camera);
             }
 
             ResetGraphicsDevice(graphicsDevice);
@@ -96,12 +96,14 @@ namespace ERoD
         {
             graphicsDevice.BlendState = BlendState.Additive;
             graphicsDevice.DepthStencilState = DepthStencilState.None;
+            graphicsDevice.RasterizerState = RasterizerState.CullClockwise;
         }
 
         private static void ResetGraphicsDevice(GraphicsDevice graphicsDevice)
         {
             graphicsDevice.BlendState = BlendState.Opaque;
             graphicsDevice.DepthStencilState = DepthStencilState.Default;
+            graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
         }
 
         //public List<Modifier> Modifiers

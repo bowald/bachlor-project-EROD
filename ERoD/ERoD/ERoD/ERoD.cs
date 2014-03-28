@@ -449,7 +449,7 @@ namespace ERoD
             PrintMessage();
 
             // Particles
-            particleEffect.Draw(GraphicsDevice, renderer.Camera.View, renderer.Camera.Projection);
+            particleEffect.Draw(GraphicsDevice, renderer.Camera);
 
             foreach (PostProcess postProcess in postProcesses)
             {
