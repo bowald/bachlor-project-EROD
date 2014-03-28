@@ -46,6 +46,8 @@ namespace ERoD
         public BaseCamera FreeCamera;
         Boolean FreeCameraActive;
 
+        // Particles
+        private BaseEmitter particleEffect;
 
         // GameLogic //
         GameLogic GameLogic;
@@ -106,6 +108,8 @@ namespace ERoD
             GameLogic = new GameLogic(this);
             this.Services.AddService(typeof(GameLogic), GameLogic);
 
+            particleEffect = new BaseEmitter(2000, 7500, 2, 2f);
+
             base.Initialize();
         }
 
@@ -134,6 +138,10 @@ namespace ERoD
             Services.AddService(typeof(Space), space);
 
             space.Add(((ITerrain)Services.GetService(typeof(ITerrain))).PhysicTerrain);
+
+            //Particles
+            List<Texture2D> textures = new List<Texture2D> { Content.Load<Texture2D>("Textures/horde") };
+            particleEffect.LoadContent(textures, GraphicsDevice);
 
 
             #region Ship loading
@@ -319,6 +327,11 @@ namespace ERoD
             PlaceRockUpdate();
 
             LastGamePadState = GamePadState;
+
+            // Particles
+            particleEffect.Emit(gameTime, Vector3.Zero);
+            particleEffect.Update(gameTime);
+
             base.Update(gameTime);
         }
 
@@ -434,6 +447,9 @@ namespace ERoD
             logFPS(gameTime);
 
             PrintMessage();
+
+            // Particles
+            particleEffect.Draw(GraphicsDevice, renderer.Camera.View, renderer.Camera.Projection);
 
             foreach (PostProcess postProcess in postProcesses)
             {
