@@ -1,33 +1,41 @@
 //http://www.gamedev.net/page/resources/_/reference/programming/140/lighting-and-shading/a-simple-and-practical-approach-to-ssao-r2753
 
-float2 halfPixel;
+float2 HalfPixel;
 float4x4 View;
-float4x4 viewProjectionInv;
-float2 random_size;
-float g_sample_rad = .1f;
-float g_intensity = 1;
-float g_scale = .1;
-float g_bias = .1;
-float2 screenSize;
+//float4x4 ViewProjectionInv;
+float4x4 ViewInverse;
+float2 Random_size;
+float Sample_rad = .1f;
+float Intensity = 1;
+float Scale = .1;
+float Bias = .1;
+float2 ScreenSize;
 
-texture normalMap;
+// Length of the x and y sides of the far plane in view space from depth.
+float2 SidesLengthVS;
+
+// Distance to the far plane.
+float FarPlane;
+
+
+texture NormalMap;
 sampler normalSampler = sampler_state
 {
-	Texture = (normalMap);
+	Texture = (NormalMap);
 };
 
-texture random;
-sampler g_random = sampler_state
+texture Random;
+sampler randomSampler = sampler_state
 {
-	Texture = (random);
+	Texture = (Random);
 	AddressU = MIRROR;
 	AddressV = MIRROR;
 };
 
-texture depthMap;
-sampler depthSampler = sampler_state
+texture DepthMap;
+sampler DepthSampler = sampler_state
 {
-	Texture = <depthMap>;
+	Texture = <DepthMap>;
 	AddressU = CLAMP;
 	AddressV = CLAMP;
 	MagFilter = POINT;
@@ -52,7 +60,7 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 	VertexShaderOutput output;
 
 	output.Position = float4(input.Position, 1);
-	output.TexCoord = input.TexCoord - halfPixel;
+	output.TexCoord = input.TexCoord - HalfPixel;
 
 	return output;
 }
@@ -69,7 +77,7 @@ struct PS_OUTPUT
 
 float3 getPosition(in float2 uv)
 {
-	float depth = tex2D(depthSampler, uv).r;
+	/*float depth = tex2D(depthSampler, uv).r;
 
 	float4 screenPos;
 	screenPos.x = uv.x * 2.0f - 1.0f;
@@ -78,11 +86,21 @@ float3 getPosition(in float2 uv)
 	screenPos.z = depth;
 	screenPos.w = 1.0f;
 
-	float4 worldPos = mul(screenPos, viewProjectionInv);
+	float4 worldPos = mul(screenPos, ViewProjectionInv);
 	worldPos /= worldPos.w;
-	return worldPos.xyz;
+	return worldPos.xyz; */
 
+	// Reconstruct position
+	float depth = 1 - tex2D(DepthSampler, uv).r;
 
+	float2 screenPos = uv * 2.0f - 1.0f;
+
+		depth *= FarPlane;
+
+	// Camera View Space
+	float4 positionCVS = float4(float3(SidesLengthVS * screenPos * depth, -depth), 1);
+		// World Space
+		return mul(positionCVS, ViewInverse);
 }
 
 
@@ -93,15 +111,15 @@ float3 getNormal(in float2 uv)
 
 float2 getRandom(in float2 uv)
 {
-	return normalize(tex2D(g_random, screenSize * uv / random_size).xy * 2.0f - 1.0f);
+	return normalize(tex2D(randomSampler, ScreenSize * uv / Random_size).xy * 2.0f - 1.0f);
 }
 
 float doAmbientOcclusion(in float2 tcoord, in float2 uv, in float3 p, in float3 cnorm)
 {
 	float3 diff = getPosition(tcoord + uv) - p;
 		const float3 v = normalize(diff);
-	const float d = length(diff)*g_scale;
-	return max(0.0, dot(cnorm, v) + g_bias)*(1.0 / (1.0 + d))*g_intensity;
+	const float d = length(diff)* Scale;
+	return max(0.0, dot(cnorm, v) + Bias)*(1.0 / (1.0 + d))* Intensity;
 }
 
 PS_OUTPUT main(PS_INPUT i)
@@ -112,7 +130,7 @@ PS_OUTPUT main(PS_INPUT i)
 	const float2 vec[4] = { float2(1, 0), float2(-1, 0),
 		float2(0, 1), float2(0, -1) };
 
-	i.uv -= halfPixel;
+	i.uv -= HalfPixel;
 
 	float3 p = getPosition(i.uv);
 	float3 n = getNormal(i.uv);
@@ -121,7 +139,7 @@ PS_OUTPUT main(PS_INPUT i)
 	n = mul(n, View);
 
 	float ao = 0.0f;
-	float rad = g_sample_rad / p.z;
+	float rad = Sample_rad / p.z;
 
 	//**SSAO Calculation**//
 	int iterations = 3;

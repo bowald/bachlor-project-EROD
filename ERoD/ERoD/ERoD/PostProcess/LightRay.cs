@@ -12,9 +12,11 @@ namespace ERoD
     public class LightRay : BasicPostProcess
     {
         public Vector3 lightSourcePos;
+        // 
+        public float Intensity = 1.0f;
         public float Density = .5f;
         public float Decay = .95f;
-        public float Weight = 1.0f;
+        public float Weight = 0.1f;
         public float Exposure = .15f;
 
         public LightRay(ERoD game, Vector3 sourcePos, float density, float decay, float weight, float exposure)
@@ -36,7 +38,6 @@ namespace ERoD
             UsesVertexShader = true;
         }
 
-
         public override void Draw(GameTime gameTime)
         {
             if (effect == null)
@@ -47,8 +48,11 @@ namespace ERoD
             effect.Parameters["halfPixel"].SetValue(HalfPixel);
 
             effect.Parameters["Density"].SetValue(Density);
+            // Decay: 0-1. Dissipates each sample's contribution as the ray progresses away from the light source.
             effect.Parameters["Decay"].SetValue(Decay);
+            //Weight controls the intensity of each sample
             effect.Parameters["Weight"].SetValue(Weight);
+            // Exposure controls the overall intensity of the post-process,
             effect.Parameters["Exposure"].SetValue(Exposure);
 
             effect.Parameters["lightPosition"].SetValue(lightSourcePos);

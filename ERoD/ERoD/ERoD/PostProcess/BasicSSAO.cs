@@ -47,18 +47,21 @@ namespace ERoD
             float scale = 1.5f;//5;
             float bias = 1f;
 
-            effect.Parameters["halfPixel"].SetValue(HalfPixel);
-            effect.Parameters["normalMap"].SetValue(NormalBuffer);
-            effect.Parameters["depthMap"].SetValue(DepthBuffer);
-            effect.Parameters["screenSize"].SetValue(new Vector2(camera.Viewport.Width, camera.Viewport.Height));
-            effect.Parameters["random"].SetValue(randomTexture);
-            effect.Parameters["random_size"].SetValue(new Vector2(randomTexture.Width, randomTexture.Height));
-            effect.Parameters["viewProjectionInv"].SetValue(Matrix.Invert(camera.View
-                * camera.Projection));
-            effect.Parameters["g_sample_rad"].SetValue(rad);
-            effect.Parameters["g_intensity"].SetValue(intensity);
-            effect.Parameters["g_scale"].SetValue(scale);
-            effect.Parameters["g_bias"].SetValue(bias);
+            effect.Parameters["HalfPixel"].SetValue(HalfPixel);
+            effect.Parameters["NormalMap"].SetValue(NormalBuffer);
+            effect.Parameters["DepthMap"].SetValue(DepthBuffer);
+            effect.Parameters["ScreenSize"].SetValue(new Vector2(camera.Viewport.Width, camera.Viewport.Height));
+            effect.Parameters["Random"].SetValue(randomTexture);
+            effect.Parameters["Random_size"].SetValue(new Vector2(randomTexture.Width, randomTexture.Height));
+            //effect.Parameters["ViewProjectionInv"].SetValue(Matrix.Invert(camera.View
+            //    * camera.Projection));
+            effect.Parameters["ViewInverse"].SetValue(Matrix.Invert(camera.View));
+            effect.Parameters["Sample_rad"].SetValue(rad);
+            effect.Parameters["Intensity"].SetValue(intensity);
+            effect.Parameters["Scale"].SetValue(scale);
+            effect.Parameters["Bias"].SetValue(bias);
+            effect.Parameters["SidesLengthVS"].SetValue(new Vector2(camera.TanFovy * camera.AspectRatio, -camera.TanFovy));
+            effect.Parameters["FarPlane"].SetValue(camera.FarPlane);
 
             //Game.GraphicsDevice.BlendState = BlendState.Opaque;
             base.Draw(gameTime);

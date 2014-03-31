@@ -8,25 +8,19 @@ uniform extern float4 SampleOffsets[SAMPLE_COUNT];
 uniform extern float SampleWeights[SAMPLE_COUNT];
 //uniform extern texture SceneTex;
 
-float2 halfPixel;
+float2 HalfPixel;
 
 sampler TextureSampler : register(s0);
-/* = sampler_state
-{
-Texture = <SceneTex>;
-MinFilter = LINEAR;
-MagFilter = LINEAR;
-MipFilter = LINEAR;
-};*/
-texture normalMap;
+
+texture NormalMap;
 sampler normalSampler = sampler_state
 {
-	Texture = (normalMap);
+	Texture = (NormalMap);
 };
-texture depthMap;
+texture DepthMap;
 sampler depthSampler = sampler_state
 {
-	Texture = <depthMap>;
+	Texture = <DepthMap>;
 	AddressU = CLAMP;
 	AddressV = CLAMP;
 	MagFilter = POINT;
@@ -44,7 +38,7 @@ float getDepth(in float2 uv){
 
 float4 BiliteradBlurPS(float2 texCoord : TEXCOORD0) : COLOR0
 {
-	texCoord -= halfPixel;
+	texCoord -= HalfPixel;
 	float4 c = 0;
 
 	float3 centerNormal = getNormal(texCoord);

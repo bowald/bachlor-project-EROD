@@ -1,11 +1,13 @@
 float4x4 World;
 float4x4 View;
 float4x4 Projection;
-float4x4 WorldViewProjection;
 
-float4x4 LightViewProjection;
+float4x4 LightView;
+float4x4 LightProjection;
 
 float3 EyePosition;
+
+float FarPlane;
 
 Texture2D HeightMap;
 sampler2D HeightSampler = sampler_state
@@ -94,21 +96,22 @@ VertexShaderOutputShadow VertexShaderFunctionShadow(VertexShaderInput input)
 
 	float cameraDistance = distance(EyePosition, position);
 	float morphFactor = MORPH_FACTOR(cameraDistance);
-	morphFactor = saturate((morphFactor - 0.25) / 0.25);
+	morphFactor = saturate((morphFactor - 0.25) / 0.5);
 
 	position = lerp(position, input.morphTarget, morphFactor);
 
 	float4 worldPos = mul(position, World);
-	output.Position = mul(worldPos, LightViewProjection);
-
-	output.Depth.x = 1 - (output.Position.z / output.Position.w);
+	float4 viewPos = mul(worldPos, LightView);
+	output.Position = mul(viewPos, LightProjection);
+	output.Depth = viewPos.z;
 
 	return output;
 }
 
 float4 PixelShaderFunctionShadow(VertexShaderOutputShadow input) : COLOR0
 {
-	return float4(input.Depth.x, 0, 0, 1);
+	float depth = 1 - (-input.Depth / FarPlane);
+	return float4(depth, 0, 0, 1);
 }
 
 VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
@@ -117,25 +120,25 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 
 	output.treeLevel = (int)input.rangeStartEndLevel.z;
 
-	output.position = mul(input.position, transpose(input.instanceMatrix));
-	output.position.y = GET_HEIGHT(output.position);
+	float4 position = mul(input.position, transpose(input.instanceMatrix));
+	position.y = GET_HEIGHT(position);
 
 	input.morphTarget = mul(input.morphTarget, transpose(input.instanceMatrix));
 	input.morphTarget.y = GET_HEIGHT(input.morphTarget);
 
-	float cameraDistance = distance(EyePosition, output.position);
+	float cameraDistance = distance(EyePosition, position);
 	float morphFactor = MORPH_FACTOR(cameraDistance);
-	morphFactor = saturate((morphFactor - 0.25) / 0.25);
+	morphFactor = saturate((morphFactor - 0.25) / 0.5);
 
-	output.position = lerp(output.position, input.morphTarget, morphFactor);
+	position = lerp(position, input.morphTarget, morphFactor);
 
-	output.texCoord = output.position.xz + HALF2;
+	output.texCoord = position.xz + HALF2;
 
-	output.worldPos = mul(output.position, World);
-
-	output.position = mul(output.position, WorldViewProjection);
-
-	output.Depth = 1 - (output.position.z / output.position.w);
+	float4 worldPos = mul(position, World);
+	float4 viewPos = mul(worldPos, View);
+	output.position = mul(viewPos, Projection);
+	output.worldPos = worldPos;
+	output.Depth = viewPos.z;
 
 	return output;
 }
@@ -144,7 +147,6 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input)
 {
 	PixelShaderOutput output;
 
-	/// perform some very basic lighting
 	float4 normal = tex2D(NormalSampler, input.texCoord);
 	float y = normal.z;
 	float x = normal.x;
@@ -156,7 +158,9 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input)
 	//output.Color = float4(levelColors[input.treeLevel], 1);
 	output.Color = tex2D(TextureSampler, input.texCoord);
 
-	output.Depth = float4(input.Depth.x, 0, 0, 1);
+
+	float depth = 1 - (-input.Depth / FarPlane);
+	output.Depth = float4(depth, 0, 0, 1);
 	output.SGR = 0;
 
 	return output;

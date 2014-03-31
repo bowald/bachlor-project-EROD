@@ -47,11 +47,11 @@ namespace ERoD
 
             }
 
-            effect.Parameters["depthMap"].SetValue(Game.Renderer.depthMap);
-            effect.Parameters["normalMap"].SetValue(Game.Renderer.normalMap);
+            effect.Parameters["DepthMap"].SetValue(Game.Renderer.depthMap);
+            effect.Parameters["NormalMap"].SetValue(Game.Renderer.normalMap);
             effect.Parameters["SampleOffsets"].SetValue(sampleOffsetsHoriz);
             effect.Parameters["SampleWeights"].SetValue(sampleWeightsHoriz);
-            effect.Parameters["halfPixel"].SetValue(HalfPixel);
+            effect.Parameters["HalfPixel"].SetValue(HalfPixel);
 
             Game.GraphicsDevice.BlendState = BlendState.Opaque;
             // Set Params.

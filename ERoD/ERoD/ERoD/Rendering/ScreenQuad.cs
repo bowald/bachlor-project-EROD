@@ -8,21 +8,21 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace ERoD
 {
+
     public class ScreenQuad
     {
-        VertexPositionTexture[] corners;
+        VertexPositionTexture[] vertices;
         VertexBuffer vb;
         short[] ib;
-        VertexDeclaration vertDec;
 
         Game Game;
 
         public ScreenQuad(Game game)
         {
             Game = game;
-            corners = new VertexPositionTexture[4];
-            corners[0].Position = new Vector3(0, 0, 0);
-            corners[0].TextureCoordinate = Vector2.Zero;
+            vertices = new VertexPositionTexture[4];
+            vertices[0].Position = new Vector3(0, 0, 0);
+            vertices[0].TextureCoordinate = Vector2.Zero;
         }
 
         /// <summary>
@@ -31,9 +31,7 @@ namespace ERoD
         /// </summary>
         public virtual void Initialize()
         {
-            vertDec = VertexPositionTexture.VertexDeclaration;
-
-            corners = new VertexPositionTexture[]
+            vertices = new VertexPositionTexture[]
                     {
                         new VertexPositionTexture(
                             new Vector3(0,0,0),
@@ -50,28 +48,27 @@ namespace ERoD
                     };
 
             ib = new short[] { 0, 1, 2, 2, 3, 0 };
-            vb = new VertexBuffer(Game.GraphicsDevice, typeof(VertexPositionTexture), corners.Length, BufferUsage.None);
+            vb = new VertexBuffer(Game.GraphicsDevice, typeof(VertexPositionTexture), vertices.Length, BufferUsage.None);
         }
 
         public virtual void Draw(Vector2 v1, Vector2 v2)
         {
-            //Game.GraphicsDevice.VertexDeclaration = vertDec;
-            corners[0].Position.X = v2.X; // 1
-            corners[0].Position.Y = v1.Y; // -1
+            vertices[0].Position.X = v2.X; // 1
+            vertices[0].Position.Y = v1.Y; // -1
 
-            corners[1].Position.X = v1.X; // -1
-            corners[1].Position.Y = v1.Y; // -1
+            vertices[1].Position.X = v1.X; // -1
+            vertices[1].Position.Y = v1.Y; // -1
 
-            corners[2].Position.X = v1.X; // -1
-            corners[2].Position.Y = v2.Y; // 1
+            vertices[2].Position.X = v1.X; // -1
+            vertices[2].Position.Y = v2.Y; // 1
 
-            corners[3].Position.X = v2.X; // 1
-            corners[3].Position.Y = v2.Y; // 1
+            vertices[3].Position.X = v2.X; // 1
+            vertices[3].Position.Y = v2.Y; // 1
 
-            vb.SetData(corners);
+            vb.SetData(vertices);
             Game.GraphicsDevice.SetVertexBuffer(vb);
 
-            Game.GraphicsDevice.DrawUserIndexedPrimitives<VertexPositionTexture>(PrimitiveType.TriangleList, corners, 0, 4, ib, 0, 2);
+            Game.GraphicsDevice.DrawUserIndexedPrimitives<VertexPositionTexture>(PrimitiveType.TriangleList, vertices, 0, 4, ib, 0, 2);
         }
     }
 }

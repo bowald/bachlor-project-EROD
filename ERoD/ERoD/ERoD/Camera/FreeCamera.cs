@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
@@ -11,7 +12,7 @@ namespace ERoD
     {
         public float Speed { set; get; }
 
-        public FreeCamera(ERoD game, float nearPlane, float farPlane, Vector3 position, float speed) 
+        public FreeCamera(ERoD game, float nearPlane, float farPlane, Vector3 position, float speed)
             : base(game, nearPlane, farPlane)
         {
             Position = position;
@@ -102,7 +103,10 @@ namespace ERoD
             }
             world = Matrix.CreateFromQuaternion(rotation) * Matrix.CreateTranslation(position);
             view = Matrix.Invert(World);
+            frustum.Matrix = View * Projection;
 
+            String message = "X: " + Position.X + ", Y: " + Position.Y + ", Z: " + Position.Z;
+            Debug.WriteLine(message);
             base.Update(gameTime);
         }
     }

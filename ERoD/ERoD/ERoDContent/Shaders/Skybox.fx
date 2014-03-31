@@ -31,11 +31,11 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 	VertexShaderOutput output;
 
 	float4 worldPosition = mul(input.Position, World);
-		float4 viewPosition = mul(worldPosition, View);
-		output.Position = mul(viewPosition, Projection);
+	float4 viewPosition = mul(worldPosition, View);
+	output.Position = mul(viewPosition, Projection);
 
-	float4 VertexPosition = mul(input.Position, World);
-		output.TextureCoordinate = VertexPosition - CameraPosition;
+	float4 vertexPosition = mul(input.Position, World);
+	output.TextureCoordinate = vertexPosition - CameraPosition;
 
 	return output;
 }

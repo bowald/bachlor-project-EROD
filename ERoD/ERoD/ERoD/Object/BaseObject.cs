@@ -16,22 +16,31 @@ namespace ERoD
             get { return ((ICamera)Game.Services.GetService(typeof(ICamera))); }
         }
 
-        protected Matrix world;
-        protected Matrix transform;
+        protected Vector3 position;
+        protected Vector3 scale;
+        protected Quaternion rotation;
+        
         protected Model model;
         protected Texture2D diffuseTexture;
         protected Texture2D specularMap;
         protected Texture2D bumpMap;
         protected Boolean textureEnabled;
-//<<<<<<< HEAD
-//=======
-        protected Boolean mask;
-//        protected Vector3 nodeRotation = Vector3.Zero;
-//>>>>>>> PostProcess
+        protected Boolean mask;               //Used By motion Blur
+        protected float bumpConstant = 0f;    
         Matrix[] boneTransforms;
 
         public Effect standardEffect;
         public Effect shadowEffect;
+        
+        /// <summary>
+        ///  Increases the "size" of tiled textures.
+        /// </summary>
+        private float texMult = 1f;
+        public float TexMult
+        { 
+            get { return texMult; } 
+            set { texMult = value;  } 
+        }
 
         public bool Mask
         {
@@ -45,16 +54,15 @@ namespace ERoD
             set { textureEnabled = value; }
         }
 
-        public Matrix Transform
+        public float BumpConstant
         {
-            get { return transform; }
-            set { transform = value; }
+            get { return bumpConstant; }
+            set { bumpConstant = value; }
         }
 
         public Matrix World
         {
-            get { return world; }
-            set { world = value; }
+            get { return Matrix.CreateScale(scale) * Matrix.CreateFromQuaternion(rotation) * Matrix.CreateTranslation(position); }
         }
 
         public Model Model
@@ -81,11 +89,10 @@ namespace ERoD
             set { bumpMap = value; }
         }
 
-        protected BaseObject(Model model, Matrix transform, Game game)
+        protected BaseObject(Model model, Game game)
             : base(game)
         {
             this.model = model;
-            this.transform = transform;
             boneTransforms = new Matrix[model.Bones.Count];
         }
 
@@ -96,7 +103,6 @@ namespace ERoD
             foreach (ModelMesh mesh in model.Meshes)
             {
                 Matrix meshWorld = boneTransforms[mesh.ParentBone.Index] * World;
-                Matrix wvp = meshWorld * Camera.View * Camera.Projection;
 
                 foreach (ModelMeshPart part in mesh.MeshParts)
                 {
@@ -105,29 +111,45 @@ namespace ERoD
                     {
                         effect.Parameters["World"].SetValue(meshWorld);
                     }
-                    if (effect.Parameters["wvp"] != null)
+                    if (effect.Parameters["View"] != null)
                     {
-                        effect.Parameters["wvp"].SetValue(wvp);
+                        effect.Parameters["View"].SetValue(Camera.View);
                     }
-                    if (effect.Parameters["color"] != null)
+                    if (effect.Parameters["Projection"] != null)
                     {
-                        effect.Parameters["color"].SetValue(Color.White.ToVector3());
+                        effect.Parameters["Projection"].SetValue(Camera.Projection);
                     }
-                    if (effect.Parameters["textureEnabled"] != null)
+                    if (effect.Parameters["FarPlane"] != null)
                     {
-                        effect.Parameters["textureEnabled"].SetValue(textureEnabled);
+                        effect.Parameters["FarPlane"].SetValue(Camera.FarPlane);
                     }
-                    if (effect.Parameters["diffuseTexture"] != null)
+                    if (effect.Parameters["Color"] != null)
                     {
-                        effect.Parameters["diffuseTexture"].SetValue(diffuseTexture);
+                        effect.Parameters["Color"].SetValue(Color.White.ToVector3());
                     }
-                    if (effect.Parameters["specularMap"] != null)
+                    if (effect.Parameters["TextureEnabled"] != null)
                     {
-                        effect.Parameters["specularMap"].SetValue(specularMap);
+                        effect.Parameters["TextureEnabled"].SetValue(textureEnabled);
                     }
-                    if (effect.Parameters["bumpMap"] != null)
+                    if (effect.Parameters["DiffuseTexture"] != null)
                     {
-                        effect.Parameters["bumpMap"].SetValue(bumpMap);
+                        effect.Parameters["DiffuseTexture"].SetValue(diffuseTexture);
+                    }
+                    if (effect.Parameters["SpecularMap"] != null)
+                    {
+                        effect.Parameters["SpecularMap"].SetValue(specularMap);
+                    }
+                    if (effect.Parameters["BumpMap"] != null)
+                    {
+                        effect.Parameters["BumpMap"].SetValue(bumpMap);
+                    }
+                    if (effect.Parameters["bumpConstant"] != null)
+                    {
+                        effect.Parameters["bumpConstant"].SetValue(bumpConstant);
+                    }
+                    if (effect.Parameters["TexMult"] != null)
+                    {
+                        effect.Parameters["TexMult"].SetValue(TexMult);
                     }
                     if (effect.Parameters["mask"] != null)
                     {
@@ -143,7 +165,7 @@ namespace ERoD
             Draw(gameTime, standardEffect);
         }
 
-        public void DrawShadow(GameTime gameTime, Matrix lightViewProjection)
+        public void DrawShadow(GameTime gameTime, Matrix lightView, Matrix lightProjection)
         {
             model.CopyAbsoluteBoneTransformsTo(boneTransforms);
 
@@ -158,9 +180,17 @@ namespace ERoD
                     {
                         shadowEffect.Parameters["World"].SetValue(meshWorld);
                     }
-                    if (shadowEffect.Parameters["vp"] != null)
+                    if (shadowEffect.Parameters["LightView"] != null)
                     {
-                        shadowEffect.Parameters["vp"].SetValue(lightViewProjection);
+                        shadowEffect.Parameters["LightView"].SetValue(lightView);
+                    }
+                    if (shadowEffect.Parameters["LightProjection"] != null)
+                    {
+                        shadowEffect.Parameters["LightProjection"].SetValue(lightProjection);
+                    }
+                    if (shadowEffect.Parameters["FarPlane"] != null)
+                    {
+                        shadowEffect.Parameters["FarPlane"].SetValue(Camera.FarPlane);
                     }
                 }
                 mesh.Draw();

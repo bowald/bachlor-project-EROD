@@ -2,10 +2,12 @@
 
 float AmbientMag = .125;
 
-texture colorMap;
-sampler colorSampler = sampler_state
+float2 HalfPixel;
+
+texture ColorMap;
+sampler ColorSampler = sampler_state
 {
-	Texture = (colorMap);
+	Texture = (ColorMap);
 	AddressU = CLAMP;
 	AddressV = CLAMP;
 	MagFilter = LINEAR;
@@ -13,10 +15,10 @@ sampler colorSampler = sampler_state
 	Mipfilter = LINEAR;
 };
 
-texture skyMap;
-sampler skySampler = sampler_state
+texture SkyMap;
+sampler SkySampler = sampler_state
 {
-	Texture = (skyMap);
+	Texture = (SkyMap);
 	AddressU = CLAMP;
 	AddressV = CLAMP;
 	MagFilter = LINEAR;
@@ -25,10 +27,10 @@ sampler skySampler = sampler_state
 };
 
 
-texture lightMap;
-sampler lightSampler = sampler_state
+texture LightMap;
+sampler LightSampler = sampler_state
 {
-	Texture = (lightMap);
+	Texture = (LightMap);
 	AddressU = CLAMP;
 	AddressV = CLAMP;
 	MagFilter = LINEAR;
@@ -36,18 +38,16 @@ sampler lightSampler = sampler_state
 	Mipfilter = LINEAR;
 };
 
-texture depthMap;
-sampler depthSampler = sampler_state
+texture DepthMap;
+sampler DepthSampler = sampler_state
 {
-	Texture = <depthMap>;
+	Texture = <DepthMap>;
 	AddressU = CLAMP;
 	AddressV = CLAMP;
 	MagFilter = POINT;
 	MinFilter = POINT;
 	Mipfilter = POINT;
 };
-
-float2 halfPixel;
 
 struct VertexShaderInput
 {
@@ -66,19 +66,19 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
     VertexShaderOutput output;
 
 	output.Position = float4(input.Position, 1);
-	output.TexCoord = input.TexCoord - halfPixel;
+	output.TexCoord = input.TexCoord - HalfPixel;
 
     return output;
 }
 
 float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 {
-	float4 color = tex2D(colorSampler, input.TexCoord);
-	color *= (tex2D(lightSampler, input.TexCoord) + AmbientMag);
+	float4 color = tex2D(ColorSampler, input.TexCoord);
+	color *= (tex2D(LightSampler, input.TexCoord) + AmbientMag);
 
-	float depth = 1 - tex2D(depthSampler, input.TexCoord).r;
+	float depth = 1 - tex2D(DepthSampler, input.TexCoord).r;
 	if (depth > 0.999999){
-		color = tex2D(skySampler, input.TexCoord);
+		color = tex2D(SkySampler, input.TexCoord);
 	}	
 
     return color;

@@ -1,15 +1,15 @@
 #define g_numSamples 8
 
-float4x4 vp;
-float4x4 g_ViewProjectionInverseMatrix;
-float4x4 g_previousViewProjectionMatrix;
+float4x4 Vp;
+float4x4 ViewProjectionInverseMatrix;
+float4x4 PreviousViewProjectionMatrix;
 
-float epsilon = 0.00033f;
+float Epsilon = 0.00033f;
 
-texture mask;
+texture Mask;
 sampler maskSampler = sampler_state
 {
-	Texture = (mask);
+	Texture = (Mask);
 	AddressU = Clamp;
 	AddressV = Clamp;
 	MinFilter = Point;
@@ -17,13 +17,13 @@ sampler maskSampler = sampler_state
 	MipFilter = Point;
 };
 
-float2 halfPixel;
-sampler screen : register(s0);
+float2 HalfPixel;
+sampler Screen : register(s0);
 
-texture depthMap;
+texture DepthMap;
 sampler depthSampler = sampler_state
 {
-	Texture = (depthMap);
+	Texture = (DepthMap);
 	MinFilter = Point;
 	MagFilter = Point;
 	MipFilter = None;
@@ -56,21 +56,21 @@ float4 PixelShaderFunction(float2 texCoord : TEXCOORD0) : COLOR0
 {
 
 	float mask = tex2D(maskSampler, texCoord).a;
-	float4 color = tex2D(screen, texCoord);
+	float4 color = tex2D(Screen, texCoord);
 
 	if (mask == 0)
 	{
 		return color;
 	}
 
-	texCoord -= halfPixel;
+	texCoord -= HalfPixel;
 
 	float zOverW = 1 - tex2D(depthSampler, texCoord);
 	// H is the viewport position at this pixel in the range -1 to 1.  
 	float4 H = float4(texCoord.x * 2 - 1, (1 - texCoord.y) * 2 - 1,
 		zOverW, 1);
 	// Transform by the view-projection inverse.  
-	float4 D = mul(H, g_ViewProjectionInverseMatrix);
+	float4 D = mul(H, ViewProjectionInverseMatrix);
 	// Divide by w to get the world position.  
 	float4 worldPos = D / D.w;
 
@@ -78,7 +78,7 @@ float4 PixelShaderFunction(float2 texCoord : TEXCOORD0) : COLOR0
 	float4 currentPos = H;
 	// Use the world position, and transform by the previous view-  
 	// projection matrix.  
-	float4 previousPos = mul(worldPos, g_previousViewProjectionMatrix);
+	float4 previousPos = mul(worldPos, PreviousViewProjectionMatrix);
 	// Convert to nonhomogeneous points [-1,1] by dividing by w.  
 	previousPos /= previousPos.w;
 	// Use this frame's position and last frame's to compute the pixel  
@@ -94,9 +94,9 @@ float4 PixelShaderFunction(float2 texCoord : TEXCOORD0) : COLOR0
 	for (int i = 1; i < g_numSamples; ++i, texCoord += velocity)
 	{
 		// Sample the color buffer along the velocity vector.  
-		float4 currentColor = tex2D(screen, texCoord);
+		float4 currentColor = tex2D(Screen, texCoord);
 		float depth = 1 - tex2D(depthSampler, texCoord).r;
-		if (abs(zOverW - depth) > epsilon)
+		if (abs(zOverW - depth) > Epsilon)
 		{
 			blendedColor = lerp(blendedColor, color, 1.0f/(i+1));
 		}

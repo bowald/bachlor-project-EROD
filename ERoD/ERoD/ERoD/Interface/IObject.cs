@@ -9,7 +9,7 @@ namespace ERoD
 {
     public interface IObject
     {
-        Matrix World { get; set; }
+        Matrix World { get; }
         Model Model { get; set; }
         Texture2D Texture { get; set; }
         Texture2D BumpMap { get; set; }
