@@ -1,5 +1,4 @@
-#define SampleCount 12
-
+#define SampleCount 10
 uniform extern float3 SSAOSamplePoints[SampleCount];
 
 //VertexShader globals
@@ -10,12 +9,10 @@ float OcclusionRadious;
 float FullOcclusionThreshold;
 float NoOcclusionThreshold;
 float OcclusionPower;
-float2 CameraSize;
 
 //2D position to WorldSpace position globals
 float FarPlane;
 float2 SidesLengthVS;
-float4x4 ViewInverse;
 
 texture DepthMap;
 sampler DepthSampler = sampler_state
@@ -28,34 +25,33 @@ sampler DepthSampler = sampler_state
 	Mipfilter = POINT;
 };
 
-float3 get_Position(float2 screenUV)
+float3 get_Position(float2 texCoord)
 {
-	float depth = 1 - tex2D(DepthSampler, screenUV).r;
+	float depth = 1 - tex2D(DepthSampler, texCoord).r;
 
-	float2 screenPos = screenUV * 2.0f - 1.0f;
+	float2 screenPos = texCoord * 2.0f - 1.0f;
 	depth *= FarPlane;
 
 	// Camera View Space
-	float4 positionCVS = float4(float3(SidesLengthVS * screenPos * depth, -depth), 1.0f);
+	return float3(SidesLengthVS * screenPos * depth, -depth);
 	
-	// World Space
-	return mul(positionCVS, ViewInverse);
 }
 
 float OcclusionFunction(float distance, float FullOcclusionThreshold, float NoOcclusionThreshold, float OcclusionPower)
 {
-	float occlusionEpsilon = 0.1f;
+	float occlusionEpsilon = 0.0f;
 	if (distance > occlusionEpsilon)
 	{
-		float noOcclusionRange = NoOcclusionThreshold - FullOcclusionThreshold;
-		if(distance < FullOcclusionThreshold)
-		{
-			return 1.0f;
-		}
-		else 
-		{
-			return max(1.0f - pow( abs((distance - FullOcclusionThreshold) / noOcclusionRange), OcclusionPower), 0.0f);
-		}
+		return 1.0f;
+		//float noOcclusionRange = NoOcclusionThreshold - FullOcclusionThreshold;
+		//if(distance < FullOcclusionThreshold)
+		//{
+		//	return 1.0f;
+		//}
+		//else 
+		//{
+		//	return max(1.0f - pow( (distance - FullOcclusionThreshold) / noOcclusionRange, OcclusionPower), 0.0f);
+		//}
 	}
 	else
 	{
@@ -68,12 +64,12 @@ float TestOcclusion( float3 viewPos, float3 SamplePointDelta, float OcclusionRad
     float3 samplePoint = viewPos + OcclusionRadius * SamplePointDelta;
     float2 samplePointUV;
     samplePointUV = samplePoint.xy / samplePoint.z;
-    samplePointUV = samplePointUV / CameraSize / 0.5f;
-    samplePointUV = samplePointUV + float2( 1.0f, -1.0f );
-    samplePointUV = samplePointUV * float2( 0.5f, -0.5f );
-    float sampleDepth = tex2D( DepthSampler, samplePointUV ).r;
-    float distance = samplePoint.z - sampleDepth;
-    return OcclusionFunction( distance, FullOcclusionThreshold,NoOcclusionThreshold, OcclusionPower );
+    samplePointUV = samplePointUV / SidesLengthVS;
+    samplePointUV = samplePointUV + float2( -1.0f, -1.0f );
+    samplePointUV = samplePointUV * float2( -0.5f, -0.5f );
+    float sampleDepth = 1 - tex2D( DepthSampler, samplePointUV ).r;
+    float distance = (-samplePoint.z / FarPlane) - sampleDepth;
+    return OcclusionFunction( distance, FullOcclusionThreshold, NoOcclusionThreshold, OcclusionPower );
 }
 
 struct VertexShaderInput
@@ -98,36 +94,22 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 	return output;
 }
 
-struct PS_INPUT
+float4 PostProcessSSAO( VertexShaderOutput input ) : COLOR0
 {
-	float2 uv : TEXCOORD0;
-	//float2 vPos : VPOS; Used in gems 8
-};
-
-struct PS_OUTPUT
-{
-	float4 color : COLOR0;
-};
-
-PS_OUTPUT PostProcessSSAO( PS_INPUT input )
-{
-	PS_OUTPUT o = (PS_OUTPUT)0;
-	o.color.rgb = 1.0f;
-
-	float2 screenUV;
-	float ViewPos = get_Position(input.uv); //VertexPos och screenpos => ViewPos i worldspace
+	float3 ViewPos = get_Position(input.TexCoord); //VertexPos och screenpos => ViewPos i worldspace
 
 	half accumulatedBlock = 0.0f; //Amount of occlusion
 	for (int i = 0; i < SampleCount; i++)
 	{
 		float3 samplePointDelta = SSAOSamplePoints[i];
-		float block = TestOcclusion(ViewPos, samplePointDelta, OcclusionRadious, FullOcclusionThreshold, NoOcclusionThreshold, OcclusionPower);
-		accumulatedBlock += block;
+		//float block = TestOcclusion(ViewPos, samplePointDelta, OcclusionRadious, FullOcclusionThreshold, NoOcclusionThreshold, OcclusionPower);
+		float block = TestOcclusion(ViewPos, samplePointDelta, 1, 0.52, 15.0, 1.0);
+		accumulatedBlock = block;
 	}
 	accumulatedBlock /= SampleCount;
 
-	o.color = 1 * (1.0f - accumulatedBlock);
-	return o;
+	float color = 1.0f - accumulatedBlock;
+	return float4(color, color, color, 1);
 }
 
 technique SSAO

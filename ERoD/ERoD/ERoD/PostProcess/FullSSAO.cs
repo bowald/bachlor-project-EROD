@@ -41,14 +41,14 @@ namespace ERoD
             : base(game)
         {
             ssao = new BasicSSAO(game, radius, intensity, scale, bias);
-            ssao2 = new BasicSSAO_SC2(game, 3f, 5f, 0.1f, 2f);
+            ssao2 = new BasicSSAO_SC2(game, 3f, 0.2f, 5.0f, 2f);
 
             BlurV = new BiliteradBlurV(game, 2.0f);
             BlurH = new BiliteradBlurH(game, 2.0f);
 
             blend = new Blend(game);
 
-            AddPostProcess(ssao);
+            AddPostProcess(ssao2);
             //AddPostProcess(BlurV);
             //AddPostProcess(BlurH);
             //AddPostProcess(blend);
