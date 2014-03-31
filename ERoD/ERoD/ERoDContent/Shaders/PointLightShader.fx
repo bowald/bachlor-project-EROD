@@ -19,6 +19,8 @@ float2 SidesLengthVS;
 // Distance to the far plane.
 float FarPlane;
 
+bool DebugPosition = false;
+
 texture ColorMap;
 sampler ColorSampler = sampler_state
 {
@@ -101,6 +103,11 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 
 	float NdotL = saturate(dot(normal, lightVector));
 	float3 diffuseLight = NdotL * Color.rgb;
+
+	if (DebugPosition)
+	{
+		return float4(1, attenuation, 0, 1);
+	}
 
 	return (attenuation * LightIntensity * float4(diffuseLight.rgb, 1));// +specular * att *ligtI;
 }
