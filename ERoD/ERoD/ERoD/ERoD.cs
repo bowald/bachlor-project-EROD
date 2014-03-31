@@ -317,6 +317,18 @@ namespace ERoD
             {
                 renderer.debugPosition = !renderer.debugPosition;
             }
+            if (keyState.IsKeyDown(Keys.U))
+            {
+                renderer.PointLights.Add(LightHelper.Light);
+            }
+            if (keyState.IsKeyDown(Keys.Y))
+            {
+                Console.WriteLine("All lights:");
+                foreach (IPointLight light in renderer.PointLights)
+                {
+                    Console.WriteLine(light);
+                }
+            }
 
             LastGamePadState = GamePadState;
             base.Update(gameTime);
