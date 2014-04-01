@@ -44,8 +44,8 @@ namespace ERoD
                 effect = Game.Content.Load<Effect>("Shaders/PostProcessing/LightRay");
 
             effect.CurrentTechnique = effect.Techniques["LightRayFX"];
-
-            effect.Parameters["halfPixel"].SetValue(HalfPixel);
+            effect.Parameters["DepthBuffer"].SetValue(DepthBuffer);
+            effect.Parameters["HalfPixel"].SetValue(HalfPixel);
 
             effect.Parameters["Density"].SetValue(Density);
             // Decay: 0-1. Dissipates each sample's contribution as the ray progresses away from the light source.
@@ -60,6 +60,9 @@ namespace ERoD
             effect.Parameters["matVP"].SetValue(camera.View * camera.Projection);
 
             // Set Params.
+            base.Draw(gameTime);
+
+            effect.CurrentTechnique = effect.Techniques["LightRayFX"];
             base.Draw(gameTime);
 
         }

@@ -60,3 +60,4 @@ technique LightSourceSceneMask
 		PixelShader = compile ps_2_0 LightSourceSceneMaskPS();
 	}
 }
+

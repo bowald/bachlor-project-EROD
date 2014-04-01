@@ -223,8 +223,8 @@ namespace ERoD
             space.ForceUpdater.Gravity = new BVector3(0, GameConstants.Gravity, 0);
 
 
-            manager.AddEffect(new LightRay(this, new Vector3(2500, 2000, 2500), 0.1f, 0.95f, 0.1f, 0.20f));
-           // manager.AddEffect(new CrepuscularRays(this, new Vector3(2500, 2000, 2500), ));
+            manager.AddEffect(new GodRays(this, new Vector3(2500, 2000, 2500), 0.1f, 0.95f, 0.1f, 0.20f));
+            //manager.AddEffect(new CrepuscularRays(this, new Vector3(2500, 2000, 2500), 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f));
 
             //manager.AddEffect(new MotionBlur(this));
             //manager.AddEffect(new FullSSAO(this,0.2f, 0.7f, 1.5f, 0.5f));

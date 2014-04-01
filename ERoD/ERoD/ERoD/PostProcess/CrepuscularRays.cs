@@ -63,20 +63,20 @@ namespace ERoD
             set { rays.Exposure = value; }
         }
 
-        public CrepuscularRays(ERoD game, Vector3 lightSourcePos, string lightSourceImage, float lightSourceSize, float density, float decay, float weight, float exposure, float brightThreshold)
+        public CrepuscularRays(ERoD game, Vector3 lightSourcePos, float lightSourceSize, float density, float decay, float weight, float exposure, float brightThreshold)
             : base(game)
         {
-            lsMask = new LightSourceMask(game, lightSourcePos, lightSourceImage, lightSourceSize);
+            //lsMask = new LightSourceMask(game, lightSourcePos, lightSourceImage, lightSourceSize);
             mask = new LightSceneMask(game, lightSourcePos);
             rays = new LightRay(game, lightSourcePos, density, decay, weight, exposure);
             bp = new BrightPass(game, brightThreshold);
             blend = new SceneBlend(game);
 
             //AddPostProcess(lsMask);
-            //AddPostProcess(mask);
-            //AddPostProcess(rays);
-            //AddPostProcess(bp);
-            //AddPostProcess(blend);
+            AddPostProcess(mask);
+            AddPostProcess(rays);
+            AddPostProcess(bp);
+            AddPostProcess(blend);
         }
 
     }

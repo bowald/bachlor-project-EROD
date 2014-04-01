@@ -1,6 +1,4 @@
 
-#include "PPVertexShader.fx"
-
 #define NUM_SAMPLES 128
 
 float3 lightPosition;
@@ -8,7 +6,8 @@ float3 cameraPosition;
 
 float4x4 matVP;
 
-float2 halfPixel;
+float2 HalfPixel;
+//float2 PixelSize;
 
 float Density = .5f;
 float Decay = .95f;
@@ -19,6 +18,31 @@ float Intensity = 1.0f;
 sampler2D Scene: register(s0){
 	AddressU = Clamp;
 	AddressV = Clamp;
+};
+
+texture DepthBuffer;
+sampler2D depthSampler = sampler_state
+{
+	Texture = <DepthBuffer>;
+	MipFilter = NONE;
+	MagFilter = POINT;
+	MinFilter = POINT;
+	AddressU = Clamp;
+	AddressV = Clamp;
+};
+
+struct VertexShaderInput
+{
+	float4 Position : POSITION0;
+	float2 TexCoord : TEXCOORD0;
+};
+
+
+struct VertexShaderOutput
+{
+	float4 Position : POSITION0;
+	float4 TexCoord : TEXCOORD0;
+
 };
 
 float4 lightRayPS(float2 texCoord : TEXCOORD0) : COLOR0
@@ -34,15 +58,7 @@ float4 lightRayPS(float2 texCoord : TEXCOORD0) : COLOR0
 	intensity = min(1, intensity);
 	intensity = max(0, intensity);
 
-	//if (ScreenPosition.z < 0 || ScreenPosition.z > 1)
-	//	float Intensity = 0;
-	//else
-	//{
-	//	// make the intensity function more narrow (intensity^3)
-	//	float Intensity = Intensity*(intensity*intensity*intensity);
-	//}
-
-	float2 TexCoord = texCoord - halfPixel;
+	float2 TexCoord = texCoord - HalfPixel;
 	// Calculate vector from pixel to light source in screen space
 	float2 DeltaTexCoord = (TexCoord - ScreenPosition.xy);
 	// Divide by number of samples and scale by control factor.  
@@ -77,11 +93,19 @@ float4 lightRayPS(float2 texCoord : TEXCOORD0) : COLOR0
 */
 }
 
+VertexShaderOutput VertexShaderConvertRGB(VertexShaderInput input)
+{
+	VertexShaderOutput output = (VertexShaderOutput)0;
+	output.Position = input.Position;
+	output.TexCoord.xy = input.TexCoord + HalfPixel;
+	return output;
+}
+
 technique LightRayFX
 {
 	pass p0
 	{
-		VertexShader = compile vs_3_0 VertexShaderFunction();
+		VertexShader = compile vs_3_0 VertexShaderConvertRGB();
 		PixelShader = compile ps_3_0 lightRayPS();
 
 		AlphaBlendEnable = true;

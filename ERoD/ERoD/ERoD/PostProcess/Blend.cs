@@ -10,6 +10,8 @@ namespace ERoD
 {
     public class Blend : BasicPostProcess
     {
+        public bool AditiveBlend = false;
+
         public Blend(ERoD game)
             : base(game)
         {
@@ -21,7 +23,10 @@ namespace ERoD
             if (effect == null)
                 effect = Game.Content.Load<Effect>("Shaders/PostProcessing/Blend");
 
+            if (!AditiveBlend)
                 effect.CurrentTechnique = effect.Techniques["Blend"];
+            else
+                effect.CurrentTechnique = effect.Techniques["Aditive"];
 
             effect.Parameters["OrgScene"].SetValue(orgBuffer);
             // Set Params.
