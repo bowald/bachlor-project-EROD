@@ -330,6 +330,13 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Shaders\PostProcessing\SSAO_SC2_2.fx">
+      <Name>SSAO_SC2_2</Name>
+      <Importer>EffectImporter</Importer>
+      <Processor>EffectProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="Shaders\PostProcessing\SSAO_SC2.fx">
       <Name>SSAO_SC2</Name>
       <Importer>EffectImporter</Importer>
