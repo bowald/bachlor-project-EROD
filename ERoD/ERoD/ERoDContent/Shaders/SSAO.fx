@@ -104,7 +104,7 @@ float2 getRandom(in float2 uv)
 float doAmbientOcclusion(in float2 tcoord, in float2 uv, in float3 p, in float3 cnorm)
 {
 	float3 diff = getPosition(tcoord + uv) - p;
-		const float3 v = normalize(diff);
+	const float3 v = normalize(diff);
 	const float d = length(diff)* Scale;
 	return max(0.0, dot(cnorm, v) + Bias)*(1.0 / (1.0 + d))* Intensity;
 }
