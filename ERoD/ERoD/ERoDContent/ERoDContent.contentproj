@@ -153,8 +153,8 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Shaders\depthRender.fx">
-      <Name>depthRender</Name>
+    <Compile Include="Shaders\DepthRender.fx">
+      <Name>DepthRender</Name>
       <Importer>EffectImporter</Importer>
       <Processor>EffectProcessor</Processor>
     </Compile>
@@ -183,13 +183,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Shaders\SSAO.fx">
-      <Name>SSAO</Name>
-      <Importer>EffectImporter</Importer>
-      <Processor>EffectProcessor</Processor>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="Sprites\Lap1.spritefont">
       <Name>Lap1</Name>
       <Importer>FontDescriptionImporter</Importer>
@@ -204,30 +197,11 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Textures\ssaoRandom.jpg">
-      <Name>ssaoRandom</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Textures\random.png">
-      <Name>random</Name>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="Skyboxes\skybox.dds">
       <Name>skybox</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Shaders\PostProcessing\PDBlur.fx">
-      <Name>PDBlur</Name>
-      <Importer>EffectImporter</Importer>
-      <Processor>EffectProcessor</Processor>
     </Compile>
   </ItemGroup>
   <ItemGroup>
@@ -325,20 +299,6 @@
   <ItemGroup>
     <Compile Include="Shaders\PostProcessing\Blend.fx">
       <Name>Blend</Name>
-      <Importer>EffectImporter</Importer>
-      <Processor>EffectProcessor</Processor>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Shaders\PostProcessing\SSAO_SC2_2.fx">
-      <Name>SSAO_SC2_2</Name>
-      <Importer>EffectImporter</Importer>
-      <Processor>EffectProcessor</Processor>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Shaders\PostProcessing\SSAO_SC2.fx">
-      <Name>SSAO_SC2</Name>
       <Importer>EffectImporter</Importer>
       <Processor>EffectProcessor</Processor>
     </Compile>

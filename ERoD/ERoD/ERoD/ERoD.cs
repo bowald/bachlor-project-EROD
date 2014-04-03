@@ -220,7 +220,6 @@ namespace ERoD
             space.ForceUpdater.Gravity = new BVector3(0, GameConstants.Gravity, 0);
 
             //manager.AddEffect(new MotionBlur(this));
-            manager.AddEffect(new FullSSAO(this,0.2f, 1.5f, 1.5f, 1f));
 
             renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(2500, 2000, 2500), Vector3.Zero, Color.LightYellow, 0.5f, true));
 

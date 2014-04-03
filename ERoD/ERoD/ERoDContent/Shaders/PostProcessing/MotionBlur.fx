@@ -1,4 +1,4 @@
-#define g_numSamples 8
+#define numSamples 8
 
 float4x4 Vp;
 float4x4 ViewProjectionInverseMatrix;
@@ -91,7 +91,7 @@ float4 PixelShaderFunction(float2 texCoord : TEXCOORD0) : COLOR0
 	texCoord += velocity;
 
 	float4 blendedColor = color;
-	for (int i = 1; i < g_numSamples; ++i, texCoord += velocity)
+	for (int i = 1; i < numSamples; ++i, texCoord += velocity)
 	{
 		// Sample the color buffer along the velocity vector.  
 		float4 currentColor = tex2D(Screen, texCoord);

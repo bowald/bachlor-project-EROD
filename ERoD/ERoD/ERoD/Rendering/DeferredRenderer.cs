@@ -92,8 +92,6 @@ namespace ERoD
 
             deferredShadowShader = Game.Content.Load<Effect>("Shaders/DeferredShadowShader");
 
-            randomTexture = Game.Content.Load<Texture2D>("Textures/random");
-
             // Debug depth renderer
             DepthRender = Game.Content.Load<Effect>("Shaders/depthRender");
             w = GraphicsDevice.Viewport.Width / 6;

@@ -1,4 +1,4 @@
-float2 halfPixel;
+float2 HalfPixel;
 
 sampler2D Scene: register(s0){
 	AddressU = Mirror;
@@ -34,7 +34,7 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 }
 float4 BlendPS(float2 texCoord : TEXCOORD0) : COLOR0
 {
-	texCoord -= halfPixel;
+	texCoord -= HalfPixel;
 	float4 col = tex2D(orgScene, texCoord) * tex2D(Scene, texCoord);
 
 		return col;
