@@ -39,13 +39,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Shaders\PostProcessing\PostSample.fx">
-      <Name>PostSample</Name>
-      <Importer>EffectImporter</Importer>
-      <Processor>EffectProcessor</Processor>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="Models\ship.fbx">
       <Name>ship</Name>
       <Importer>FbxImporter</Importer>
@@ -160,8 +153,8 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Shaders\depthRender.fx">
-      <Name>depthRender</Name>
+    <Compile Include="Shaders\DepthRender.fx">
+      <Name>DepthRender</Name>
       <Importer>EffectImporter</Importer>
       <Processor>EffectProcessor</Processor>
     </Compile>
@@ -214,6 +207,13 @@
   <ItemGroup>
     <Compile Include="Shaders\Skybox.fx">
       <Name>Skybox</Name>
+      <Importer>EffectImporter</Importer>
+      <Processor>EffectProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Shaders\PostProcessing\BiliteralBlur.fx">
+      <Name>BiliteralBlur</Name>
       <Importer>EffectImporter</Importer>
       <Processor>EffectProcessor</Processor>
     </Compile>
@@ -294,6 +294,13 @@
       <Name>diffuse</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Shaders\PostProcessing\Blend.fx">
+      <Name>Blend</Name>
+      <Importer>EffectImporter</Importer>
+      <Processor>EffectProcessor</Processor>
     </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\XNA Game Studio\$(XnaFrameworkVersion)\Microsoft.Xna.GameStudio.ContentPipeline.targets" />

@@ -112,10 +112,15 @@
     <Compile Include="Object\ObjectConstants.cs" />
     <Compile Include="Object\Ship.cs" />
     <Compile Include="Object\StaticObject.cs" />
+    <Compile Include="PostProcess\AdvancedPostProcess.cs" />
+    <Compile Include="PostProcess\BiliteralBlurH.cs" />
+    <Compile Include="PostProcess\BiliteralBlurV.cs" />
+    <Compile Include="PostProcess\Blend.cs" />
     <Compile Include="PostProcess\MotionBlur.cs" />
-    <Compile Include="PostProcess\PostProcess.cs" />
+    <Compile Include="PostProcess\BasicPostProcess.cs" />
     <Compile Include="Object\Terrain\HeightTerrainCDLOD.cs" />
     <Compile Include="Object\Terrain\QuadTree.cs" />
+    <Compile Include="PostProcess\PostProcessingManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="ERoD.cs" />

@@ -25,7 +25,8 @@ namespace ERoD
         protected Texture2D specularMap;
         protected Texture2D bumpMap;
         protected Boolean textureEnabled;
-        protected float bumpConstant = 0f;
+        protected Boolean mask;               //Used By motion Blur
+        protected float bumpConstant = 0f;    
         Matrix[] boneTransforms;
 
         public Effect standardEffect;
@@ -39,6 +40,12 @@ namespace ERoD
         { 
             get { return texMult; } 
             set { texMult = value;  } 
+        }
+
+        public bool Mask
+        {
+            get { return mask; }
+            set { mask = value; }
         }
 
         public bool TextureEnabled
@@ -143,6 +150,10 @@ namespace ERoD
                     if (effect.Parameters["TexMult"] != null)
                     {
                         effect.Parameters["TexMult"].SetValue(TexMult);
+                    }
+                    if (effect.Parameters["mask"] != null)
+                    {
+                        effect.Parameters["mask"].SetValue(mask);
                     }
                 }
                 mesh.Draw();

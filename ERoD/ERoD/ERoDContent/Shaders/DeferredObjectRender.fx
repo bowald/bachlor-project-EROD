@@ -4,6 +4,8 @@ float4x4 Projection;
 
 float3 TexMult = 1;
 
+bool Mask = false;
+
 // Color of the object.
 float3 Color = 1;
 
@@ -132,6 +134,15 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input)
 	else
 	{
 		output.Color = float4(Color, 1);
+	}
+
+	if (Mask)
+	{
+		output.Color.a = 0;
+	}
+	else 
+	{
+		output.Color.a = 1;
 	}
 
 	float3 bumpValue = BumpConstant * (tex2D(BumpMapSampler, input.TexCoord) * 2.0f - 1.0f);

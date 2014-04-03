@@ -66,7 +66,8 @@ namespace ERoD
             get { return renderer; }
         }
 
-        protected List<PostProcess> postProcesses = new List<PostProcess>();
+        protected PostProcessingManager manager;
+
 
         public ModelDrawer modelDrawer;  //Used to draw entities for debug.
 
@@ -83,7 +84,6 @@ namespace ERoD
             //graphics.IsFullScreen = true;
 
             Content.RootDirectory = "Content";
-
             renderer = new DeferredRenderer(this);
 
             RenderDebug = false;
@@ -102,8 +102,11 @@ namespace ERoD
             Services.AddService(typeof(ITerrain), terrain);
 
             FreeCamera = new FreeCamera(this, 0.1f, 7000.0f, new Vector3(25f, 150.0f, 25f), 270.0f);
+
             this.Services.AddService(typeof(ICamera), FreeCamera);
             FreeCameraActive = true;
+
+            manager = new PostProcessingManager(this);
 
             GameLogic = new GameLogic(this);
             this.Services.AddService(typeof(GameLogic), GameLogic);
@@ -158,6 +161,7 @@ namespace ERoD
             ship.TextureEnabled = true;
             ship.standardEffect = objEffect;
             ship.shadowEffect = objShadow;
+            ship.Mask = true;
             Components.Add(ship);
             GameLogic.AddPlayer(ship, "Anton");
 
@@ -457,7 +461,8 @@ namespace ERoD
         protected override void Draw(GameTime gameTime)
         {
             renderer.Draw(gameTime);
-            GraphicsDevice.Clear(Color.Coral);
+
+            //GraphicsDevice.Clear(Color.Coral);
 
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque,
             SamplerState.PointClamp, DepthStencilState.Default,
@@ -470,10 +475,8 @@ namespace ERoD
 
             PrintMessage();
 
-            foreach (PostProcess postProcess in postProcesses)
-            {
-            //    postProcess.Draw(gameTime);
-            }
+            manager.Draw(gameTime, renderer.finalBackBuffer, renderer.depthMap, renderer.normalMap);
+            //manager.Draw(gameTime);
 
             if (RenderDebug)
             {
