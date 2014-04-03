@@ -138,6 +138,8 @@ namespace ERoD
 
             space.Add(((ITerrain)Services.GetService(typeof(ITerrain))).PhysicTerrain);
 
+            manager.AddEffect(new Bloom(this, 0.5f));
+
 
             #region Ship loading
 

@@ -1,5 +1,12 @@
-float2 HalfPixel;
+// Intensity
+float LastSceneIntensity;		//= 1.3;
+float OriginalIntensity;		//= 1.0;
 
+// Saturation
+float LastSceneSaturation;		//= 1.0;
+float OriginalSaturation;	//= 1.0;
+
+//Backbuffer
 sampler2D Scene: register(s0){
 	AddressU = Mirror;
 	AddressV = Mirror;
@@ -13,38 +20,30 @@ sampler2D orgScene = sampler_state
 	AddressV = CLAMP;
 };
 
-struct VertexShaderOutput
-{
-	float4 Position : POSITION0;
-	float2 TexCoord : TexCoord0;
-};
-struct VertexShaderInput
-{
-	float4 Position : POSITION0;
-	float2 TexCoord : TexCoord0;
-};
-VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
-{
-	VertexShaderOutput output = (VertexShaderOutput)0;
 
-	output.Position = float4(input.Position.xyz, 1);
-	output.TexCoord = input.TexCoord;
-
-	return output;
+float4 AdjustSaturation(float4 color, float saturation)
+{
+	float grey = dot(color, float3(0.3, 0.59, 0.11));
+	return lerp(grey, color, saturation);
 }
-float4 BlendPS(float2 texCoord : TEXCOORD0) : COLOR0
-{
-	texCoord -= HalfPixel;
-	float4 col = tex2D(orgScene, texCoord) * tex2D(Scene, texCoord);
 
-		return col;
+float4 PixelShaderFunction(float2 texCoord : TEXCOORD0) : COLOR0
+{
+	float4 lastSceneColor = tex2D(Scene, texCoord);
+	float4 originalColor = tex2D(orgScene, texCoord);
+
+	lastSceneColor = AdjustSaturation(lastSceneColor, LastSceneSaturation) * LastSceneIntensity;
+	originalColor = AdjustSaturation(originalColor, OriginalSaturation) * OriginalIntensity;
+
+	originalColor *= (1 - saturate(lastSceneColor));
+
+    return originalColor + lastSceneColor;
 }
 
 technique Blend
 {
-	pass p0
-	{
-		VertexShader = compile vs_2_0 VertexShaderFunction();
-		PixelShader = compile ps_2_0 BlendPS();
-	}
+    pass P0
+    {
+        PixelShader = compile ps_2_0 PixelShaderFunction();
+    }
 }

@@ -14,16 +14,10 @@ namespace ERoD
         public Texture2D Scene;
         public Texture2D DepthBuffer;
 
-        //public RenderTarget2D newScene;
-
         protected List<AdvancedPostProcess> postProcessingEffects = new List<AdvancedPostProcess>();
 
         public Vector2 HalfPixel;
-
         public SpriteBatch spriteBatch;
-        //{
-        //    get { return (SpriteBatch)Game.Services.GetService(typeof(SpriteBatch)); }
-        //}
 
         public PostProcessingManager(Game game)
         {

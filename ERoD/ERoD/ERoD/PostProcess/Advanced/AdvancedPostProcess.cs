@@ -13,8 +13,9 @@ namespace ERoD
         public Vector2 HalfPixel;
         public Texture2D lastScene;
         public Texture2D orgScene;
-        protected List<BasicPostProcess> postProcesses = new List<BasicPostProcess>();
 
+        protected List<BasicPostProcess> postProcesses = new List<BasicPostProcess>();
+        public bool Enabled = true;
         protected Game Game;
 
         public ICamera camera
@@ -31,13 +32,13 @@ namespace ERoD
         {
             Game = game;
         }
+        
+        //Used by the manager when there is only one Basic Postprocess
         public AdvancedPostProcess(Game game, BasicPostProcess basic)
         {
             Game = game;
             AddPostProcess(basic);
         }
-
-        public bool Enabled = true;
 
         public void AddPostProcess(BasicPostProcess postProcess)
         {

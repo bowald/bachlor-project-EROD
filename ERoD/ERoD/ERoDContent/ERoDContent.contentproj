@@ -297,6 +297,20 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Shaders\PostProcessing\BloomMask.fx">
+      <Name>BloomMask</Name>
+      <Importer>EffectImporter</Importer>
+      <Processor>EffectProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Shaders\PostProcessing\GuassianBlur.fx">
+      <Name>GuassianBlur</Name>
+      <Importer>EffectImporter</Importer>
+      <Processor>EffectProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="Shaders\PostProcessing\Blend.fx">
       <Name>Blend</Name>
       <Importer>EffectImporter</Importer>
