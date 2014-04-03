@@ -104,7 +104,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 	float NdotL = saturate(dot(normal, lightVector));
 	float3 diffuseLight = NdotL * Color.rgb;
 
-	if (DebugPosition)
+	if (DebugPosition && attenuation < 0.001)
 	{
 		return float4(1, attenuation, 0, 1);
 	}

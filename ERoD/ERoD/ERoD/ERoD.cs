@@ -72,6 +72,8 @@ namespace ERoD
 
         public GamePadState GamePadState { get; set; }
         public GamePadState LastGamePadState { get; set; }
+        public KeyboardState KeyBoardState { get; set; }
+        public KeyboardState LastKeyBoardState { get; set; }
 
         public ERoD()
         {
@@ -132,6 +134,8 @@ namespace ERoD
             
             space = new Space();
             Services.AddService(typeof(Space), space);
+
+            LightHelper.Game = this;
 
             space.Add(((ITerrain)Services.GetService(typeof(ITerrain))).PhysicTerrain);
 
@@ -280,6 +284,7 @@ namespace ERoD
         protected override void Update(GameTime gameTime)
         {
             GamePadState = GamePad.GetState(PlayerIndex.One);
+            KeyBoardState = Keyboard.GetState();
 
             // Allows the game to exit
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
@@ -309,19 +314,17 @@ namespace ERoD
 
             space.Update();
 
-            PlaceRockUpdate();
-            LightHelper.PlaceLightUpdate();
+            LightHelper.PlaceLightUpdate(KeyBoardState, LastKeyBoardState);
 
-            KeyboardState keyState = Keyboard.GetState();
-            if (keyState.IsKeyDown(Keys.M))
+            if (KeyBoardState.IsKeyDown(Keys.M) && !LastKeyBoardState.IsKeyDown(Keys.M))
             {
                 renderer.debugPosition = !renderer.debugPosition;
             }
-            if (keyState.IsKeyDown(Keys.U))
+            if (KeyBoardState.IsKeyDown(Keys.U) && !LastKeyBoardState.IsKeyDown(Keys.U))
             {
                 renderer.PointLights.Add(LightHelper.Light);
             }
-            if (keyState.IsKeyDown(Keys.Y))
+            if (KeyBoardState.IsKeyDown(Keys.Y) && !LastKeyBoardState.IsKeyDown(Keys.Y))
             {
                 Console.WriteLine("All lights:");
                 foreach (IPointLight light in renderer.PointLights)
@@ -331,6 +334,7 @@ namespace ERoD
             }
 
             LastGamePadState = GamePadState;
+            LastKeyBoardState = KeyBoardState;
             base.Update(gameTime);
         }
 

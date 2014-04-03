@@ -6,7 +6,7 @@ using System.Text;
 
 namespace ERoD
 {
-    class PointLight : BaseLight, IPointLight
+    public class PointLight : BaseLight, IPointLight
     {
         protected float radius;
 
