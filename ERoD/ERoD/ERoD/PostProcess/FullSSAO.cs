@@ -12,8 +12,8 @@ namespace ERoD
     {
         public BasicSSAO ssao;
         public BasicSSAO_SC2 ssao2;
-        public BiliteradBlurV BlurV;
-        public BiliteradBlurH BlurH;
+        public BiliteralBlurV BlurV;
+        public BiliteralBlurH BlurH;
         public Blend blend;
 
         public float rad
@@ -43,15 +43,15 @@ namespace ERoD
             ssao = new BasicSSAO(game, radius, intensity, scale, bias);
             ssao2 = new BasicSSAO_SC2(game, 3f, 0.2f, 5.0f, 2f);
 
-            BlurV = new BiliteradBlurV(game, 2.0f);
-            BlurH = new BiliteradBlurH(game, 2.0f);
+            BlurV = new BiliteralBlurV(game, 5.0f);
+            BlurH = new BiliteralBlurH(game, 5.0f);
 
             blend = new Blend(game);
 
-            AddPostProcess(ssao2);
-            //AddPostProcess(BlurV);
-            //AddPostProcess(BlurH);
-            //AddPostProcess(blend);
+            AddPostProcess(ssao);
+            AddPostProcess(BlurV);
+            AddPostProcess(BlurH);
+            AddPostProcess(blend);
         }
         public override void Draw(GameTime gameTime, Texture2D scene, Texture2D depth, Texture2D normal)
         {

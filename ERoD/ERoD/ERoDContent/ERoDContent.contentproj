@@ -238,8 +238,8 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Shaders\PostProcessing\BiliteradBlur.fx">
-      <Name>BiliteradBlur</Name>
+    <Compile Include="Shaders\PostProcessing\BiliteralBlur.fx">
+      <Name>BiliteralBlur</Name>
       <Importer>EffectImporter</Importer>
       <Processor>EffectProcessor</Processor>
     </Compile>

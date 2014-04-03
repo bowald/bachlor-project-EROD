@@ -85,7 +85,7 @@ namespace ERoD
                     
                     Game.GraphicsDevice.Clear(Color.Black);
                     
-                    // Has the scene been rendered yet (first effect may be disabled)
+                    // Has the scene been rendered yet
                     if (lastScene == null)
                         lastScene = orgScene;
 

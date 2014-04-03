@@ -65,16 +65,6 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 	return output;
 }
 
-struct PS_INPUT
-{
-	float2 uv : TEXCOORD0;
-};
-
-struct PS_OUTPUT
-{
-	float4 color : COLOR0;
-};
-
 float3 getPosition(in float2 uv)
 {
 	// Reconstruct position
@@ -82,12 +72,10 @@ float3 getPosition(in float2 uv)
 
 	float2 screenPos = uv * 2.0f - 1.0f;
 
-		depth *= FarPlane;
+	depth *= FarPlane;
 
 	// Camera View Space
-	float4 positionCVS = float4(float3(SidesLengthVS * screenPos * depth, -depth), 1);
-		// World Space
-		return mul(positionCVS, ViewInverse);
+	return float4(float3(SidesLengthVS * screenPos * depth, -depth), 1);
 }
 
 
@@ -101,32 +89,29 @@ float2 getRandom(in float2 uv)
 	return normalize(tex2D(randomSampler, ScreenSize * uv / Random_size).xy * 2.0f - 1.0f);
 }
 
-float doAmbientOcclusion(in float2 tcoord, in float2 uv, in float3 p, in float3 cnorm)
+float doAmbientOcclusion(in float2 tcoord, in float2 uv, in float3 position, in float3 cnorm)
 {
-	float3 diff = getPosition(tcoord + uv) - p;
+	float3 diff = getPosition(tcoord + uv) - position;
 	const float3 v = normalize(diff);
 	const float d = length(diff)* Scale;
 	return max(0.0, dot(cnorm, v) + Bias)*(1.0 / (1.0 + d))* Intensity;
 }
 
-PS_OUTPUT main(PS_INPUT i)
+float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 {
-	PS_OUTPUT o = (PS_OUTPUT)0;
-
-	o.color.rgb = 1.0f;
 	const float2 vec[4] = { float2(1, 0), float2(-1, 0),
 		float2(0, 1), float2(0, -1) };
 
-	i.uv -= HalfPixel;
+	input.TexCoord -= HalfPixel;
 
-	float3 p = getPosition(i.uv);
-	float3 n = getNormal(i.uv);
-	float2 rand = getRandom(i.uv);
+	float3 position = getPosition(input.TexCoord);
+	float3 normal = getNormal(input.TexCoord);
+	float2 rand = getRandom(input.TexCoord);
 
-	n = mul(n, View);
+	normal = mul(normal, View);
 
 	float ao = 0.0f;
-	float rad = Sample_rad / p.z;
+	float rad = Sample_rad / position.z;
 
 	//**SSAO Calculation**//
 	int iterations = 3;
@@ -137,24 +122,15 @@ PS_OUTPUT main(PS_INPUT i)
 		float2 coord2 = float2(coord1.x*0.707 - coord1.y*0.707,
 		coord1.x*0.707 + coord1.y*0.707);
 
-		ao += doAmbientOcclusion(i.uv, coord1*0.25, p, n);
-		ao += doAmbientOcclusion(i.uv, coord2*0.5, p, n);
-		ao += doAmbientOcclusion(i.uv, coord1*0.75, p, n);
-		ao += doAmbientOcclusion(i.uv, coord2, p, n);
+		ao += doAmbientOcclusion(input.TexCoord, coord1*0.25, position, normal);
+		ao += doAmbientOcclusion(input.TexCoord, coord2*0.5, position, normal);
+		ao += doAmbientOcclusion(input.TexCoord, coord1*0.75, position, normal);
+		ao += doAmbientOcclusion(input.TexCoord, coord2, position, normal);
 	}
 
 	ao /= (float)iterations * 4.0;
 
-	//**END**//
-
-	//o.color = float4(p,1);
-	//o.color = float4(n,1);
-	o.color = 1 * ao;
-	//Do stuff here with your occlusion value “ao”: modulate ambient lighting, write it to a buffer for later //use, etc.
-
-	//o.color = float4(rand,1,1);
-
-	return o;
+	return float4(ao, ao, ao, 1);
 }
 
 technique SSAO
@@ -162,6 +138,6 @@ technique SSAO
 	pass p0
 	{
 		VertexShader = compile vs_3_0 VertexShaderFunction();
-		PixelShader = compile ps_3_0 main();
+		PixelShader = compile ps_3_0 PixelShaderFunction();
 	}
 }

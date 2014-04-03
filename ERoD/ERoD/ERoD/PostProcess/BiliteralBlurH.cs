@@ -8,10 +8,10 @@ using System.Text;
 
 namespace ERoD
 {
-    public class BiliteradBlurV : BasicPostProcess
+    public class BiliteralBlurH : BasicPostProcess
     {
-        private Vector4[] sampleOffsetsVert;
-        private float[] sampleWeightsVert;
+        private Vector4[] sampleOffsetsHoriz;
+        private float[] sampleWeightsHoriz;
 
         private const int Sample_Count = 11;
 
@@ -22,12 +22,12 @@ namespace ERoD
             set
             {
                 blurAmount = value;
-                if (sampleOffsetsVert != null)
-                    SetBlurEffectParameters(0, 1.0f / (float)(this.Game.GraphicsDevice.Viewport.Height / 2f), ref sampleOffsetsVert, ref sampleWeightsVert);
+                if (sampleOffsetsHoriz != null)
+                    SetBlurEffectParameters(1.0f / (float)(this.Game.GraphicsDevice.Viewport.Width / 2f), 0, ref sampleOffsetsHoriz, ref sampleWeightsHoriz);
             }
         }
 
-        public BiliteradBlurV(ERoD game, float amount)
+        public BiliteralBlurH(ERoD game, float amount)
             : base(game)
         {
             blurAmount = amount;
@@ -39,17 +39,18 @@ namespace ERoD
         {
             if (effect == null)
             {
-                effect = Game.Content.Load<Effect>("Shaders/PostProcessing/BiliteradBlur");
-                effect.CurrentTechnique = effect.Techniques["BiliteradBlur"];
-                sampleOffsetsVert = new Vector4[Sample_Count];
-                sampleWeightsVert = new float[Sample_Count];
-                SetBlurEffectParameters(0, 1.0f / (float)(this.Game.GraphicsDevice.Viewport.Height / 2f), ref sampleOffsetsVert, ref sampleWeightsVert);
+                effect = Game.Content.Load<Effect>("Shaders/PostProcessing/BiliteralBlur");
+                effect.CurrentTechnique = effect.Techniques["BiliteralBlur"];
+                sampleOffsetsHoriz = new Vector4[Sample_Count];
+                sampleWeightsHoriz = new float[Sample_Count];
+                SetBlurEffectParameters(1.0f / (float)(this.Game.GraphicsDevice.Viewport.Width / 2f), 0, ref sampleOffsetsHoriz, ref sampleWeightsHoriz);
+
             }
 
             effect.Parameters["DepthMap"].SetValue(Game.Renderer.depthMap);
             effect.Parameters["NormalMap"].SetValue(Game.Renderer.normalMap);
-            effect.Parameters["SampleOffsets"].SetValue(sampleOffsetsVert);
-            effect.Parameters["SampleWeights"].SetValue(sampleWeightsVert);
+            effect.Parameters["SampleOffsets"].SetValue(sampleOffsetsHoriz);
+            effect.Parameters["SampleWeights"].SetValue(sampleWeightsHoriz);
             effect.Parameters["HalfPixel"].SetValue(HalfPixel);
 
             Game.GraphicsDevice.BlendState = BlendState.Opaque;
