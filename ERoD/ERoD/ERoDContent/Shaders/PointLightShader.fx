@@ -3,6 +3,8 @@ float4x4 View;
 float4x4 Projection;
 float4x4 ViewInv;
 
+float3 CameraPosition;
+
 float3 Color;
 
 float3 LightPosition;
@@ -54,6 +56,17 @@ sampler DepthSampler = sampler_state
 	Mipfilter = POINT;
 };
 
+texture SGRMap;
+sampler SGRSampler = sampler_state
+{
+	Texture = (SGRMap);
+	AddressU = CLAMP;
+	AddressV = CLAMP;
+	MagFilter = LINEAR;
+	MinFilter = LINEAR;
+	Mipfilter = LINEAR;
+};
+
 struct VertexShaderInput
 {
     float4 Position : POSITION0;
@@ -97,7 +110,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 
 	float3 lightVector = LightPosition - positionWS;
 
-	float attenuation = saturate(1.0f - length(lightVector) / LightRadius);
+	float attenuation = saturate(1.0f - pow(length(lightVector) / LightRadius, 5));
 
 	lightVector = normalize(lightVector);
 
@@ -109,7 +122,16 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 		return float4(1, attenuation, 0, 1);
 	}
 
-	return (attenuation * LightIntensity * float4(diffuseLight.rgb, 1));// +specular * att *ligtI;
+	// Specular
+	float3 r = normalize(reflect(-lightVector, normal));
+	float3 v = normalize(CameraPosition - positionWS);
+
+	float specularMask = tex2D(SGRSampler, texCoord).r;
+
+	float3 h = normalize(r + v);
+	float4 specular = float4(pow(saturate(dot(normalData, h)), 25) * specularMask * Color.rgb, 1);
+
+	return (attenuation * LightIntensity * (float4(diffuseLight.rgb, 1) + specular));
 }
 
 technique Technique1

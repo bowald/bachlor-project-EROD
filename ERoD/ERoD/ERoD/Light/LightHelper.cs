@@ -36,9 +36,9 @@ namespace ERoD
 
                 float radius = float.Parse(values[3]);
 
-                float r = float.Parse(values[4]);
-                float g = float.Parse(values[5]);
-                float b = float.Parse(values[6]);
+                float r = float.Parse(values[4]) / 255.0f;
+                float g = float.Parse(values[5]) / 255.0f;
+                float b = float.Parse(values[6]) / 255.0f;
 
                 float intensity = float.Parse(values[7]);
 

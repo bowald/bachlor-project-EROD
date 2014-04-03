@@ -218,8 +218,9 @@ namespace ERoD
 
             space.ForceUpdater.Gravity = new BVector3(0, GameConstants.Gravity, 0);
 
-            renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(2500, 2000, 2500), Vector3.Zero, Color.LightYellow, 0.9f, 7000.0f, true));
+            renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(2500, 2000, 2500), Vector3.Zero, Color.LightYellow, 0.4f, 7000.0f, true));
 
+            LightHelper.ToolEnabled = false;
             renderer.PointLights.AddRange(LightHelper.ReadLights());
         }
 
@@ -289,6 +290,14 @@ namespace ERoD
             // Allows the game to exit
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
             {
+                if (LightHelper.ToolEnabled) 
+                {
+                    Console.WriteLine("All lights:");
+                    foreach (IPointLight light in renderer.PointLights)
+                    {
+                        Console.WriteLine(light);
+                    }
+                }
                 this.Exit();
             }
 
@@ -314,22 +323,25 @@ namespace ERoD
 
             space.Update();
 
-            LightHelper.PlaceLightUpdate(KeyBoardState, LastKeyBoardState);
+            if (LightHelper.ToolEnabled) 
+            {
+                LightHelper.PlaceLightUpdate(KeyBoardState, LastKeyBoardState);
 
-            if (KeyBoardState.IsKeyDown(Keys.M) && !LastKeyBoardState.IsKeyDown(Keys.M))
-            {
-                renderer.debugPosition = !renderer.debugPosition;
-            }
-            if (KeyBoardState.IsKeyDown(Keys.U) && !LastKeyBoardState.IsKeyDown(Keys.U))
-            {
-                renderer.PointLights.Add(LightHelper.Light);
-            }
-            if (KeyBoardState.IsKeyDown(Keys.Y) && !LastKeyBoardState.IsKeyDown(Keys.Y))
-            {
-                Console.WriteLine("All lights:");
-                foreach (IPointLight light in renderer.PointLights)
+                if (KeyBoardState.IsKeyDown(Keys.M) && !LastKeyBoardState.IsKeyDown(Keys.M))
                 {
-                    Console.WriteLine(light);
+                    LightHelper.DebugPosition = !LightHelper.DebugPosition;
+                }
+                if (KeyBoardState.IsKeyDown(Keys.U) && !LastKeyBoardState.IsKeyDown(Keys.U))
+                {
+                    renderer.PointLights.Add(LightHelper.Light);
+                }
+                if (KeyBoardState.IsKeyDown(Keys.Y) && !LastKeyBoardState.IsKeyDown(Keys.Y))
+                {
+                    Console.WriteLine("All lights:");
+                    foreach (IPointLight light in renderer.PointLights)
+                    {
+                        Console.WriteLine(light);
+                    }
                 }
             }
 

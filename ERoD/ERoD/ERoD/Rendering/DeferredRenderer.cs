@@ -185,8 +185,10 @@ namespace ERoD
             {
                 RenderPointLight(pointLight);
             }
-            RenderPointLight(LightHelper.Light);
-
+            if (LightHelper.ToolEnabled)
+            {
+                RenderPointLight(LightHelper.Light);
+            }
             GraphicsDevice.SetRenderTarget(null);
         }
 
@@ -239,16 +241,18 @@ namespace ERoD
             sceneQuad.Draw(-Vector2.One, Vector2.One);
         }
 
-        public bool debugPosition = false;
         private void RenderPointLight(IPointLight pointLight)
         {
-            // TODO: Remove debug hack
-            pointLightShader.Parameters["DebugPosition"].SetValue(debugPosition);
+            // TODO: Remove debug hack for release, also in shader
+            pointLightShader.Parameters["DebugPosition"].SetValue(LightHelper.DebugPosition);
 
             pointLightShader.Parameters["HalfPixel"].SetValue(halfPixel);
+            pointLightShader.Parameters["SGRMap"].SetValue(SGRMap);
             pointLightShader.Parameters["ColorMap"].SetValue(colorMap);
             pointLightShader.Parameters["NormalMap"].SetValue(normalMap);
             pointLightShader.Parameters["DepthMap"].SetValue(depthMap);
+
+            pointLightShader.Parameters["CameraPosition"].SetValue(Camera.Position);
 
             Matrix sphereWorldMatrix = Matrix.CreateScale(pointLight.Radius) 
                 * Matrix.CreateTranslation(pointLight.Position);

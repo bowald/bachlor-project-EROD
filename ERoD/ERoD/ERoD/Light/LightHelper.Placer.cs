@@ -10,11 +10,22 @@ namespace ERoD
 {
     public partial class LightHelper
     {
+        public static bool DebugPosition = false;
+
+        private static bool toolEnabled = false;
+        public static bool ToolEnabled 
+        {
+            get { return toolEnabled; }
+            set { toolEnabled = value; } 
+        }
+
         private static Vector3 lightPosition = Vector3.Zero;
-        private static float lightRadius = 30.0f;
-        private static float lightIntensity = 5.0f;
+        private static float lightRadius = 40.0f;
+        private static float lightIntensity = 1.0f;
 
         private static float ChangeStrength = 1.0f;
+
+        private static Random random = new Random();
 
         public static Game Game { get; set; }
         private static ICamera Camera
@@ -47,7 +58,10 @@ namespace ERoD
 
         public static void PlaceLightUpdate(KeyboardState currentKeyState, KeyboardState lastKeyState)
         {
-            
+            if (!ToolEnabled)
+            {
+                return;
+            }
             // ZX  ChangeStrength
             if (KeyPressed(Keys.Z, currentKeyState, lastKeyState))
             {
@@ -113,27 +127,27 @@ namespace ERoD
 
             if (currentKeyState.IsKeyDown(Keys.F))
             {
-                SetColor(ref red, ChangeStrength * 0.3f);
+                SetColor(ref red, 0.01f);
             }
             if (currentKeyState.IsKeyDown(Keys.G))
             {
-                SetColor(ref red, -ChangeStrength * 0.3f);
+                SetColor(ref red, -0.01f);
             }
             if (currentKeyState.IsKeyDown(Keys.H))
             {
-                SetColor(ref green, ChangeStrength * 0.3f);
+                SetColor(ref green, 0.01f);
             }
             if (currentKeyState.IsKeyDown(Keys.J))
             {
-                SetColor(ref green, -ChangeStrength * 0.3f);
+                SetColor(ref green, -0.01f);
             }
             if (currentKeyState.IsKeyDown(Keys.K))
             {
-                SetColor(ref blue, ChangeStrength * 0.3f);
+                SetColor(ref blue, 0.01f);
             }
             if (currentKeyState.IsKeyDown(Keys.L))
             {
-                SetColor(ref blue, -ChangeStrength * 0.3f);
+                SetColor(ref blue, -0.01f);
             }
             if (currentKeyState.IsKeyDown(Keys.C))
             {
@@ -142,6 +156,13 @@ namespace ERoD
             if (currentKeyState.IsKeyDown(Keys.V))
             {
                 lightIntensity = Math.Max(0, lightIntensity - ChangeStrength * 0.05f);
+            }
+
+            if (KeyPressed(Keys.R, currentKeyState, lastKeyState))
+            {
+                red = (float)random.NextDouble();
+                green = (float)random.NextDouble();
+                blue = (float)random.NextDouble();
             }
 
             #endregion
