@@ -49,7 +49,7 @@ float4 BiliteradBlurPS(float2 texCoord : TEXCOORD0) : COLOR0
 		float SampleDepth = getDepth(texCoord + SampleOffsets[i].xy);
 		float weight = SampleWeights[i];
 		float3 SampleNormal = getNormal(saturate(texCoord + SampleOffsets[i].xy));
-		if (dot(SampleNormal, centerNormal) < 0.9f || abs(centerDepth - SampleDepth) > 0.01f){
+		if (dot(SampleNormal, centerNormal) < 0.9f || abs(centerDepth - SampleDepth) > 0.001f){
 			weight = 0.0f;
 		}	
 

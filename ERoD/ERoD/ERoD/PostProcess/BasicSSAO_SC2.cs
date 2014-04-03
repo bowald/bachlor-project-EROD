@@ -16,12 +16,9 @@ namespace ERoD
         private float NoOcclusionThreshold;
         private float OcclusionPower;
         private Vector3[] SamplePoints;
-        //private Vector3[] SamplePoints = { new Vector3(0.53812504f, 0.18565957f, -0.43192f), new Vector3(0.13790712f, 0.24864247f, 0.44301823f), new Vector3(0.33715037f, 0.56794053f, -0.005789503f), new Vector3(-0.6999805f, -0.04511441f, -0.0019965635f), new Vector3(0.06896307f, -0.15983082f, -0.85477847f), new Vector3(0.056099437f, 0.006954967f, -0.1843352f), new Vector3(-0.014653638f, 0.14027752f, 0.0762037f), new Vector3(0.010019933f, -0.1924225f, -0.034443386f), new Vector3(-0.35775623f, -0.5301969f, -0.43581226f), new Vector3(-0.3169221f, 0.106360726f, 0.015860917f), new Vector3(0.010350345f, -0.58698344f, 0.0046293875f), new Vector3(-0.08972908f, -0.49408212f, 0.3287904f), new Vector3(0.7119986f, -0.0154690035f, -0.09183723f), new Vector3(-0.053382345f, 0.059675813f, -0.5411899f), new Vector3(0.035267662f, -0.063188605f, 0.54602677f), new Vector3(-0.47761092f, 0.2847911f, -0.0271716f) };
-        //private Vector3[] SamplePoints = { new Vector3(-0.13657719f, 0.30651027f, 0.16118456f), new Vector3(-0.14714938f, 0.33245975f, -0.113095455f), new Vector3(0.030659059f, 0.27887347f, -0.7332209f), new Vector3(0.009913514f, -0.89884496f, 0.07381549f), new Vector3(0.040318526f, 0.40091f, 0.6847858f), new Vector3(0.22311053f, -0.3039437f, -0.19340435f), new Vector3(0.36235332f, 0.21894878f, -0.05407306f), new Vector3(-0.15198798f, -0.38409665f, -0.46785462f), new Vector3(-0.013492276f, -0.5345803f, 0.11307949f), new Vector3(-0.4972847f, 0.037064247f, -0.4381323f), new Vector3(-0.024175806f, -0.008928787f, 0.17719103f), new Vector3(0.694014f, -0.122672155f, 0.33098832f) };
-        //private Vector3[] SamplePoints = { new Vector3(0.5f, 0.5f, 0f), new Vector3(0f, 1.0f, 0f), new Vector3(1f, 0, 0) };
-        //private Vector3[] SamplePoints = { new Vector3(.5f, .5f, 0f) };
+        private Vector2 NoiseScale;
 
-        private Texture2D randomTexture;
+        private Texture2D NoiseTexture;
 
         public BasicSSAO_SC2(ERoD game, float OcclusionRadious, float FullOcclusionThreshold, float NoOcclusionThreshold, float OcclusionPower)
             : base(game)
@@ -30,19 +27,27 @@ namespace ERoD
             this.FullOcclusionThreshold = FullOcclusionThreshold;
             this.NoOcclusionThreshold = NoOcclusionThreshold;
             this.OcclusionPower = OcclusionPower;
-            SamplePoints = generateSamplePoints(10);
-            //debugWriter(generateSamplePoints(10));
+            Random random = new Random();
+            int w = 1;// Game.GraphicsDevice.Viewport.Width;
+            int h = 1;// Game.GraphicsDevice.Viewport.Height;
+            SamplePoints = generateSamplePoints(10, random);
+            NoiseTexture = generateNoiseTexture(w, h, random);
+            NoiseScale = new Vector2(Game.GraphicsDevice.Viewport.Width / w, Game.GraphicsDevice.Viewport.Height / h);//192 108
+
+            Debug.WriteLine(NoiseScale);
+
             UsesVertexShader = true;
             newSceneSurfaceFormat = SurfaceFormat.Vector4; //kolla
         }
 
-        private Vector3[] generateSamplePoints(int SampleSize)
+
+        //Generates samplepoints, more samples closer to the origio of the kernel, also the kernel is orientet against the z-axis
+        private Vector3[] generateSamplePoints(int SampleSize, Random random)
         {
             Vector3[] kernel = new Vector3[SampleSize];
-            Random random = new Random();
             for (int i = 0; i < SampleSize; i++)
             {
-                kernel[i] = new Vector3(Nextfloat(random, -1.0, 1.0), Nextfloat(random, -1.0, 1.0), Nextfloat(random, 0, 1.0));
+                kernel[i] = new Vector3(Nextfloat(random, -1.0, 1.0), Nextfloat(random, -1.0, 1.0), Nextfloat(random, -1.0, 1.0));
                 kernel[i].Normalize();
                 //Debug.WriteLine("Kernel[" + i + "] =" + kernel[i]);
                 float scale = (float) i / SampleSize;
@@ -54,17 +59,26 @@ namespace ERoD
         
         }
 
-        //generate_Normal texture here
-
-        //Only use for debugging
-        private void debugWriter(Vector3[] list)
+        //Generates a noisetexter given a widh and heigth,  Z-component is zero because our kernel is orientet aligning the Z-axis
+        private Texture2D generateNoiseTexture(int w, int h, Random random)
         {
-            for (int i = 0; i < list.Length; i++)
+            int noiseSize = w * h;
+            Color[] noise = new Color[noiseSize];
+
+            for (int i = 0; i < noiseSize; ++i)
             {
-                Debug.WriteLine("list[" + i + "] =" + list[i]);
+                Vector2 vec2 = new Vector2(Nextfloat(random, -1.0, 1.0), Nextfloat(random, -1.0, 1.0));
+                vec2.Normalize();
+                //noise[i] = new Color(vec2.X, vec2.Y, 0.0f);
+                noise[i] = new Color(0, 0, 1.0f);
             }
+
+            Texture2D noiseTexture = new Texture2D(Game.GraphicsDevice, w, h, false, SurfaceFormat.Color);
+            noiseTexture.SetData(noise);
+            return noiseTexture;
         }
 
+        //Calculates a random float between min and max.
         private float Nextfloat(Random rng, double min, double max)
         {
             return (float) ( min + (rng.NextDouble() * (max - min)));
@@ -87,10 +101,12 @@ namespace ERoD
             effect.Parameters["OcclusionPower"].SetValue(OcclusionPower);
             effect.Parameters["SSAOSamplePoints"].SetValue(SamplePoints);
             effect.Parameters["DepthMap"].SetValue(DepthBuffer);
+            effect.Parameters["NormalMap"].SetValue(NormalBuffer);
+            effect.Parameters["NoiseScale"].SetValue(NoiseScale);
+            effect.Parameters["NoiseMap"].SetValue(NoiseTexture);
             effect.Parameters["SidesLengthVS"].SetValue(new Vector2(camera.TanFovy * camera.AspectRatio, -camera.TanFovy));
             effect.Parameters["FarPlane"].SetValue(camera.FarPlane);
 
-            //Game.GraphicsDevice.BlendState = BlendState.Opaque;
             base.Draw(gameTime);
 
         }

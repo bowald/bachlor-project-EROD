@@ -332,6 +332,7 @@ namespace ERoD
             DepthRender.CurrentTechnique.Passes[0].Apply();
             GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
             spriteBatch.Draw(depthMap, new Rectangle((w * 2) + 3, 1, w, h), Color.White);
+            //spriteBatch.Draw(depthMap, new Rectangle(0, 0, 1360, 768), Color.White);
             spriteBatch.End();
         }
     }
