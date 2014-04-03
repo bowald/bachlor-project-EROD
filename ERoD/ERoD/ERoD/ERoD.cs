@@ -223,7 +223,7 @@ namespace ERoD
 
             renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(2500, 2000, 2500), Vector3.Zero, Color.LightYellow, 0.4f, 7000.0f, true));
 
-            LightHelper.ToolEnabled = true;
+            LightHelper.ToolEnabled = false;
             renderer.PointLights.AddRange(LightHelper.ReadLights());
         }
 
@@ -297,14 +297,14 @@ namespace ERoD
             // Allows the game to exit
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
             {
-                //if (LightHelper.ToolEnabled) 
-                //{
-                //    Console.WriteLine("All lights:");
-                //    foreach (IPointLight light in renderer.PointLights)
-                //    {
-                //        Console.WriteLine(light);
-                //    }
-                //}
+                if (LightHelper.ToolEnabled)
+                {
+                    Console.WriteLine("All lights:");
+                    foreach (IPointLight light in renderer.PointLights)
+                    {
+                        Console.WriteLine(light);
+                    }
+                }
                 this.Exit();
             }
 
