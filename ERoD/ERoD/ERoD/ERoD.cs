@@ -41,16 +41,17 @@ namespace ERoD
 
         // Boolean for drawing the debug frame
         private bool RenderDebug;
-        // Camera Variables
-        public BaseCamera ChaseCamera;
-        public BaseCamera FreeCamera;
-        Boolean FreeCameraActive;
 
+        
+        // Ever player needs
+        // 1 camera, 1 viewport, 1 ship, 1 input
+        private PlayerView[] views;
+        private Viewport original;
 
         // GameLogic //
         GameLogic GameLogic;
 
-        public Boolean DebugEnabled;
+        //public Boolean DebugEnabled;
         StaticMesh rockMesh;
         
         HeightTerrainCDLOD terrain;
@@ -71,22 +72,102 @@ namespace ERoD
 
         public ModelDrawer modelDrawer;  //Used to draw entities for debug.
 
-        public GamePadState GamePadState { get; set; }
-        public GamePadState LastGamePadState { get; set; }
         public KeyboardState KeyBoardState { get; set; }
         public KeyboardState LastKeyBoardState { get; set; }
 
         public ERoD()
         {
             graphics = new GraphicsDeviceManager(this);
-            graphics.PreferredBackBufferHeight = 768;
             graphics.PreferredBackBufferWidth = 1360;
-            //graphics.IsFullScreen = true;
+            graphics.PreferredBackBufferHeight = 768;
 
             Content.RootDirectory = "Content";
-            renderer = new DeferredRenderer(this);
+
+            Viewport[][] viewPorts = CreateViewPorts();
+
+            views = new PlayerView[GameConstants.NumberOfPlayers];
+
+            for (int i = 0; i < GameConstants.NumberOfPlayers; i++)
+            {
+                views[i] = new PlayerView(this, viewPorts[GameConstants.NumberOfPlayers - 1][i], i);
+            }
+
+            renderer = new DeferredRenderer(this, views);
 
             RenderDebug = false;
+        }
+
+        private Viewport[][] CreateViewPorts()
+        {
+            // Use different viewports depending on 1, 2, 3 or 4 players
+            // 1: original
+            // 2: left + right
+            // 3: left + topright + bottomright
+            // 4: topLeft, topRight, bottomLeft, bottomRight
+
+            original = new Viewport();
+            original.X = 0;
+            original.Y = 0;
+            original.Width = graphics.PreferredBackBufferWidth;
+            original.Height = graphics.PreferredBackBufferHeight;
+            original.MinDepth = 0;
+            original.MaxDepth = 1;
+
+            Viewport left = new Viewport();
+            left.X = 0;
+            left.Y = 0;
+            left.Width = original.Width / 2;
+            left.Height = original.Height;
+            left.MinDepth = 0;
+            left.MaxDepth = 1;
+
+            Viewport right = new Viewport();
+            right.X = original.Width / 2;
+            right.Y = 0;
+            right.Width = original.Width / 2;
+            right.Height = original.Height;
+            right.MinDepth = 0;
+            right.MaxDepth = 1;
+
+            Viewport topLeft = new Viewport();
+            topLeft.X = 0;
+            topLeft.Y = 0;
+            topLeft.Width = original.Width / 2;
+            topLeft.Height = original.Height / 2;
+            topLeft.MinDepth = 0;
+            topLeft.MaxDepth = 1;
+
+            Viewport topRight = new Viewport();
+            topRight.X = original.Width / 2;
+            topRight.Y = 0;
+            topRight.Width = original.Width / 2;
+            topRight.Height = original.Height / 2;
+            topRight.MinDepth = 0;
+            topRight.MaxDepth = 1;
+
+            Viewport bottomLeft = new Viewport();
+            bottomLeft.X = 0;
+            bottomLeft.Y = original.Height / 2;
+            bottomLeft.Width = original.Width / 2;
+            bottomLeft.Height = original.Height / 2;
+            bottomLeft.MinDepth = 0;
+            bottomLeft.MaxDepth = 1;
+
+            Viewport bottomRight = new Viewport();
+            bottomRight.X = original.Width / 2;
+            bottomRight.Y = original.Height / 2;
+            bottomRight.Width = original.Width / 2;
+            bottomRight.Height = original.Height / 2;
+            bottomRight.MinDepth = 0;
+            bottomRight.MaxDepth = 1;
+
+            // Assign viewports to number of players
+            Viewport[][] viewPorts = new Viewport[4][];
+            viewPorts[0] = new Viewport[1] { original };
+            viewPorts[1] = new Viewport[2] { left, right };
+            viewPorts[2] = new Viewport[3] { left, topRight, bottomRight };
+            viewPorts[3] = new Viewport[4] { topLeft, topRight, bottomLeft, bottomRight };
+            return viewPorts;
         }
 
         /// <summary>
@@ -100,11 +181,6 @@ namespace ERoD
             terrain = new HeightTerrainCDLOD(this, 7);
             Components.Add(terrain);
             Services.AddService(typeof(ITerrain), terrain);
-
-            FreeCamera = new FreeCamera(this, 0.1f, 7000.0f, new Vector3(25f, 150.0f, 25f), 270.0f);
-
-            this.Services.AddService(typeof(ICamera), FreeCamera);
-            FreeCameraActive = true;
 
             manager = new PostProcessingManager(this);
 
@@ -134,52 +210,26 @@ namespace ERoD
 
             Effect objEffect = Content.Load<Effect>("Shaders/DeferredObjectRender");
             Effect objShadow = Content.Load<Effect>("Shaders/DeferredShadowShader");
-            
+
             space = new Space();
+            space.ForceUpdater.Gravity = new BVector3(0, GameConstants.Gravity, 0);
             Services.AddService(typeof(Space), space);
 
             LightHelper.Game = this;
 
             space.Add(((ITerrain)Services.GetService(typeof(ITerrain))).PhysicTerrain);
 
-
-            #region Ship loading
-
-            Model shipModel = Content.Load<Model>("Models/space_frigate");
-            Model shipModelT = Content.Load<Model>("Models/space_frigate_tangentOn");
-            Vector3 shipScale = new Vector3(0.06f, 0.06f, 0.06f);
-            Vector3 shipPosition = new Vector3(900, -50, -255);
-
-            Entity entity = LoadEntityObject(shipModel, shipPosition, shipScale);
-
-            Ship ship = new Ship(entity, shipModelT, shipScale, this);
-
-            space.Add(entity);
-            ship.Texture = Content.Load<Texture2D>("Textures/Ship/diffuse");
-            ship.SpecularMap = Content.Load<Texture2D>("Textures/Ship/specular");
-            ship.TextureEnabled = true;
-            ship.standardEffect = objEffect;
-            ship.shadowEffect = objShadow;
-            ship.Mask = true;
-            Components.Add(ship);
-            GameLogic.AddPlayer(ship, "Anton");
-
-            #endregion
-
-            ChaseCamera = new ChaseCamera(ship.Entity, new BEPUutilities.Vector3(0.0f, 0.0f, 0.0f), true, 25.0f, 0.1f, 3000.0f, this);
-            ((ChaseCamera)ChaseCamera).Initialize();
-
             #region Bridge
 
             // Load the bridge model
             Model bridgeModel = Content.Load<Model>("Models/bridge");
             AffineTransform bridgeTransform = new AffineTransform(
-                new BVector3(6f, 6f, 6f), 
-                BQuaternion.Identity, 
+                new BVector3(6f, 6f, 6f),
+                BQuaternion.Identity,
                 new BVector3(138.5f, -71, -145));
             var bridgeMesh = LoadStaticObject(bridgeModel, bridgeTransform);
             StaticObject bridge = new StaticObject(bridgeModel, bridgeMesh, this);
-            bridge.SpecularMap  = Content.Load<Texture2D>("Textures/Bridge/specular");
+            bridge.SpecularMap = Content.Load<Texture2D>("Textures/Bridge/specular");
             bridge.Texture = Content.Load<Texture2D>("Textures/Bridge/diffuse");
             bridge.BumpMap = Content.Load<Texture2D>("Textures/Bridge/normal");
             bridge.TextureEnabled = true;
@@ -190,9 +240,41 @@ namespace ERoD
 
             space.Add(bridgeMesh);
             Components.Add(bridge);
-            ship.AddCollidable(bridgeMesh);
 
             #endregion
+
+            #region Ship loading
+
+            Model shipModel = Content.Load<Model>("Models/space_frigate");
+            Model shipModelT = Content.Load<Model>("Models/space_frigate_tangentOn");
+            Vector3 shipScale = new Vector3(0.06f, 0.06f, 0.06f);
+            Vector3 shipPosition = new Vector3(865, -45, -255);
+
+            string[] names = new string[] { "Alex", "Anton", "Johan", "TheGovernator"};
+
+            for (int i = 0; i < views.Length; i++)
+            {
+                Entity entity = LoadEntityObject(shipModel, shipPosition + new Vector3(8 * i, 0, 0), shipScale);
+                Ship ship = new Ship(entity, shipModelT, shipScale, this);
+                space.Add(entity);
+                ship.Texture = Content.Load<Texture2D>("Textures/Ship/diffuse");
+                ship.SpecularMap = Content.Load<Texture2D>("Textures/Ship/specular");
+                ship.TextureEnabled = true;
+                ship.standardEffect = objEffect;
+                ship.shadowEffect = objShadow;
+                ship.Mask = true;
+
+                ship.AddCollidable(bridgeMesh);
+
+                Components.Add(ship);
+                GameLogic.AddPlayer(ship, names[i]);
+                views[i].SetChaseTarget(ship);
+                Components.Add(views[i]);
+            }
+
+            #endregion
+
+            
 
             #region Rock
 
@@ -218,9 +300,7 @@ namespace ERoD
             #endregion
 
             CreateCheckPoints(objEffect, cubeModel);
-
-            space.ForceUpdater.Gravity = new BVector3(0, GameConstants.Gravity, 0);
-
+            
             renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(2500, 2000, 2500), Vector3.Zero, Color.LightYellow, 0.4f, 7000.0f, true));
 
             LightHelper.ToolEnabled = false;
@@ -291,10 +371,10 @@ namespace ERoD
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
-            GamePadState = GamePad.GetState(PlayerIndex.One);
             KeyBoardState = Keyboard.GetState();
 
             // Allows the game to exit
+            // TODO: Change this before "release"
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
             {
                 if (LightHelper.ToolEnabled)
@@ -308,23 +388,14 @@ namespace ERoD
                 this.Exit();
             }
 
-            if ((GamePadState.Buttons.B == ButtonState.Pressed) && (LastGamePadState.Buttons.B == ButtonState.Released ))
+            if (KeyBoardState.IsKeyDown(Keys.F1) && LastKeyBoardState.IsKeyUp(Keys.F1))
             {
-                Services.RemoveService(typeof(ICamera));
-                if (FreeCameraActive)
-                {
-                    FreeCameraActive = false;
-                    Services.AddService(typeof(ICamera), ChaseCamera);
-                }
-                else
-                {
-                    FreeCameraActive = true;
-                    Services.AddService(typeof(ICamera), FreeCamera);
-                }
+                // Swap cameras
             }
 
-            if ((GamePadState.Buttons.Y == ButtonState.Pressed) && (LastGamePadState.Buttons.Y == ButtonState.Released))
+            if (KeyBoardState.IsKeyDown(Keys.F2) && LastKeyBoardState.IsKeyUp(Keys.F2))
             {
+                // Show deferred debug
                 RenderDebug = !RenderDebug;
             }
 
@@ -352,7 +423,6 @@ namespace ERoD
                 }
             }
 
-            LastGamePadState = GamePadState;
             LastKeyBoardState = KeyBoardState;
             base.Update(gameTime);
         }
@@ -454,34 +524,41 @@ namespace ERoD
 
         #endregion
 
+
+
         /// <summary>
         /// This is called when the game should draw itself.
         /// </summary>
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
-            renderer.Draw(gameTime);
-
-            //GraphicsDevice.Clear(Color.Coral);
-
-            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque,
-            SamplerState.PointClamp, DepthStencilState.Default,
-            RasterizerState.CullCounterClockwise);
-            spriteBatch.Draw(renderer.finalBackBuffer, new Rectangle(0, 0, GraphicsDevice.Viewport.Width,
-            GraphicsDevice.Viewport.Height), Color.White);
-            spriteBatch.End();
-
-            logFPS(gameTime);
-
-            manager.Draw(gameTime, renderer.finalBackBuffer, renderer.depthMap, renderer.normalMap);
-            //manager.Draw(gameTime);
-
-            PrintMessage();
-
-            if (RenderDebug)
+            GraphicsDevice.Clear(Color.CornflowerBlue);
+            for (int i = 0; i < views.Length; i++)
             {
-                renderer.RenderDebug();
+                Services.RemoveService(typeof(ICamera));
+                Services.AddService(typeof(ICamera), views[i].Camera);
+                renderer.Draw(gameTime, i);
             }
+
+            for (int i = 0; i < views.Length; i++)
+            {
+                Services.RemoveService(typeof(ICamera));
+                Services.AddService(typeof(ICamera), views[i].Camera);
+
+                GraphicsDevice.Viewport = views[i].Viewport;
+
+                manager.Draw(gameTime, renderer.renderTargets[i].finalBackBuffer,
+                    renderer.renderTargets[i].depthMap, renderer.renderTargets[i].normalMap);
+
+                //PrintMessage();
+                //logFPS(gameTime);
+
+                if (RenderDebug)
+                {
+                    renderer.RenderDebug(renderer.renderTargets[i]);
+                }
+            }
+            graphics.GraphicsDevice.Viewport = original;
         }
     }
 }

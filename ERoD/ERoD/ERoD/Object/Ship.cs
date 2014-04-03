@@ -14,7 +14,7 @@ using BVector3 = BEPUutilities.Vector3;
 
 namespace ERoD
 {
-    class Ship : EntityObject
+    public class Ship : EntityObject
     {
 
         List<StaticCollidable> Collidables = new List<StaticCollidable>();
@@ -275,13 +275,12 @@ namespace ERoD
             return rollValue;
         }
 
-        public override void Update(GameTime gameTime)
+        public void Update(GameTime gameTime, GamePadState gamePadState)
         {
             float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
             BVector3 forward = BVector3.Zero;
             BVector3 shipStrafe = BVector3.Zero;
             BVector3 downward = BVector3.Zero;
-            GamePadState gamePadState = ((ERoD)Game).GamePadState;
             Single roll = 0;
             //Debug.WriteLine(Entity.Position);
 

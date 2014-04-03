@@ -37,25 +37,25 @@ namespace ERoD
 
         public override void Draw(GameTime gameTime)
         {
-            if (effect == null)
-            {
-                effect = Game.Content.Load<Effect>("Shaders/PostProcessing/BiliteralBlur");
-                effect.CurrentTechnique = effect.Techniques["BiliteralBlur"];
-                sampleOffsetsHoriz = new Vector4[Sample_Count];
-                sampleWeightsHoriz = new float[Sample_Count];
-                SetBlurEffectParameters(1.0f / (float)(this.Game.GraphicsDevice.Viewport.Width / 2f), 0, ref sampleOffsetsHoriz, ref sampleWeightsHoriz);
+            //if (effect == null)
+            //{
+            //    effect = Game.Content.Load<Effect>("Shaders/PostProcessing/BiliteralBlur");
+            //    effect.CurrentTechnique = effect.Techniques["BiliteralBlur"];
+            //    sampleOffsetsHoriz = new Vector4[Sample_Count];
+            //    sampleWeightsHoriz = new float[Sample_Count];
+            //    SetBlurEffectParameters(1.0f / (float)(this.Game.GraphicsDevice.Viewport.Width / 2f), 0, ref sampleOffsetsHoriz, ref sampleWeightsHoriz);
 
-            }
+            //}
 
-            effect.Parameters["DepthMap"].SetValue(Game.Renderer.depthMap);
-            effect.Parameters["NormalMap"].SetValue(Game.Renderer.normalMap);
-            effect.Parameters["SampleOffsets"].SetValue(sampleOffsetsHoriz);
-            effect.Parameters["SampleWeights"].SetValue(sampleWeightsHoriz);
-            effect.Parameters["HalfPixel"].SetValue(HalfPixel);
+            //effect.Parameters["DepthMap"].SetValue(Game.Renderer.depthMap);
+            //effect.Parameters["NormalMap"].SetValue(Game.Renderer.normalMap);
+            //effect.Parameters["SampleOffsets"].SetValue(sampleOffsetsHoriz);
+            //effect.Parameters["SampleWeights"].SetValue(sampleWeightsHoriz);
+            //effect.Parameters["HalfPixel"].SetValue(HalfPixel);
 
-            Game.GraphicsDevice.BlendState = BlendState.Opaque;
-            // Set Params.
-            base.Draw(gameTime);
+            //Game.GraphicsDevice.BlendState = BlendState.Opaque;
+            //// Set Params.
+            //base.Draw(gameTime);
         }
         /// <summary>
         /// Computes sample weightings and texture coordinate offsets

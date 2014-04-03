@@ -85,7 +85,7 @@ namespace ERoD
         /// <param name="nearPlane">NearPlane for the projection.</param>
         /// <param name="farPlane">FarPlane for the projection.</param>
         /// <param name="game">Running game.</param>
-        public ChaseCamera(Entity chasedEntity, BEPUutilities.Vector3 offsetFromChaseTarget, bool transformOffset, float distanceToTarget, float nearPlane, float farPlane, ERoD game)
+        public ChaseCamera(Entity chasedEntity, BEPUutilities.Vector3 offsetFromChaseTarget, bool transformOffset, float distanceToTarget, float nearPlane, float farPlane, Game game)
             : base(game, nearPlane, farPlane)
         {
             ChasedEntity = chasedEntity;

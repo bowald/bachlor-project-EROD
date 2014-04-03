@@ -62,18 +62,18 @@ namespace ERoD
 
             Scene = scene;
 
-            for (int e = 0; e < maxEffect; e++)
-            {
-                if (postProcessingEffects[e].Enabled)
-                {
-                    if (postProcessingEffects[e].HalfPixel == Vector2.Zero)
-                        postProcessingEffects[e].HalfPixel = HalfPixel;
+            //for (int e = 0; e < maxEffect; e++)
+            //{
+            //    if (postProcessingEffects[e].Enabled)
+            //    {
+            //        if (postProcessingEffects[e].HalfPixel == Vector2.Zero)
+            //            postProcessingEffects[e].HalfPixel = HalfPixel;
 
-                    postProcessingEffects[e].orgScene = scene;
-                    postProcessingEffects[e].Draw(gameTime, Scene, depth, normal);
-                    Scene = postProcessingEffects[e].lastScene;
-                }
-            }
+            //        postProcessingEffects[e].orgScene = scene;
+            //        postProcessingEffects[e].Draw(gameTime, Scene, depth, normal);
+            //        Scene = postProcessingEffects[e].lastScene;
+            //    }
+            //}
 
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque, SamplerState.PointClamp, DepthStencilState.Default, RasterizerState.CullCounterClockwise);
             spriteBatch.Draw(Scene, new Rectangle(0, 0, Game.GraphicsDevice.Viewport.Width, Game.GraphicsDevice.Viewport.Height), Color.White);

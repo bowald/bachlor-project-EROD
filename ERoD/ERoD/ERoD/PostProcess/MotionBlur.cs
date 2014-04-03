@@ -20,23 +20,23 @@ namespace ERoD
 
         public override void Draw(GameTime gameTime)
         {
-            if (effect == null)
-            {
-                effect = Game.Content.Load<Effect>("Shaders/PostProcessing/MotionBlur");
-                effect.CurrentTechnique = effect.Techniques["MotionBlur"];
-            }
+            //if (effect == null)
+            //{
+            //    effect = Game.Content.Load<Effect>("Shaders/PostProcessing/MotionBlur");
+            //    effect.CurrentTechnique = effect.Techniques["MotionBlur"];
+            //}
 
-            effect.Parameters["Mask"].SetValue(Game.Renderer.colorMap);
-            effect.Parameters["DepthMap"].SetValue(Game.Renderer.depthMap);
-            effect.Parameters["ViewProjectionInverseMatrix"].SetValue(Matrix.Invert(camera.View * camera.Projection));
-            effect.Parameters["PreviousViewProjectionMatrix"].SetValue(lastVP);
-            effect.Parameters["HalfPixel"].SetValue(HalfPixel);
+            //effect.Parameters["Mask"].SetValue(Game.Renderer.colorMap);
+            //effect.Parameters["DepthMap"].SetValue(Game.Renderer.depthMap);
+            //effect.Parameters["ViewProjectionInverseMatrix"].SetValue(Matrix.Invert(camera.View * camera.Projection));
+            //effect.Parameters["PreviousViewProjectionMatrix"].SetValue(lastVP);
+            //effect.Parameters["HalfPixel"].SetValue(HalfPixel);
 
-            lastVP = camera.View * camera.Projection;
+            //lastVP = camera.View * camera.Projection;
 
-            Game.GraphicsDevice.BlendState = BlendState.Opaque;
-            // Set Params.
-            base.Draw(gameTime);
+            //Game.GraphicsDevice.BlendState = BlendState.Opaque;
+            //// Set Params.
+            //base.Draw(gameTime);
         }
     }
 }
