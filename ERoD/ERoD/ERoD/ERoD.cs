@@ -163,7 +163,7 @@ namespace ERoD
 
             #endregion
 
-            ChaseCamera = new ChaseCamera(ship.Entity, new BEPUutilities.Vector3(0.0f, 0.0f, 0.0f), true, 25.0f, 0.1f, 7000.0f, this);
+            ChaseCamera = new ChaseCamera(ship.Entity, new BEPUutilities.Vector3(0.0f, 0.0f, 0.0f), true, 25.0f, 0.1f, 3000.0f, this);
             ((ChaseCamera)ChaseCamera).Initialize();
 
             #region Bridge
@@ -219,11 +219,9 @@ namespace ERoD
 
             space.ForceUpdater.Gravity = new BVector3(0, GameConstants.Gravity, 0);
 
-            //manager.AddEffect(new MotionBlur(this));
+            renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(2500, 2000, 2500), Vector3.Zero, Color.LightYellow, 0.9f, 7000.0f, true));
 
-            renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(2500, 2000, 2500), Vector3.Zero, Color.LightYellow, 0.5f, true));
-
-            renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(50, 550, 450), Vector3.Zero, Color.LightYellow, 0.5f, true));
+            //renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(50, 550, 450), Vector3.Zero, Color.LightYellow, 0.5f, true));
             renderer.PointLights.Add(new PointLight(new Vector3(0, 25, 50), Color.Blue, 50.0f, 1.0f));
             renderer.PointLights.Add(new PointLight(new Vector3(50, 25, 0), Color.Red, 50.0f, 1.0f));
             renderer.PointLights.Add(new PointLight(new Vector3(-50, 25, 0), Color.Green, 50.0f, 1.0f));

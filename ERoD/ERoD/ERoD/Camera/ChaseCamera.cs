@@ -117,6 +117,8 @@ namespace ERoD
             Position = ConversionHelper.MathConverter.Convert(pos); //Put the camera just before any hit spot.
             //Set the Up direction to be the same as the chased entity's
             View = ConversionHelper.MathConverter.Convert(BEPUutilities.Matrix.CreateViewRH(pos, ViewDirection, Up));
+            world = Microsoft.Xna.Framework.Matrix.Invert(View);
+            frustum.Matrix = View * Projection;
 
             base.Update(gameTime);
         }

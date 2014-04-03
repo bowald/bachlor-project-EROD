@@ -30,7 +30,7 @@ namespace ERoD
         public const float OrientationRayLength = 2.5f;
 
         // *** Fly *** //
-        public const float IdealHeight = 1.5f;
+        public const float IdealHeight = 2.5f;
         public const float FallingSpeed = 15.0f;
         public const float ControllSpeed = 2.0f;    //Amount of speed the player is able to change in Y-direction
 
