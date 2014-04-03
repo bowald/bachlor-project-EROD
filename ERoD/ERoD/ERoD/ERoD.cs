@@ -148,8 +148,7 @@ namespace ERoD
             Model shipModel = Content.Load<Model>("Models/space_frigate");
             Model shipModelT = Content.Load<Model>("Models/space_frigate_tangentOn");
             Vector3 shipScale = new Vector3(0.06f, 0.06f, 0.06f);
-            Vector3 shipPosition = new Vector3(150, 20, 300);
-
+            Vector3 shipPosition = new Vector3(900, -50, -255);
 
             Entity entity = LoadEntityObject(shipModel, shipPosition, shipScale);
 
@@ -230,13 +229,17 @@ namespace ERoD
 
         private void CreateCheckPoints(Effect effect, Model model)
         {
-            int nbrPoints = GameConstants.NumberOfCheckpoints; // Update!!
+            int nbrPoints = GameConstants.NumberOfCheckpoints;
             int i = 0;
             Checkpoint[] points = new Checkpoint[nbrPoints];
-            points[i++] = GameLogic.AddCheckpoint(new BVector3(30, 20, 5), new BVector3(-5, 0, 0), BEPUutilities.MathHelper.ToRadians(10f));
-            points[i++] = GameLogic.AddCheckpoint(new BVector3(40, 30, 5), new BVector3(165, 10, -150), BEPUutilities.MathHelper.ToRadians(-20f));
-            points[i++] = GameLogic.AddCheckpoint(new BVector3(30, 20, 5), new BVector3(-175, 5, -15), BEPUutilities.MathHelper.ToRadians(-15f));
-            points[i++] = GameLogic.AddCheckpoint(new BVector3(30, 20, 5), new BVector3(0, 5, 115), BEPUutilities.MathHelper.ToRadians(75f));
+            points[i++] = GameLogic.AddCheckpoint(new BVector3(450, 80, 5), new BVector3(886, -38, -632), BEPUutilities.MathHelper.ToRadians(9f));
+            points[i++] = GameLogic.AddCheckpoint(new BVector3(250, 60, 5), new BVector3(-5, -14, -1178), BEPUutilities.MathHelper.ToRadians(83f));
+            points[i++] = GameLogic.AddCheckpoint(new BVector3(300, 60, 5), new BVector3(-402, -27, -630), BEPUutilities.MathHelper.ToRadians(72f));
+            points[i++] = GameLogic.AddCheckpoint(new BVector3(300, 50, 5), new BVector3(-456, -45, 37), BEPUutilities.MathHelper.ToRadians(-63f));
+            points[i++] = GameLogic.AddCheckpoint(new BVector3(250, 50, 5), new BVector3(-97, -29, 782), BEPUutilities.MathHelper.ToRadians(45f));
+            points[i++] = GameLogic.AddCheckpoint(new BVector3(150, 50, 5), new BVector3(846, -55, 842), BEPUutilities.MathHelper.ToRadians(16f));
+            points[i++] = GameLogic.AddCheckpoint(new BVector3(80, 35, 5), new BVector3(3, 10, -85), BEPUutilities.MathHelper.ToRadians(-8f));
+            points[i++] = GameLogic.AddCheckpoint(new BVector3(100, 50, 5), new BVector3(623, 43, -239), BEPUutilities.MathHelper.ToRadians(0f));
 
             foreach(Checkpoint p in points)
             {
@@ -294,7 +297,7 @@ namespace ERoD
             // Allows the game to exit
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
             {
-                if (LightHelper.ToolEnabled) 
+                if (LightHelper.ToolEnabled)
                 {
                     Console.WriteLine("All lights:");
                     foreach (IPointLight light in renderer.PointLights)
@@ -413,9 +416,6 @@ namespace ERoD
         {
             this.message = message;
             endTime = startTime + seconds;
-            Console.WriteLine(startTime);
-            Console.WriteLine(endTime);
-            Console.WriteLine("---");
         }
 
         private void PrintMessage()
@@ -473,10 +473,10 @@ namespace ERoD
 
             logFPS(gameTime);
 
-            PrintMessage();
-
             manager.Draw(gameTime, renderer.finalBackBuffer, renderer.depthMap, renderer.normalMap);
             //manager.Draw(gameTime);
+
+            PrintMessage();
 
             if (RenderDebug)
             {
