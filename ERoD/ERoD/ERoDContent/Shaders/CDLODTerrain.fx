@@ -150,7 +150,7 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input)
 	float4 normal = tex2D(NormalSampler, input.texCoord);
 	float y = normal.z;
 	float x = normal.x;
-	float z = normal.y;
+	float z = 1-normal.y;
 
 	output.Normal = float4(x, y, z, 1);
 	

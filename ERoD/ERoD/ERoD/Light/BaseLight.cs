@@ -7,7 +7,7 @@ using System.Text;
 
 namespace ERoD
 {
-    class BaseLight : ILight
+    public class BaseLight : ILight
     {
 
         protected Vector3 position;
