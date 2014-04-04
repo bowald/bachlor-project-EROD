@@ -40,9 +40,6 @@ namespace ERoD
 
         Effect deferredShadowShader;
 
-        Texture2D randomTexture;
-
-
         public List<IPointLight> PointLights = new List<IPointLight>();
         public List<IDirectionalLight> DirectionalLights = new List<IDirectionalLight>();
 

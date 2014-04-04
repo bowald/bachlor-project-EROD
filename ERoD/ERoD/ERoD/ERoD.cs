@@ -143,6 +143,7 @@ namespace ERoD
             space.Add(((ITerrain)Services.GetService(typeof(ITerrain))).PhysicTerrain);
 
             manager.AddEffect(new Bloom(this, 0.5f));
+            manager.AddEffect(new GodRays(this, new Vector3(100,20,100), 60.0f, 0.8f, 0.99f, 0.8f, 0.15f));
 
 
             #region Ship loading
