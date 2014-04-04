@@ -78,9 +78,10 @@ namespace ERoD
         public ERoD()
         {
             graphics = new GraphicsDeviceManager(this);
-            graphics.PreferredBackBufferWidth = 1360;
-            graphics.PreferredBackBufferHeight = 768;
 
+            graphics.PreferredBackBufferWidth = GameConstants.WindowWidth;
+            graphics.PreferredBackBufferHeight = GameConstants.WindowHeight;
+            
             Content.RootDirectory = "Content";
 
             Viewport[][] viewPorts = CreateViewPorts();
@@ -301,8 +302,8 @@ namespace ERoD
 
             CreateCheckPoints(objEffect, cubeModel);
             
-            renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(2500, 2000, 2500), Vector3.Zero, Color.LightYellow, 0.4f, 7000.0f, true));
-
+            renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(2500, 2000, 2500), Vector3.Zero, Color.LightYellow, 0.4f, 7000.0f, GameConstants.ShadowsEnabled));
+            
             LightHelper.ToolEnabled = false;
             renderer.PointLights.AddRange(LightHelper.ReadLights());
         }
@@ -525,21 +526,19 @@ namespace ERoD
         #endregion
 
 
-
         /// <summary>
         /// This is called when the game should draw itself.
         /// </summary>
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
             for (int i = 0; i < views.Length; i++)
             {
                 Services.RemoveService(typeof(ICamera));
                 Services.AddService(typeof(ICamera), views[i].Camera);
                 renderer.Draw(gameTime, i);
             }
-
+            GraphicsDevice.Clear(Color.Black);
             for (int i = 0; i < views.Length; i++)
             {
                 Services.RemoveService(typeof(ICamera));

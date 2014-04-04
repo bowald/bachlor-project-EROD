@@ -24,7 +24,7 @@ namespace ERoD
             public Matrix LightProjection;
         }
 
-        public const int ShadowMapSize = 2048;
+        public const int ShadowMapSize = GameConstants.ShadowMapSize;
         public const int NumSplits = 4;
 
         DeferredRenderer renderer;
