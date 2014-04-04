@@ -125,8 +125,7 @@ namespace ERoD
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
             font = Content.Load<SpriteFont>("Sprites/Lap1");
-
-            // TODO: Load your game content here            
+        
             fontPos = new Microsoft.Xna.Framework.Vector2(graphics.GraphicsDevice.Viewport.Width / 2,
                 graphics.GraphicsDevice.Viewport.Height / 2);
 
@@ -142,6 +141,12 @@ namespace ERoD
 
             space.Add(((ITerrain)Services.GetService(typeof(ITerrain))).PhysicTerrain);
 
+
+            #region Add Post Process
+            manager.AddEffect(new Bloom(this, 0.5f));
+            manager.AddEffect(new GodRays(this, new Vector3(100,20,100), 60.0f, 0.8f, 0.99f, 0.8f, 0.15f));
+
+            #endregion
 
             #region Ship loading
 

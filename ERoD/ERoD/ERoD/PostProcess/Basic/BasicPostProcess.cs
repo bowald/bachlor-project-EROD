@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -17,38 +16,35 @@ namespace ERoD
             get { return ((ICamera)Game.Services.GetService(typeof(ICamera))); }
         }
 
-        public SpriteBatch spriteBatch
-        {
-            get { return (SpriteBatch)Game.Services.GetService(typeof(SpriteBatch)); }
-        }
-
+        //Drawing globals
         public Texture2D DepthBuffer;
-
         public Texture2D BackBuffer;
         public Texture2D orgBuffer;
         public Texture2D NormalBuffer;
+        public RenderTarget2D newScene;
 
+        //Enable effect
         public bool Enabled = true;
 
+        public bool UsesVertexShader = false;
+        //Spritebatch used if there is no use of a VertexShader
+        public SpriteBatch spriteBatch;
         public SpriteSortMode SortMode = SpriteSortMode.Immediate;
         public BlendState Blend = BlendState.Opaque;
         public SamplerState Sampler = SamplerState.AnisotropicClamp;
-
         public SurfaceFormat newSceneSurfaceFormat = SurfaceFormat.Color;
 
-        protected Effect effect;
-
-        protected ERoD Game;
-        public RenderTarget2D newScene;
 
         ScreenQuad sq;
 
-        public bool UsesVertexShader = false;
+        protected Effect effect;
+        protected ERoD Game;
+        
 
         public BasicPostProcess(ERoD game)
         {
             Game = game;
-
+            spriteBatch = new SpriteBatch(Game.GraphicsDevice);
         }
         public virtual void Update(GameTime gameTime)
         {
@@ -80,6 +76,6 @@ namespace ERoD
                     spriteBatch.End();
                 }
             }
-        }
+       }
     }
 }

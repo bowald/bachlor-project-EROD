@@ -25,12 +25,12 @@ namespace ERoD
 
         // Pairs for the ship+trigger and for the ship+powerup
         CollisionGroupPair ShipTriggerPair;
-        CollisionGroupPair ShipPowerupPair;
+        //CollisionGroupPair ShipPowerupPair;
 
         // Sets up collisiongroups for different objects
         public CollisionGroup ShipGroup;
         public CollisionGroup CheckpointGroup;
-        public CollisionGroup PowerupGroup;
+        //public CollisionGroup PowerupGroup;
 
         public CollisionHandler(Game game)
         {

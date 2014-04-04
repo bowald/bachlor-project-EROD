@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
@@ -69,7 +70,7 @@ namespace ERoD
         {
             float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
             GamePadState gamePadState = ((ERoD)Game).GamePadState;
-
+            Debug.WriteLine(this.Position);
             yaw += gamePadState.ThumbSticks.Right.X * -1.5f * deltaTime;
             pitch += gamePadState.ThumbSticks.Right.Y * 1.5f * deltaTime;
             //Turn based on gamepad input.
