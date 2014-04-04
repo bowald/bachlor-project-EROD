@@ -24,6 +24,7 @@ float2	ClipPlanes[NUM_SPLITS];
 // Vector size of the shadow map in use.
 float2 ShadowMapSize;
 
+
 // Length of the x and y sides of the far plane in view space from depth.
 float2 SidesLengthVS;
 

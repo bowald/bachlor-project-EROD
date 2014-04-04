@@ -114,8 +114,15 @@
     <Compile Include="Object\Particle\ThrusterEmitter.cs" />
     <Compile Include="Object\Ship.cs" />
     <Compile Include="Object\StaticObject.cs" />
-    <Compile Include="PostProcess\MotionBlur.cs" />
-    <Compile Include="PostProcess\PostProcess.cs" />
+    <Compile Include="PostProcess\Basic\HeatHaze.cs" />
+    <Compile Include="PostProcess\Advanced\AdvancedPostProcess.cs" />
+    <Compile Include="PostProcess\Basic\Blend.cs" />
+    <Compile Include="PostProcess\Basic\Blur.cs" />
+    <Compile Include="PostProcess\Advanced\Bloom.cs" />
+    <Compile Include="PostProcess\Basic\MaskBloom.cs" />
+    <Compile Include="PostProcess\Basic\MotionBlur.cs" />
+    <Compile Include="PostProcess\Basic\BasicPostProcess.cs" />
+    <Compile Include="PostProcess\PostProcessingManager.cs" />
     <Compile Include="Object\Terrain\HeightTerrainCDLOD.cs" />
     <Compile Include="Object\Terrain\QuadTree.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -124,6 +131,8 @@
     <Compile Include="Rendering\DeferredRenderer.cs" />
     <Compile Include="Light\BaseLight.cs" />
     <Compile Include="Light\PointLight.cs" />
+    <Compile Include="Light\LightHelper.Placer.cs" />
+    <Compile Include="Light\LightHelper.cs" />
     <Compile Include="Rendering\ScreenQuad.cs" />
     <Compile Include="Rendering\ShadowRenderer.cs" />
     <Compile Include="Rendering\Skybox.cs" />
@@ -133,6 +142,9 @@
     <Content Include="Game.ico" />
     <Content Include="GameThumbnail.png">
       <XnaPlatformSpecific>true</XnaPlatformSpecific>
+    </Content>
+    <Content Include="lightSources.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
   <ItemGroup>

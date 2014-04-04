@@ -16,6 +16,7 @@ namespace ERoD
         protected Vector3 Position;
         protected Queue<Particle> freeParticles;
         protected Particle[] particles;
+        protected RenderTarget2D particleRenderTarget;
         //private readonly List<Modifier> modifiers = new List<Modifier>();
 
         protected Random random = new Random();
@@ -42,6 +43,8 @@ namespace ERoD
                 particles[i] = new Particle(particleLifeSpan, textures[random.Next(textures.Count)], graphicsDevice);
                 freeParticles.Enqueue(particles[i]);
             }
+
+            particleRenderTarget = new RenderTarget2D(graphicsDevice, graphicsDevice.PresentationParameters.BackBufferWidth, graphicsDevice.PresentationParameters.BackBufferHeight);
         }
 
         public virtual void Emit(GameTime gameTime)
@@ -97,15 +100,17 @@ namespace ERoD
             ResetGraphicsDevice(graphicsDevice);
         }
 
-        private static void ConfigureEffectGraphics(GraphicsDevice graphicsDevice)
+        private void ConfigureEffectGraphics(GraphicsDevice graphicsDevice)
         {
+            graphicsDevice.SetRenderTarget(particleRenderTarget);
             graphicsDevice.BlendState = BlendState.Additive;
             graphicsDevice.DepthStencilState = DepthStencilState.None;
             graphicsDevice.RasterizerState = RasterizerState.CullClockwise;
         }
 
-        private static void ResetGraphicsDevice(GraphicsDevice graphicsDevice)
+        private void ResetGraphicsDevice(GraphicsDevice graphicsDevice)
         {
+            graphicsDevice.SetRenderTarget(null);
             graphicsDevice.BlendState = BlendState.Opaque;
             graphicsDevice.DepthStencilState = DepthStencilState.Default;
             graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;

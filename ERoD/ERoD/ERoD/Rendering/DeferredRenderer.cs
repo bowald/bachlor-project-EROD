@@ -42,6 +42,11 @@ namespace ERoD
         Effect directionalLightShader;
         Effect deferredShader;
 
+        Effect deferredShadowShader;
+
+        Texture2D randomTexture;
+
+
         public List<IPointLight> PointLights = new List<IPointLight>();
         public List<IDirectionalLight> DirectionalLights = new List<IDirectionalLight>();
 
@@ -94,13 +99,15 @@ namespace ERoD
             pointLightShader = Game.Content.Load<Effect>("Shaders/PointLightShader");
             deferredShader = Game.Content.Load<Effect>("Shaders/DeferredRender");
 
-
             TextureQuad.ParticleEffect = Game.Content.Load<Effect>("Shaders/ParticleEffect");
           
+
+            deferredShadowShader = Game.Content.Load<Effect>("Shaders/DeferredShadowShader");
+
             // Debug depth renderer
             DepthRender = Game.Content.Load<Effect>("Shaders/depthRender");
-            w = GraphicsDevice.Viewport.Width / 5;
-            h = (int) (GraphicsDevice.Viewport.Height / 3.5f);
+            w = GraphicsDevice.Viewport.Width / 6;
+            h = GraphicsDevice.Viewport.Height / 4;
 
             pointLightMesh = Game.Content.Load<Model>("Models/lightmesh");
             pointLightMesh.Meshes[0].MeshParts[0].Effect = pointLightShader;
@@ -156,7 +163,6 @@ namespace ERoD
             DrawSkybox();
 
             GraphicsDevice.SetRenderTargets(finalBackBuffer);
-
             DrawDeferred();
 
             DrawParticles();
@@ -218,7 +224,10 @@ namespace ERoD
             {
                 RenderPointLight(pointLight);
             }
-
+            if (LightHelper.ToolEnabled)
+            {
+                RenderPointLight(LightHelper.Light);
+            }
             GraphicsDevice.SetRenderTarget(null);
         }
 
@@ -244,6 +253,7 @@ namespace ERoD
             directionalLightShader.Parameters["LightProj"].SetValue(directionalLight.Projection);
 
             directionalLightShader.Parameters["CastShadow"].SetValue(directionalLight.CastShadow);
+
             if (directionalLight.CastShadow)
             {
                 directionalLightShader.Parameters["ShadowMapSize"].SetValue(new Vector2(directionalLight.ShadowMapEntry.ShadowMap.Width, directionalLight.ShadowMapEntry.ShadowMap.Height));
@@ -273,10 +283,16 @@ namespace ERoD
 
         private void RenderPointLight(IPointLight pointLight)
         {
+            // TODO: Remove debug hack for release, also in shader
+            pointLightShader.Parameters["DebugPosition"].SetValue(LightHelper.DebugPosition);
+
             pointLightShader.Parameters["HalfPixel"].SetValue(halfPixel);
+            pointLightShader.Parameters["SGRMap"].SetValue(SGRMap);
             pointLightShader.Parameters["ColorMap"].SetValue(colorMap);
             pointLightShader.Parameters["NormalMap"].SetValue(normalMap);
             pointLightShader.Parameters["DepthMap"].SetValue(depthMap);
+
+            pointLightShader.Parameters["CameraPosition"].SetValue(Camera.Position);
 
             Matrix sphereWorldMatrix = Matrix.CreateScale(pointLight.Radius) 
                 * Matrix.CreateTranslation(pointLight.Position);
@@ -346,24 +362,21 @@ namespace ERoD
         Effect DepthRender;
         public void RenderDebug()
         {
-            //spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
-
-            //spriteBatch.Draw(colorMap, new Rectangle(1, 1, w, h), Color.White);
-            ////spriteBatch.Draw(SGRMap, new Rectangle((w * 4) + 4, 1, w, h), Color.White);
-            //spriteBatch.Draw(normalMap, new Rectangle(w + 2, 1, w, h), Color.White);
-
-
-            //GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
-
-            //spriteBatch.Draw(lightMap, new Rectangle((w * 3) + 4, 1, w, h), Color.White);
+            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
+            spriteBatch.Draw(colorMap, new Rectangle(1, 1, w, h), Color.White);
+            spriteBatch.Draw(SGRMap, new Rectangle((w * 4) + 4, 1, w, h), Color.White);
+            spriteBatch.Draw(normalMap, new Rectangle(w + 2, 1, w, h), Color.White);
             
-            //spriteBatch.End();
+            spriteBatch.Draw(lightMap, new Rectangle((w * 2) + 3, 1, w, h), Color.White);
+            
+            spriteBatch.End();
             
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
             DepthRender.CurrentTechnique.Passes[0].Apply();
             GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
+            DepthRender.CurrentTechnique.Passes[0].Apply();
             spriteBatch.Draw(depthMap, new Rectangle((w * 3) + 4, 1, w, h), Color.White);
-            spriteBatch.Draw(DirectionalLights[0].ShadowMapEntry.ShadowMap, new Rectangle(1, 1, w*3, h), Color.White);
+            //spriteBatch.Draw(DirectionalLights[0].ShadowMapEntry.ShadowMap, new Rectangle(1, 1, w*3, h), Color.White);
             spriteBatch.End();
         }
     }
