@@ -136,12 +136,6 @@ namespace ERoD
             RenderDeferred(gameTime, renderTargets[renderTargetIndex]);
         }
 
-        public void Test()
-        {
-            GraphicsDevice.SetRenderTarget(renderTargets[0].colorMap);
-            GraphicsDevice.SetRenderTarget(null);
-        }
-
         private void RenderDeferred(GameTime gameTime, DeferredRenderTarget target)
         {
             GraphicsDevice.SetRenderTargets(target.colorMap, target.normalMap
