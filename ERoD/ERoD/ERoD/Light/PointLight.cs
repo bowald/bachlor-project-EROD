@@ -6,7 +6,7 @@ using System.Text;
 
 namespace ERoD
 {
-    class PointLight : BaseLight, IPointLight
+    public class PointLight : BaseLight, IPointLight
     {
         protected float radius;
 
@@ -20,6 +20,18 @@ namespace ERoD
         {
             get { return radius; }
             set { radius = value; }
+        }
+
+        public override string ToString()
+        {
+            return position.X + " "
+                + position.Y + " "
+                + position.Z + " "
+                + radius + " "
+                + color.R + " "
+                + color.G + " "
+                + color.B + " "
+                + intensity;
         }
     }
 }

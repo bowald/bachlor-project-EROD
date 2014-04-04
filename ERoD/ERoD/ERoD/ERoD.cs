@@ -73,6 +73,8 @@ namespace ERoD
 
         public GamePadState GamePadState { get; set; }
         public GamePadState LastGamePadState { get; set; }
+        public KeyboardState KeyBoardState { get; set; }
+        public KeyboardState LastKeyBoardState { get; set; }
 
         public ERoD()
         {
@@ -136,6 +138,8 @@ namespace ERoD
             space = new Space();
             Services.AddService(typeof(Space), space);
 
+            LightHelper.Game = this;
+
             space.Add(((ITerrain)Services.GetService(typeof(ITerrain))).PhysicTerrain);
 
             manager.AddEffect(new Bloom(this, 0.5f));
@@ -197,9 +201,9 @@ namespace ERoD
 
             Model rockModel = Content.Load<Model>("Models/rock");
             AffineTransform rockTransform = new AffineTransform(
-                new BVector3(10, 10, 10),
+                new BVector3(4, 4, 4),
                 BQuaternion.Identity,
-                new BVector3(150, -40, 300));
+                new BVector3(0, 0, 0));
             //var rockMesh
             rockMesh = LoadStaticObject(rockModel, rockTransform);
             StaticObject rock = new StaticObject(rockModel, rockMesh, this);
@@ -211,9 +215,8 @@ namespace ERoD
             rock.standardEffect = objEffect;
             rock.shadowEffect = objShadow;
 
-            space.Add(rockMesh);
-            Components.Add(rock);
-            //ship.AddCollidable(bridgeMesh);
+            //space.Add(rockMesh);
+            //Components.Add(rock);
 
             #endregion
 
@@ -221,15 +224,10 @@ namespace ERoD
 
             space.ForceUpdater.Gravity = new BVector3(0, GameConstants.Gravity, 0);
 
-            renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(2500, 2000, 2500), Vector3.Zero, Color.LightYellow, 0.9f, 7000.0f, true));
+            renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(2500, 2000, 2500), Vector3.Zero, Color.LightYellow, 0.4f, 7000.0f, true));
 
-            //renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(50, 550, 450), Vector3.Zero, Color.LightYellow, 0.5f, true));
-            renderer.PointLights.Add(new PointLight(new Vector3(0, 25, 50), Color.Blue, 50.0f, 1.0f));
-            renderer.PointLights.Add(new PointLight(new Vector3(50, 25, 0), Color.Red, 50.0f, 1.0f));
-            renderer.PointLights.Add(new PointLight(new Vector3(-50, 25, 0), Color.Green, 50.0f, 1.0f));
-            renderer.PointLights.Add(new PointLight(new Vector3(170, 25, -175), Color.Goldenrod, 50.0f, 1.0f));
-            renderer.PointLights.Add(new PointLight(new Vector3(130, 25, -172), Color.Goldenrod, 50.0f, 1.0f));
-            renderer.PointLights.Add(new PointLight(new Vector3(90, 25, -160), Color.Goldenrod, 50.0f, 1.0f));
+            LightHelper.ToolEnabled = false;
+            renderer.PointLights.AddRange(LightHelper.ReadLights());
         }
 
         private void CreateCheckPoints(Effect effect, Model model)
@@ -293,9 +291,19 @@ namespace ERoD
         protected override void Update(GameTime gameTime)
         {
             GamePadState = GamePad.GetState(PlayerIndex.One);
+            KeyBoardState = Keyboard.GetState();
+
             // Allows the game to exit
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
             {
+                if (LightHelper.ToolEnabled) 
+                {
+                    Console.WriteLine("All lights:");
+                    foreach (IPointLight light in renderer.PointLights)
+                    {
+                        Console.WriteLine(light);
+                    }
+                }
                 this.Exit();
             }
 
@@ -321,51 +329,79 @@ namespace ERoD
 
             space.Update();
 
-            PlaceRockUpdate();
+            if (LightHelper.ToolEnabled) 
+            {
+                LightHelper.PlaceLightUpdate(KeyBoardState, LastKeyBoardState);
+
+                if (KeyBoardState.IsKeyDown(Keys.M) && !LastKeyBoardState.IsKeyDown(Keys.M))
+                {
+                    LightHelper.DebugPosition = !LightHelper.DebugPosition;
+                }
+                if (KeyBoardState.IsKeyDown(Keys.U) && !LastKeyBoardState.IsKeyDown(Keys.U))
+                {
+                    renderer.PointLights.Add(LightHelper.Light);
+                }
+                if (KeyBoardState.IsKeyDown(Keys.Y) && !LastKeyBoardState.IsKeyDown(Keys.Y))
+                {
+                    Console.WriteLine("All lights:");
+                    foreach (IPointLight light in renderer.PointLights)
+                    {
+                        Console.WriteLine(light);
+                    }
+                }
+            }
 
             LastGamePadState = GamePadState;
+            LastKeyBoardState = KeyBoardState;
             base.Update(gameTime);
         }
 
+        private float ChangeStrength = 1.0f;
         private void PlaceRockUpdate()
         {
             KeyboardState keyState = Keyboard.GetState();
             BVector3 translation = rockMesh.WorldTransform.Translation;
+
+            if (keyState.IsKeyDown(Keys.Z))
+            {
+                ChangeStrength = 0.1f;
+            }
+            if (keyState.IsKeyDown(Keys.X))
+            {
+                ChangeStrength = 1.0f;
+            }
+
             if (keyState.IsKeyDown(Keys.W))
             {
                 //+z
-                translation.Z += 1;
+                translation.Z += ChangeStrength;
             }
             if (keyState.IsKeyDown(Keys.S))
             {
                 //-z
-                translation.Z -= 1;
+                translation.Z -= ChangeStrength;
             }
             if (keyState.IsKeyDown(Keys.A))
             {
                 //-x
-                translation.X += 1;
+                translation.X += ChangeStrength;
             }
             if (keyState.IsKeyDown(Keys.D))
             {
                 //+x
-                translation.X -= 1;
+                translation.X -= ChangeStrength;
             }
             if (keyState.IsKeyDown(Keys.Q))
             {
                 //+y
-                translation.Y += 1;
+                translation.Y += ChangeStrength;
             }
             if (keyState.IsKeyDown(Keys.E))
             {
                 //-y
-                translation.Y -= 1;
+                translation.Y -= ChangeStrength;
             }
-            if (keyState.IsKeyDown(Keys.R))
-            {
-                Console.WriteLine("X: {0}, Y: {1}, Z: {2}", translation.X, translation.Y, translation.Z);
-            }
-            rockMesh.WorldTransform = new AffineTransform(new BVector3(10,10,10), BQuaternion.Identity, translation);
+            rockMesh.WorldTransform = new AffineTransform(new BVector3(4,4,4), BQuaternion.Identity, translation);
         }
 
         #region Message and FPS

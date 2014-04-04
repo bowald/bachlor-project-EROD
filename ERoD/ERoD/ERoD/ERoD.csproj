@@ -88,6 +88,8 @@
     <Compile Include="Camera\ChaseCamera.cs" />
     <Compile Include="Camera\FreeCamera.cs" />
     <Compile Include="Interface\ITrigger.cs" />
+    <Compile Include="Light\LightHelper.Placer.cs" />
+    <Compile Include="Light\LightHelper.cs" />
     <Compile Include="Logic\CollisionHandler.cs" />
     <Compile Include="GameConstants.cs" />
     <Compile Include="Helper\OurHelper.cs" />
@@ -135,6 +137,9 @@
     <Content Include="Game.ico" />
     <Content Include="GameThumbnail.png">
       <XnaPlatformSpecific>true</XnaPlatformSpecific>
+    </Content>
+    <Content Include="lightSources.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
   <ItemGroup>

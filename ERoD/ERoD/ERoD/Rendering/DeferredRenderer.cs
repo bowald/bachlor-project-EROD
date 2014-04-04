@@ -191,7 +191,10 @@ namespace ERoD
             {
                 RenderPointLight(pointLight);
             }
-
+            if (LightHelper.ToolEnabled)
+            {
+                RenderPointLight(LightHelper.Light);
+            }
             GraphicsDevice.SetRenderTarget(null);
         }
 
@@ -247,10 +250,16 @@ namespace ERoD
 
         private void RenderPointLight(IPointLight pointLight)
         {
+            // TODO: Remove debug hack for release, also in shader
+            pointLightShader.Parameters["DebugPosition"].SetValue(LightHelper.DebugPosition);
+
             pointLightShader.Parameters["HalfPixel"].SetValue(halfPixel);
+            pointLightShader.Parameters["SGRMap"].SetValue(SGRMap);
             pointLightShader.Parameters["ColorMap"].SetValue(colorMap);
             pointLightShader.Parameters["NormalMap"].SetValue(normalMap);
             pointLightShader.Parameters["DepthMap"].SetValue(depthMap);
+
+            pointLightShader.Parameters["CameraPosition"].SetValue(Camera.Position);
 
             Matrix sphereWorldMatrix = Matrix.CreateScale(pointLight.Radius) 
                 * Matrix.CreateTranslation(pointLight.Position);
@@ -321,20 +330,20 @@ namespace ERoD
         public void RenderDebug()
         {
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
-
-            GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
             spriteBatch.Draw(colorMap, new Rectangle(1, 1, w, h), Color.White);
             spriteBatch.Draw(SGRMap, new Rectangle((w * 4) + 4, 1, w, h), Color.White);
             spriteBatch.Draw(normalMap, new Rectangle(w + 2, 1, w, h), Color.White);
-
-            spriteBatch.Draw(lightMap, new Rectangle((w * 3) + 4, 1, w, h), Color.White);
-
+            
+            spriteBatch.Draw(lightMap, new Rectangle((w * 2) + 3, 1, w, h), Color.White);
+            
             spriteBatch.End();
+            
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
             DepthRender.CurrentTechnique.Passes[0].Apply();
             GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
+            DepthRender.CurrentTechnique.Passes[0].Apply();
             spriteBatch.Draw(depthMap, new Rectangle((w * 3) + 4, 1, w, h), Color.White);
-            spriteBatch.Draw(DirectionalLights[0].ShadowMapEntry.ShadowMap, new Rectangle(1, 1, w*3, h), Color.White);
+            //spriteBatch.Draw(DirectionalLights[0].ShadowMapEntry.ShadowMap, new Rectangle(1, 1, w*3, h), Color.White);
             spriteBatch.End();
         }
     }
