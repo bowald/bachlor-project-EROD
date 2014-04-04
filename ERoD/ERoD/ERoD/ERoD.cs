@@ -216,10 +216,10 @@ namespace ERoD
 
             space.ForceUpdater.Gravity = new BVector3(0, GameConstants.Gravity, 0);
 
-            renderer.Emitters.Add(new ThrusterEmitter(6000, 80, 400, 1.5f, 0.0005f, entity));
+            renderer.Emitters.Add(new ThrusterEmitter(6000, 60, 800, 1.0f, 0.0005f, entity));
 
 
-            List<Texture2D> textures = new List<Texture2D> { Content.Load<Texture2D>("Textures/Particles/Fire") };
+            List<Texture2D> textures = new List<Texture2D> { Content.Load<Texture2D>("Textures/Particles/Plasma") };
 
             foreach (BaseEmitter emitter in renderer.Emitters)
             {

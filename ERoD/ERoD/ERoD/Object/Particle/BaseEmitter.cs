@@ -32,7 +32,7 @@ namespace ERoD
             freeParticles = new Queue<Particle>(maxParticles);
         }
 
-        public void LoadContent(List<Texture2D> textures, GraphicsDevice graphicsDevice)
+        public virtual void LoadContent(List<Texture2D> textures, GraphicsDevice graphicsDevice)
         {
             if(textures.Count == 0)
                 throw new InvalidOperationException("Cannot load a particle effect without a list of textures.");

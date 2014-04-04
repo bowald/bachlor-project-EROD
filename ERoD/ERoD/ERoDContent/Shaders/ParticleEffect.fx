@@ -2,6 +2,8 @@ float4x4 World;
 float4x4 View;
 float4x4 Projection;
 
+float3 Color;
+
 float Alpha;
 
 float FarPlane;
@@ -73,8 +75,8 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 
 	clip(envDepth - depth);
 
-	float4 color = tex2D(TextureSampler, input.TexCoord);
-	return float4(color.rgb, Alpha);
+	float4 color = float4(Color, tex2D(TextureSampler, input.TexCoord).r);
+	return color;
 }
 
 technique Particles

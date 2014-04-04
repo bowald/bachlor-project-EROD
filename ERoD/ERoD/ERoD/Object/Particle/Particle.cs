@@ -47,6 +47,7 @@ namespace ERoD
         {
             textureQuad.Draw(camera.View, camera.Projection
                 , Matrix.CreateScale(Scaling) * Matrix.CreateBillboard(Position, camera.Position, camera.World.Up, camera.World.Forward)
+                , ModColor
                 , camera.FarPlane);
         }
     }

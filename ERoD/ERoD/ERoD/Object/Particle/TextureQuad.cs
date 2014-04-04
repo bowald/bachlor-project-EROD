@@ -62,7 +62,7 @@ namespace ERoD
             return vertices;
         }
 
-        public void Draw(Matrix viewMatrix, Matrix projectionMatrix, Matrix worldMatrix, float farPlane)
+        public void Draw(Matrix viewMatrix, Matrix projectionMatrix, Matrix worldMatrix, Color color, float farPlane)
         {
             ParticleEffect.GraphicsDevice.SetVertexBuffer(vertexBuffer);
 
@@ -71,6 +71,7 @@ namespace ERoD
             ParticleEffect.Parameters["Projection"].SetValue(projectionMatrix);
             ParticleEffect.Parameters["Alpha"].SetValue(alpha);
             ParticleEffect.Parameters["FarPlane"].SetValue(farPlane);
+            ParticleEffect.Parameters["Color"].SetValue(color.ToVector3());
 
             foreach (EffectPass pass in ParticleEffect.CurrentTechnique.Passes)
             {
