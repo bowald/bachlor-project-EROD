@@ -208,7 +208,6 @@ namespace ERoD
                     , 0
                     , RenderTargetUsage.PreserveContents);
 
-            // TODO: Load your game content here            
             fontPos = new Microsoft.Xna.Framework.Vector2(graphics.GraphicsDevice.Viewport.Width / 2,
                 graphics.GraphicsDevice.Viewport.Height / 2);
 
@@ -224,6 +223,9 @@ namespace ERoD
             LightHelper.Game = this;
 
             space.Add(((ITerrain)Services.GetService(typeof(ITerrain))).PhysicTerrain);
+
+
+            
 
             #region Bridge
 
@@ -307,19 +309,29 @@ namespace ERoD
 
             CreateCheckPoints(objEffect, cubeModel);
 
-            for (int i = 0; i < views.Length; i++ )
+            #region Add PostProcess
+
+            for (int i = 0; i < views.Length; i++)
             {
                 views[i].Manager = new PostProcessingManager(this, renderer.renderTargets[i]);
             }
 
-            views[0].Manager.AddEffect(new BlurAdvanced(this, views[0].Viewport.Width, views[0].Viewport.Height));
-            views[1].Manager.AddEffect(new BiliteralBlurH(this, 2.0f, views[1].Viewport.Width));
-            //views[2].Manager.AddEffect(new BiliteralBlurV(this, 2.0f, views[2].Viewport.Height));
+            for (int i = 0; i < views.Length; i++ )
+            {
+                views[i].Manager.AddEffect(new Bloom(this, 0.5f, views[i].Viewport.Width, views[i].Viewport.Height));
+                views[i].Manager.AddEffect(new GodRays(this, new Vector3(100, 20, 100), 60.0f, 0.8f, 0.99f, 0.8f, 0.15f));
+            }
+
+            #endregion
+
+            #region Lights
 
             renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(2500, 2000, 2500), Vector3.Zero, Color.LightYellow, 0.4f, 7000.0f, GameConstants.ShadowsEnabled));
             
             LightHelper.ToolEnabled = false;
             renderer.PointLights.AddRange(LightHelper.ReadLights());
+
+            #endregion
         }
 
         private void CreateCheckPoints(Effect effect, Model model)
@@ -389,7 +401,7 @@ namespace ERoD
             KeyBoardState = Keyboard.GetState();
 
             // Allows the game to exit
-            // TODO: Change this before "release"
+            // TODO: Change this before "release", close with menu
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
             {
                 if (LightHelper.ToolEnabled)
@@ -403,15 +415,20 @@ namespace ERoD
                 this.Exit();
             }
 
+
             if (KeyBoardState.IsKeyDown(Keys.F1) && LastKeyBoardState.IsKeyUp(Keys.F1))
             {
-                // Swap cameras
+                // Show deferred debug
+                RenderDebug = !RenderDebug;
             }
 
             if (KeyBoardState.IsKeyDown(Keys.F2) && LastKeyBoardState.IsKeyUp(Keys.F2))
             {
-                // Show deferred debug
-                RenderDebug = !RenderDebug;
+                // Swap cameras
+                for (int i = 0; i < views.Length; i++)
+                {
+                    views[i].FreeCameraActive = !views[i].FreeCameraActive;
+                }
             }
 
             space.Update();
@@ -440,54 +457,6 @@ namespace ERoD
 
             LastKeyBoardState = KeyBoardState;
             base.Update(gameTime);
-        }
-
-        private float ChangeStrength = 1.0f;
-        private void PlaceRockUpdate()
-        {
-            KeyboardState keyState = Keyboard.GetState();
-            BVector3 translation = rockMesh.WorldTransform.Translation;
-
-            if (keyState.IsKeyDown(Keys.Z))
-            {
-                ChangeStrength = 0.1f;
-            }
-            if (keyState.IsKeyDown(Keys.X))
-            {
-                ChangeStrength = 1.0f;
-            }
-
-            if (keyState.IsKeyDown(Keys.W))
-            {
-                //+z
-                translation.Z += ChangeStrength;
-            }
-            if (keyState.IsKeyDown(Keys.S))
-            {
-                //-z
-                translation.Z -= ChangeStrength;
-            }
-            if (keyState.IsKeyDown(Keys.A))
-            {
-                //-x
-                translation.X += ChangeStrength;
-            }
-            if (keyState.IsKeyDown(Keys.D))
-            {
-                //+x
-                translation.X -= ChangeStrength;
-            }
-            if (keyState.IsKeyDown(Keys.Q))
-            {
-                //+y
-                translation.Y += ChangeStrength;
-            }
-            if (keyState.IsKeyDown(Keys.E))
-            {
-                //-y
-                translation.Y -= ChangeStrength;
-            }
-            rockMesh.WorldTransform = new AffineTransform(new BVector3(4,4,4), BQuaternion.Identity, translation);
         }
 
         #region Message and FPS

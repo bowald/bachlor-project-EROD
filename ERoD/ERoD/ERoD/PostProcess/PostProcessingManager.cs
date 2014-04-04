@@ -12,16 +12,12 @@ namespace ERoD
     {
         protected Game Game;
         public Texture2D Scene;
-        //public Texture2D DepthBuffer;
-
-        public RenderTarget2D NewScene;
 
         public DeferredRenderer.DeferredRenderTarget target;
 
         protected List<AdvancedPostProcess> postProcessingEffects = new List<AdvancedPostProcess>();
 
         public Vector2 HalfPixel;
-
         public SpriteBatch spriteBatch;
 
         public PostProcessingManager(Game game, DeferredRenderer.DeferredRenderTarget target)

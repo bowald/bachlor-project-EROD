@@ -8,13 +8,18 @@ using System.Text;
 
 namespace ERoD
 {
-    public class BiliteralBlurV : BasicPostProcess
+    public class Blur : BasicPostProcess
     {
-        private Vector4[] sampleOffsetsVert;
-        private float[] sampleWeightsVert;
 
+        private Boolean BiliteralBlur;
+        private Boolean Horizontal;
+
+        private Vector4[] sampleOffsets;
+        private float[] sampleWeights;
 
         private const int Sample_Count = 11;
+        // Render size
+        private int width;
         private int height;
 
         protected float blurAmount;
@@ -24,43 +29,75 @@ namespace ERoD
             set
             {
                 blurAmount = value;
-                if (sampleOffsetsVert != null)
+                if (sampleOffsets != null)
                 {
-                    SetBlurEffectParameters(0, 2.0f / height, ref sampleOffsetsVert, ref sampleWeightsVert);
+                    if (Horizontal)
+                        SetBlurEffectParameters(2.0f / height, 0, ref sampleOffsets, ref sampleWeights);
+                    else
+                    {
+                        SetBlurEffectParameters(0, 2.0f / width, ref sampleOffsets, ref sampleWeights);
+                    }
                 }
             }
         }
 
-        public BiliteralBlurV(Game game, float amount, int height)
+        //If BiliteralBlur is false, Guassian is Used.
+        //If Horizontal is false, Vertical is Used.
+        public Blur(ERoD game, float amount, Boolean BiliteralBlur, Boolean Horizontal, int width, int height)
             : base(game)
         {
+            this.BiliteralBlur = BiliteralBlur;
+            this.Horizontal = Horizontal;
+
             blurAmount = amount;
-            UsesVertexShader = true;
             newSceneSurfaceFormat = SurfaceFormat.Color;
+            this.width = width;
             this.height = height;
+
+            Sampler = SamplerState.PointClamp;
+
+            if (BiliteralBlur)
+            {
+                UsesVertexShader = true;
+            }
         }
 
         public override void Draw(GameTime gameTime)
         {
             if (effect == null)
             {
-                effect = Game.Content.Load<Effect>("Shaders/PostProcessing/BiliteralBlur");
-                effect.CurrentTechnique = effect.Techniques["BiliteralBlur"];
-                sampleOffsetsVert = new Vector4[Sample_Count];
-                sampleWeightsVert = new float[Sample_Count];
-                SetBlurEffectParameters(0, 2.0f / height, ref sampleOffsetsVert, ref sampleWeightsVert);
+                if (BiliteralBlur)
+                {
+                    effect = Game.Content.Load<Effect>("Shaders/PostProcessing/BiliteralBlur");
+                    effect.CurrentTechnique = effect.Techniques["BiliteralBlur"];
+                    effect.Parameters["DepthMap"].SetValue(DepthBuffer);
+                    effect.Parameters["NormalMap"].SetValue(NormalBuffer);
+                }
+                else
+                {
+                    effect = Game.Content.Load<Effect>("Shaders/PostProcessing/GuassianBlur");
+                    effect.CurrentTechnique = effect.Techniques["GuassianBlur"];
+                }
+
+                sampleOffsets = new Vector4[Sample_Count];
+                sampleWeights = new float[Sample_Count];
+                if (Horizontal)
+                    SetBlurEffectParameters(2.0f / width, 0, ref sampleOffsets, ref sampleWeights);
+                else
+                {
+                    SetBlurEffectParameters(0, 2.0f / height, ref sampleOffsets, ref sampleWeights);
+                }
             }
 
-            effect.Parameters["DepthMap"].SetValue(DepthBuffer);
-            effect.Parameters["NormalMap"].SetValue(NormalBuffer);
-            effect.Parameters["SampleOffsets"].SetValue(sampleOffsetsVert);
-            effect.Parameters["SampleWeights"].SetValue(sampleWeightsVert);
+            effect.Parameters["SampleOffsets"].SetValue(sampleOffsets);
+            effect.Parameters["SampleWeights"].SetValue(sampleWeights);
             effect.Parameters["HalfPixel"].SetValue(HalfPixel);
 
             Game.GraphicsDevice.BlendState = BlendState.Opaque;
-            // Set Params.
+            
             base.Draw(gameTime);
         }
+
         /// <summary>
         /// Computes sample weightings and texture coordinate offsets
         /// for one pass of a separable gaussian blur filter.
@@ -69,7 +106,7 @@ namespace ERoD
         {
             // The first sample always has a zero offset.
             weights[0] = ComputeGaussian(0);
-            offsets[0] = new Vector4(0,0,0,0);
+            offsets[0] = new Vector4();
 
             // Maintain a sum of all the weighting values.
             float totalWeights = weights[0];

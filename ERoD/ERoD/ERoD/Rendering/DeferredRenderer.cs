@@ -22,6 +22,7 @@ namespace ERoD
         public struct DeferredRenderTarget
         {
             public int width, height;
+            public int w, h;
 
             public RenderTarget2D depthMap;
             public RenderTarget2D colorMap;
@@ -51,7 +52,9 @@ namespace ERoD
         Effect deferredShader;
 
         Effect deferredShadowShader;
-        
+
+        Effect DepthRender;
+
         public List<IPointLight> PointLights = new List<IPointLight>();
         public List<IDirectionalLight> DirectionalLights = new List<IDirectionalLight>();
 
@@ -67,6 +70,10 @@ namespace ERoD
             {
                 renderTargets[i].width = playerViews[i].Viewport.Width;
                 renderTargets[i].height = playerViews[i].Viewport.Height;
+
+                // Debug render
+                renderTargets[i].w = playerViews[i].Viewport.Width / 6;
+                renderTargets[i].h = playerViews[i].Viewport.Height / 4;
             }
         }
 
@@ -112,8 +119,6 @@ namespace ERoD
 
             // Debug depth renderer
             DepthRender = Game.Content.Load<Effect>("Shaders/depthRender");
-            w = GraphicsDevice.Viewport.Width / 6;
-            h = GraphicsDevice.Viewport.Height / 4;
 
             pointLightMesh = Game.Content.Load<Model>("Models/lightmesh");
             pointLightMesh.Meshes[0].MeshParts[0].Effect = pointLightShader;
@@ -341,16 +346,14 @@ namespace ERoD
 
         }
 
-        int w, h;
-        Effect DepthRender;
         public void RenderDebug(DeferredRenderTarget target)
         {
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
-            spriteBatch.Draw(target.colorMap, new Rectangle(1, 1, w, h), Color.White);
-            spriteBatch.Draw(target.SGRMap, new Rectangle((w * 4) + 4, 1, w, h), Color.White);
-            spriteBatch.Draw(target.normalMap, new Rectangle(w + 2, 1, w, h), Color.White);
+            spriteBatch.Draw(target.colorMap, new Rectangle(1, 1, target.w, target.h), Color.White);
+            spriteBatch.Draw(target.SGRMap, new Rectangle((target.w * 4) + 4, 1, target.w, target.h), Color.White);
+            spriteBatch.Draw(target.normalMap, new Rectangle(target.w + 2, 1, target.w, target.h), Color.White);
 
-            spriteBatch.Draw(target.lightMap, new Rectangle((w * 2) + 3, 1, w, h), Color.White);
+            spriteBatch.Draw(target.lightMap, new Rectangle((target.w * 2) + 3, 1, target.w, target.h), Color.White);
             
             spriteBatch.End();
             
@@ -358,7 +361,7 @@ namespace ERoD
             DepthRender.CurrentTechnique.Passes[0].Apply();
             GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
             DepthRender.CurrentTechnique.Passes[0].Apply();
-            spriteBatch.Draw(target.depthMap, new Rectangle((w * 3) + 4, 1, w, h), Color.White);
+            spriteBatch.Draw(target.depthMap, new Rectangle((target.w * 3) + 4, 1, target.w, target.h), Color.White);
             //spriteBatch.Draw(DirectionalLights[0].ShadowMapEntry.ShadowMap, new Rectangle(1, 1, w*3, h), Color.White);
             spriteBatch.End();
         }

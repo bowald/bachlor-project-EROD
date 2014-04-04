@@ -12,9 +12,11 @@ namespace ERoD
     {
         public Vector2 HalfPixel;
         public Texture2D lastScene;
+
         public Texture2D originalScene;
         protected List<BasicPostProcess> postProcesses = new List<BasicPostProcess>();
 
+        public bool Enabled = true;
         protected Game Game;
 
         public ICamera camera
@@ -38,8 +40,6 @@ namespace ERoD
             process.AddPostProcess(basic);
             return process;
         }
-
-        public bool Enabled = true;
 
         public void AddPostProcess(BasicPostProcess postProcess)
         {
