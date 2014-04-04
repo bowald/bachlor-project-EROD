@@ -10,7 +10,7 @@ namespace ERoD
 {
     public class Blend : BasicPostProcess
     {
-        public Blend(ERoD game)
+        public Blend(Game game)
             : base(game)
         {
             UsesVertexShader = true;

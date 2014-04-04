@@ -14,6 +14,7 @@ namespace ERoD
         private float[] sampleWeightsHoriz;
 
         private const int Sample_Count = 11;
+        private int width;
 
         protected float blurAmount;
         public float BlurAmount
@@ -23,16 +24,17 @@ namespace ERoD
             {
                 blurAmount = value;
                 if (sampleOffsetsHoriz != null)
-                    SetBlurEffectParameters(1.0f / (float)(this.Game.GraphicsDevice.Viewport.Width / 2f), 0, ref sampleOffsetsHoriz, ref sampleWeightsHoriz);
+                    SetBlurEffectParameters(2.0f / width, 0, ref sampleOffsetsHoriz, ref sampleWeightsHoriz);
             }
         }
 
-        public BiliteralBlurH(Game game, float amount)
+        public BiliteralBlurH(Game game, float amount, int width)
             : base(game)
         {
             blurAmount = amount;
             UsesVertexShader = true;
             newSceneSurfaceFormat = SurfaceFormat.Color;
+            this.width = width;
         }
 
         public override void Draw(GameTime gameTime)
@@ -43,7 +45,7 @@ namespace ERoD
                 effect.CurrentTechnique = effect.Techniques["BiliteralBlur"];
                 sampleOffsetsHoriz = new Vector4[Sample_Count];
                 sampleWeightsHoriz = new float[Sample_Count];
-                SetBlurEffectParameters(1.0f / (Game.GraphicsDevice.Viewport.Width / 2f), 0, ref sampleOffsetsHoriz, ref sampleWeightsHoriz);
+                SetBlurEffectParameters(2.0f / width, 0, ref sampleOffsetsHoriz, ref sampleWeightsHoriz);
             }
 
             effect.Parameters["DepthMap"].SetValue(DepthBuffer);

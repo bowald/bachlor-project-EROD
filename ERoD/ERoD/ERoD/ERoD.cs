@@ -48,6 +48,7 @@ namespace ERoD
         private PlayerView[] views;
         private Viewport original;
 
+        private RenderTarget2D finalScreenTarget;
         // GameLogic //
         GameLogic GameLogic;
 
@@ -198,6 +199,15 @@ namespace ERoD
             spriteBatch = new SpriteBatch(GraphicsDevice);
             font = Content.Load<SpriteFont>("Sprites/Lap1");
 
+            finalScreenTarget = new RenderTarget2D(GraphicsDevice
+                    , original.Width
+                    , original.Height
+                    , false
+                    , SurfaceFormat.Color
+                    , DepthFormat.None
+                    , 0
+                    , RenderTargetUsage.PreserveContents);
+
             // TODO: Load your game content here            
             fontPos = new Microsoft.Xna.Framework.Vector2(graphics.GraphicsDevice.Viewport.Width / 2,
                 graphics.GraphicsDevice.Viewport.Height / 2);
@@ -302,8 +312,9 @@ namespace ERoD
                 views[i].Manager = new PostProcessingManager(this, renderer.renderTargets[i]);
             }
 
-            views[2].Manager.AddEffect(new BiliteralBlurV(this, 2.0f));
-            views[0].Manager.AddEffect(new BlurAdvanced(this));
+            views[0].Manager.AddEffect(new BlurAdvanced(this, views[0].Viewport.Width, views[0].Viewport.Height));
+            views[1].Manager.AddEffect(new BiliteralBlurH(this, 2.0f, views[1].Viewport.Width));
+            //views[2].Manager.AddEffect(new BiliteralBlurV(this, 2.0f, views[2].Viewport.Height));
 
             renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(2500, 2000, 2500), Vector3.Zero, Color.LightYellow, 0.4f, 7000.0f, GameConstants.ShadowsEnabled));
             
@@ -528,7 +539,6 @@ namespace ERoD
 
         #endregion
 
-
         /// <summary>
         /// This is called when the game should draw itself.
         /// </summary>
@@ -541,7 +551,10 @@ namespace ERoD
                 Services.AddService(typeof(ICamera), views[i].Camera);
                 renderer.Draw(gameTime, i);
             }
+
+            GraphicsDevice.SetRenderTarget(finalScreenTarget);
             GraphicsDevice.Clear(Color.Black);
+            
             for (int i = 0; i < views.Length; i++)
             {
                 Services.RemoveService(typeof(ICamera));
@@ -549,7 +562,8 @@ namespace ERoD
 
                 GraphicsDevice.Viewport = views[i].Viewport;
                 
-                views[i].Manager.Draw(gameTime);
+                views[i].Manager.Draw(gameTime, finalScreenTarget);
+
                 //PrintMessage();
                 //logFPS(gameTime);
 
@@ -558,7 +572,13 @@ namespace ERoD
                     renderer.RenderDebug(renderer.renderTargets[i]);
                 }
             }
+
+            graphics.GraphicsDevice.SetRenderTarget(null);
             graphics.GraphicsDevice.Viewport = original;
+
+            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque, SamplerState.AnisotropicWrap, DepthStencilState.Default, RasterizerState.CullCounterClockwise);
+            spriteBatch.Draw(finalScreenTarget, new Rectangle(0, 0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height), Color.White);
+            spriteBatch.End();
         }
     }
 }

@@ -29,7 +29,6 @@ namespace ERoD
             Game = game;
             this.target = target;
             spriteBatch = new SpriteBatch(Game.GraphicsDevice);
-            NewScene = new RenderTarget2D(Game.GraphicsDevice, target.width, target.height, false, SurfaceFormat.Color, DepthFormat.None);
         }
 
         public void AddEffect(AdvancedPostProcess ppEffect)
@@ -54,14 +53,14 @@ namespace ERoD
             }
         }
 
-        public virtual void Draw(GameTime gameTime)
+        public virtual void Draw(GameTime gameTime, RenderTarget2D finalTarget)
         {
             if (HalfPixel == Vector2.Zero)
             {
                 HalfPixel = -new Vector2(.5f / (float)Game.GraphicsDevice.Viewport.Width,
                                      .5f / (float)Game.GraphicsDevice.Viewport.Height);
             }
-
+            
             int maxEffect = postProcessingEffects.Count;
 
             Scene = target.finalBackBuffer;
@@ -73,14 +72,16 @@ namespace ERoD
                     {
                         postProcessingEffects[e].HalfPixel = HalfPixel;
                     }
-                    postProcessingEffects[e].NewScene = NewScene;
-                   
-                    postProcessingEffects[e].Draw(gameTime, Scene, target.depthMap, target.normalMap);
+
+                    postProcessingEffects[e].Draw(gameTime, Scene, target);
                     Scene = postProcessingEffects[e].lastScene;
                 }
             }
-            //Console.WriteLine("sb {0}", Scene.Bounds);
-            //Console.WriteLine("vb {0}", Game.GraphicsDevice.Viewport.Bounds);
+
+            Viewport tmp = Game.GraphicsDevice.Viewport;
+            Game.GraphicsDevice.SetRenderTarget(finalTarget);
+            Game.GraphicsDevice.Viewport = tmp;
+
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque, SamplerState.AnisotropicWrap, DepthStencilState.Default, RasterizerState.CullCounterClockwise);
             spriteBatch.Draw(Scene, new Rectangle(0, 0, Game.GraphicsDevice.Viewport.Width, Game.GraphicsDevice.Viewport.Height), Color.White);
             spriteBatch.End();

@@ -32,7 +32,7 @@ namespace ERoD
 
         public bool Enabled = true;
 
-        public RenderTarget2D newScene;
+        public RenderTarget2D NewScene;
 
         public SpriteSortMode SortMode = SpriteSortMode.Immediate;
         public BlendState Blend = BlendState.Opaque;

@@ -15,8 +15,6 @@ namespace ERoD
         public Texture2D originalScene;
         protected List<BasicPostProcess> postProcesses = new List<BasicPostProcess>();
 
-        public RenderTarget2D NewScene;
-
         protected Game Game;
 
         public ICamera camera
@@ -60,7 +58,7 @@ namespace ERoD
             }
         }
 
-        public virtual void Draw(GameTime gameTime, Texture2D scene, Texture2D depth, Texture2D normal)
+        public virtual void Draw(GameTime gameTime, Texture2D scene, DeferredRenderer.DeferredRenderTarget target)
         {
             if (!Enabled)
                 return;
@@ -69,7 +67,7 @@ namespace ERoD
 
             int maxProcess = postProcesses.Count;
             lastScene = null;
-            
+
             for (int p = 0; p < maxProcess; p++)
             {
                 if (postProcesses[p].Enabled)
@@ -79,35 +77,39 @@ namespace ERoD
                     {
                         postProcesses[p].HalfPixel = HalfPixel;
                     }
-
-                    // Set G-buffers
-                    postProcesses[p].DepthBuffer = depth;
-                    postProcesses[p].NormalBuffer = normal;
-
-                    // Set original scene
-                    postProcesses[p].originalBuffer = originalScene;
-
-                    Game.GraphicsDevice.SetRenderTarget(NewScene);
-                    
-                    Game.GraphicsDevice.Clear(Color.Black);
-                    
                     // Has the scene been rendered yet
                     if (lastScene == null)
                     {
                         lastScene = originalScene;
                     }
 
-                    postProcesses[p].BackBuffer = lastScene;
+                    // Set G-buffers
+                    postProcesses[p].DepthBuffer = target.depthMap;
+                    postProcesses[p].NormalBuffer = target.normalMap;
 
+                    // Set original scene
+                    postProcesses[p].originalBuffer = originalScene;
+
+                    if (postProcesses[p].NewScene == null)
+                    {
+                        postProcesses[p].NewScene = new RenderTarget2D(Game.GraphicsDevice
+                            , target.width
+                            , target.height
+                            , false
+                            , SurfaceFormat.Color
+                            , DepthFormat.None);
+                    }
+                    Viewport original = Game.GraphicsDevice.Viewport;
+                    Game.GraphicsDevice.SetRenderTarget(postProcesses[p].NewScene);
+                    Game.GraphicsDevice.Clear(Color.Black);
+
+                    postProcesses[p].BackBuffer = lastScene;
                     Game.GraphicsDevice.Textures[0] = postProcesses[p].BackBuffer;
-                    Console.WriteLine("--------------");
-                    Console.WriteLine("before {0}", Game.GraphicsDevice.Viewport.Bounds);
                     postProcesses[p].Draw(gameTime);
 
-                    Console.WriteLine("after {0}", Game.GraphicsDevice.Viewport.Bounds);
                     Game.GraphicsDevice.SetRenderTarget(null);
-
-                    lastScene = NewScene;
+                    Game.GraphicsDevice.Viewport = original;
+                    lastScene = postProcesses[p].NewScene;
                 }
             }
 
