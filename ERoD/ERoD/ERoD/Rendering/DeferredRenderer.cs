@@ -56,7 +56,6 @@ namespace ERoD
         public List<IDirectionalLight> DirectionalLights = new List<IDirectionalLight>();
 
         ScreenQuad sceneQuad;
-
         public DeferredRenderer(Game game, PlayerView[] playerViews) 
             : base(game)
         {

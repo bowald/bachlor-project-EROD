@@ -5,10 +5,10 @@ sampler2D Scene: register(s0){
 	AddressV = Mirror;
 };
 
-texture OrgScene;
-sampler2D orgScene = sampler_state
+texture OriginalScene;
+sampler2D originalScene = sampler_state
 {
-	Texture = <OrgScene>;
+	Texture = <OriginalScene>;
 	AddressU = CLAMP;
 	AddressV = CLAMP;
 };
@@ -35,7 +35,7 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 float4 BlendPS(float2 texCoord : TEXCOORD0) : COLOR0
 {
 	texCoord -= HalfPixel;
-	float4 col = tex2D(orgScene, texCoord) * tex2D(Scene, texCoord);
+	float4 col = tex2D(originalScene, texCoord) * tex2D(Scene, texCoord);
 
 		return col;
 }
@@ -44,7 +44,7 @@ technique Blend
 {
 	pass p0
 	{
-		VertexShader = compile vs_2_0 VertexShaderFunction();
-		PixelShader = compile ps_2_0 BlendPS();
+		VertexShader = compile vs_3_0 VertexShaderFunction();
+		PixelShader = compile ps_3_0 BlendPS();
 	}
 }

@@ -11,8 +11,10 @@ namespace ERoD
     public class BasicPostProcess
     {
         public Vector2 HalfPixel;
+        
+        protected Game Game;
 
-        public ICamera camera
+        public ICamera Camera
         {
             get { return ((ICamera)Game.Services.GetService(typeof(ICamera))); }
         }
@@ -23,12 +25,14 @@ namespace ERoD
         }
 
         public Texture2D DepthBuffer;
-
-        public Texture2D BackBuffer;
-        public Texture2D orgBuffer;
         public Texture2D NormalBuffer;
+        public Texture2D BackBuffer;
+
+        public Texture2D originalBuffer;
 
         public bool Enabled = true;
+
+        public RenderTarget2D newScene;
 
         public SpriteSortMode SortMode = SpriteSortMode.Immediate;
         public BlendState Blend = BlendState.Opaque;
@@ -38,33 +42,30 @@ namespace ERoD
 
         protected Effect effect;
 
-        protected ERoD Game;
-        public RenderTarget2D newScene;
-
-        ScreenQuad sq;
+        ScreenQuad screenQuad;
 
         public bool UsesVertexShader = false;
 
-        public BasicPostProcess(ERoD game)
+        public BasicPostProcess(Game game)
         {
             Game = game;
-
         }
-        public virtual void Update(GameTime gameTime)
-        {
 
-        }
+        public virtual void Update(GameTime gameTime) { }
+
         public virtual void Draw(GameTime gameTime)
         {
             if (Enabled)
             {
-                if (sq == null)
+                if (screenQuad == null)
                 {
-                    sq = new ScreenQuad(Game);
-                    sq.Initialize();
+                    screenQuad = new ScreenQuad(Game);
+                    screenQuad.Initialize();
                 }
                 if (!UsesVertexShader)
+                {
                     spriteBatch.Begin(SortMode, Blend, Sampler, DepthStencilState.None, RasterizerState.CullCounterClockwise);
+                }
                 else
                 {
                     Game.GraphicsDevice.SamplerStates[0] = Sampler;
@@ -73,7 +74,9 @@ namespace ERoD
                 effect.CurrentTechnique.Passes[0].Apply();
 
                 if (UsesVertexShader)
-                    sq.Draw(-Vector2.One, Vector2.One);
+                {
+                    screenQuad.Draw(-Vector2.One, Vector2.One);
+                }
                 else
                 {
                     spriteBatch.Draw(BackBuffer, new Rectangle(0, 0, Game.GraphicsDevice.Viewport.Width, Game.GraphicsDevice.Viewport.Height), Color.White);

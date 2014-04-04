@@ -67,9 +67,6 @@ namespace ERoD
             get { return renderer; }
         }
 
-        protected PostProcessingManager manager;
-
-
         public ModelDrawer modelDrawer;  //Used to draw entities for debug.
 
         public KeyboardState KeyBoardState { get; set; }
@@ -182,8 +179,6 @@ namespace ERoD
             terrain = new HeightTerrainCDLOD(this, 7);
             Components.Add(terrain);
             Services.AddService(typeof(ITerrain), terrain);
-
-            manager = new PostProcessingManager(this);
 
             GameLogic = new GameLogic(this);
             this.Services.AddService(typeof(GameLogic), GameLogic);
@@ -301,7 +296,15 @@ namespace ERoD
             #endregion
 
             CreateCheckPoints(objEffect, cubeModel);
-            
+
+            for (int i = 0; i < views.Length; i++ )
+            {
+                views[i].Manager = new PostProcessingManager(this, renderer.renderTargets[i]);
+            }
+
+            views[2].Manager.AddEffect(new BiliteralBlurV(this, 2.0f));
+            views[0].Manager.AddEffect(new BlurAdvanced(this));
+
             renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(2500, 2000, 2500), Vector3.Zero, Color.LightYellow, 0.4f, 7000.0f, GameConstants.ShadowsEnabled));
             
             LightHelper.ToolEnabled = false;
@@ -545,10 +548,8 @@ namespace ERoD
                 Services.AddService(typeof(ICamera), views[i].Camera);
 
                 GraphicsDevice.Viewport = views[i].Viewport;
-
-                manager.Draw(gameTime, renderer.renderTargets[i].finalBackBuffer,
-                    renderer.renderTargets[i].depthMap, renderer.renderTargets[i].normalMap);
-
+                
+                views[i].Manager.Draw(gameTime);
                 //PrintMessage();
                 //logFPS(gameTime);
 

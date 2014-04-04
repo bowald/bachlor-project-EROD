@@ -16,6 +16,8 @@ namespace ERoD
 
         private Ship ship;
 
+        public PostProcessingManager Manager;
+
         public GamePadState GamePadState { get; set; }
         public GamePadState LastGamePadState { get; set; }
         

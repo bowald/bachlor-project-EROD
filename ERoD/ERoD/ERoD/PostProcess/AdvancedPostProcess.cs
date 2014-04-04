@@ -12,8 +12,10 @@ namespace ERoD
     {
         public Vector2 HalfPixel;
         public Texture2D lastScene;
-        public Texture2D orgScene;
+        public Texture2D originalScene;
         protected List<BasicPostProcess> postProcesses = new List<BasicPostProcess>();
+
+        public RenderTarget2D NewScene;
 
         protected Game Game;
 
@@ -31,10 +33,12 @@ namespace ERoD
         {
             Game = game;
         }
-        public AdvancedPostProcess(Game game, BasicPostProcess basic)
+
+        public static AdvancedPostProcess CreateFromBasic(Game game, BasicPostProcess basic)
         {
-            Game = game;
-            AddPostProcess(basic);
+            AdvancedPostProcess process = new AdvancedPostProcess(game);
+            process.AddPostProcess(basic);
+            return process;
         }
 
         public bool Enabled = true;
@@ -61,49 +65,56 @@ namespace ERoD
             if (!Enabled)
                 return;
 
-            orgScene = scene;
+            originalScene = scene;
 
             int maxProcess = postProcesses.Count;
             lastScene = null;
-
+            
             for (int p = 0; p < maxProcess; p++)
             {
                 if (postProcesses[p].Enabled)
                 {
                     // Set Half Pixel value.
                     if (postProcesses[p].HalfPixel == Vector2.Zero)
+                    {
                         postProcesses[p].HalfPixel = HalfPixel;
+                    }
+
+                    // Set G-buffers
+                    postProcesses[p].DepthBuffer = depth;
+                    postProcesses[p].NormalBuffer = normal;
 
                     // Set original scene
-                    postProcesses[p].orgBuffer = orgScene;
+                    postProcesses[p].originalBuffer = originalScene;
 
-                    // Ready render target if needed.
-                    if (postProcesses[p].newScene == null)
-                        postProcesses[p].newScene = new RenderTarget2D(Game.GraphicsDevice, Game.GraphicsDevice.Viewport.Width, Game.GraphicsDevice.Viewport.Height, false, postProcesses[p].newSceneSurfaceFormat, DepthFormat.None);
-
-                    Game.GraphicsDevice.SetRenderTarget(postProcesses[p].newScene);
+                    Game.GraphicsDevice.SetRenderTarget(NewScene);
                     
                     Game.GraphicsDevice.Clear(Color.Black);
                     
                     // Has the scene been rendered yet
                     if (lastScene == null)
-                        lastScene = orgScene;
+                    {
+                        lastScene = originalScene;
+                    }
 
                     postProcesses[p].BackBuffer = lastScene;
 
-                    postProcesses[p].DepthBuffer = depth;
-                    postProcesses[p].NormalBuffer = normal;
                     Game.GraphicsDevice.Textures[0] = postProcesses[p].BackBuffer;
+                    Console.WriteLine("--------------");
+                    Console.WriteLine("before {0}", Game.GraphicsDevice.Viewport.Bounds);
                     postProcesses[p].Draw(gameTime);
 
+                    Console.WriteLine("after {0}", Game.GraphicsDevice.Viewport.Bounds);
                     Game.GraphicsDevice.SetRenderTarget(null);
 
-                    lastScene = postProcesses[p].newScene;
+                    lastScene = NewScene;
                 }
             }
 
             if (lastScene == null)
+            {
                 lastScene = scene;
+            }
         }
     }
 }
