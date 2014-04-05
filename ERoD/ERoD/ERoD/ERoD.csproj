@@ -115,7 +115,9 @@
     <Compile Include="Object\Terrain\HeightTerrainCDLOD.cs" />
     <Compile Include="Object\Terrain\QuadTree.cs" />
     <Compile Include="PostProcess\Advanced\AdvancedPostProcess.cs" />
+    <Compile Include="PostProcess\Advanced\SSAO.cs" />
     <Compile Include="PostProcess\Advanced\GodRays.cs" />
+    <Compile Include="PostProcess\Basic\BasicSSAO.cs" />
     <Compile Include="PostProcess\Basic\Blend.cs" />
     <Compile Include="PostProcess\Basic\Blur.cs" />
     <Compile Include="PostProcess\Advanced\Bloom.cs" />
@@ -124,6 +126,7 @@
     <Compile Include="PostProcess\Basic\MaskBloom.cs" />
     <Compile Include="PostProcess\Basic\BasicPostProcess.cs" />
     <Compile Include="PostProcess\Basic\SceneMask.cs" />
+    <Compile Include="PostProcess\Basic\SSAOBlend.cs" />
     <Compile Include="PostProcess\PostProcessingManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Program.cs" />

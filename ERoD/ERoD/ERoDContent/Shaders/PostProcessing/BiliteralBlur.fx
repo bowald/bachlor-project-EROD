@@ -74,7 +74,7 @@ float4 BiliteralBlurPS(VertexShaderOutput input) : COLOR0
 		
 		float3 SampleNormal = getNormal(saturate(input.TexCoord + SampleOffsets[i].xy));
 
-		if (dot(SampleNormal, centerNormal) < 0.9f || abs(centerDepth - SampleDepth) > 0.00007f)
+		if (dot(SampleNormal, centerNormal) < 0.9f || abs(centerDepth - SampleDepth) > 0.007f)
 		{
 			c += tex2D(TextureSampler, input.TexCoord) * weight;
 		}

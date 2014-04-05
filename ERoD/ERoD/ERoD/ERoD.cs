@@ -318,8 +318,9 @@ namespace ERoD
 
             for (int i = 0; i < views.Length; i++ )
             {
+                views[i].Manager.AddEffect(new SSAO(this, 0.2f, 1.0f, 0.2f, 1.0f, views[i].Viewport.Width, views[i].Viewport.Height));
                 views[i].Manager.AddEffect(new Bloom(this, 0.5f, views[i].Viewport.Width, views[i].Viewport.Height));
-                views[i].Manager.AddEffect(new GodRays(this, new Vector3(100, 20, 100), 60.0f, 0.8f, 0.99f, 0.8f, 0.15f));
+                views[i].Manager.AddEffect(new GodRays(this, new Vector3(100, 20, 100), 60.0f, 1.2f, 0.999f, 0.7f, 0.05f));
             }
 
             #endregion

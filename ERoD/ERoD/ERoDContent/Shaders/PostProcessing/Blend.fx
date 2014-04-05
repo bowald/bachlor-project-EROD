@@ -40,10 +40,26 @@ float4 PixelShaderFunction(float2 texCoord : TEXCOORD0) : COLOR0
 	return originalColor + lastSceneColor;
 }
 
+float4 SSAOBlendPS(float2 texCoord : TEXCOORD0) : COLOR0
+{
+	float4 lastSceneColor = tex2D(Scene, texCoord);
+	float4 originalColor = tex2D(originalScene, texCoord);
+
+	return originalColor * lastSceneColor;
+}
+
 technique Blend
 {
     pass P0
     {
         PixelShader = compile ps_2_0 PixelShaderFunction();
     }
+}
+
+technique SSAOBlend
+{
+	pass P0
+	{
+		PixelShader = compile ps_2_0 SSAOBlendPS();
+	}
 }
