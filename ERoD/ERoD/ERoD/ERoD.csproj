@@ -136,6 +136,7 @@
     <Compile Include="Rendering\ShadowRenderer.cs" />
     <Compile Include="Rendering\Skybox.cs" />
     <Compile Include="Rendering\VertexType.cs" />
+    <Compile Include="StartMenu.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Game.ico" />

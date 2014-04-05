@@ -34,17 +34,26 @@ namespace ERoD
     /// </summary>
     public class ERoD : Microsoft.Xna.Framework.Game
     {
+        public enum GameState
+        {
+            MENU,
+            GAME,
+            LOAD_GAME
+        }
+
+        public GameState CurrentState = GameState.MENU;
+
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
+
+        private StartMenu Menu;
+        private Texture2D LoadingTexture;
 
         private Space space;
 
         // Boolean for drawing the debug frame
         private bool RenderDebug;
 
-        
-        // Ever player needs
-        // 1 camera, 1 viewport, 1 ship, 1 input
         private PlayerView[] views;
         private Viewport original;
 
@@ -193,8 +202,6 @@ namespace ERoD
         /// </summary>
         protected override void LoadContent()
         {
-            spriteBatch = new SpriteBatch(GraphicsDevice);
-
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
             font = Content.Load<SpriteFont>("Sprites/Lap1");
@@ -216,6 +223,8 @@ namespace ERoD
             Effect objEffect = Content.Load<Effect>("Shaders/DeferredObjectRender");
             Effect objShadow = Content.Load<Effect>("Shaders/DeferredShadowShader");
 
+            LoadingTexture = Content.Load<Texture2D>("Textures/loading");
+
             space = new Space();
             space.ForceUpdater.Gravity = new BVector3(0, GameConstants.Gravity, 0);
             Services.AddService(typeof(Space), space);
@@ -225,7 +234,7 @@ namespace ERoD
             space.Add(((ITerrain)Services.GetService(typeof(ITerrain))).PhysicTerrain);
 
 
-            
+            Menu = new StartMenu(this);
 
             #region Bridge
 
@@ -400,6 +409,36 @@ namespace ERoD
         {
             KeyBoardState = Keyboard.GetState();
 
+            if (CurrentState == GameState.GAME || CurrentState == GameState.LOAD_GAME)
+            {
+                UpdateGameLoop(gameTime);
+                base.Update(gameTime);
+                CurrentState = GameState.GAME;
+            }
+            else if (CurrentState == GameState.MENU)
+            {
+                // Update Menu (Input)
+                switch(Menu.Update(gameTime))
+                {
+                    case StartMenu.MenuState.EXIT_GAME:
+                        this.Exit();
+                        break;
+                    case StartMenu.MenuState.START_GAME:
+                        // Get number of players
+                        // Initiate game stuff
+                        CurrentState = GameState.LOAD_GAME;
+                        break;
+                    default:
+                        // Not an interesting case
+                        break;
+                }
+            }
+
+            LastKeyBoardState = KeyBoardState;
+        }
+
+        private void UpdateGameLoop(GameTime gameTime)
+        {
             // Allows the game to exit
             // TODO: Change this before "release", close with menu
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
@@ -433,7 +472,7 @@ namespace ERoD
 
             space.Update();
 
-            if (LightHelper.ToolEnabled) 
+            if (LightHelper.ToolEnabled)
             {
                 LightHelper.PlaceLightUpdate(KeyBoardState, LastKeyBoardState);
 
@@ -454,9 +493,6 @@ namespace ERoD
                     }
                 }
             }
-
-            LastKeyBoardState = KeyBoardState;
-            base.Update(gameTime);
         }
 
         #region Message and FPS
@@ -514,23 +550,45 @@ namespace ERoD
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
+            if (CurrentState == GameState.GAME)
+            {
+                RenderGame(gameTime);
+            }
+            else if (CurrentState == GameState.LOAD_GAME)
+            {
+                GraphicsDevice.Clear(Color.Black);
+                spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
+                spriteBatch.Draw(LoadingTexture, new Rectangle(0, 0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height), Color.White);
+                spriteBatch.End();
+            }
+            else if (CurrentState == GameState.MENU)
+            {
+                GraphicsDevice.Clear(Color.Black);
+                Menu.Draw(gameTime);
+            }
+        }
+
+        private void RenderGame(GameTime gameTime)
+        {
+            // Do Deferred Render pass for each viewport
             for (int i = 0; i < views.Length; i++)
             {
                 Services.RemoveService(typeof(ICamera));
                 Services.AddService(typeof(ICamera), views[i].Camera);
                 renderer.Draw(gameTime, i);
             }
-
+            // Clear final screen target
             GraphicsDevice.SetRenderTarget(finalScreenTarget);
             GraphicsDevice.Clear(Color.Black);
-            
+
+            // Draw the finalbackbuffer and postprocesses to the final screen
             for (int i = 0; i < views.Length; i++)
             {
                 Services.RemoveService(typeof(ICamera));
                 Services.AddService(typeof(ICamera), views[i].Camera);
 
                 GraphicsDevice.Viewport = views[i].Viewport;
-                
+
                 views[i].Manager.Draw(gameTime, finalScreenTarget);
 
                 //PrintMessage();
@@ -542,6 +600,7 @@ namespace ERoD
                 }
             }
 
+            // Draw the final screen to the backbuffer
             graphics.GraphicsDevice.SetRenderTarget(null);
             graphics.GraphicsDevice.Viewport = original;
 
