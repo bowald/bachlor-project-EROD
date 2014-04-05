@@ -253,11 +253,12 @@ namespace ERoD
             var bridgeMesh = LoadStaticObject(bridgeModel, bridgeTransform);
             StaticObject bridge = new StaticObject(bridgeModel, bridgeMesh, this);
             bridge.SpecularMap = Content.Load<Texture2D>("Textures/Bridge/specular");
-            bridge.Texture = Content.Load<Texture2D>("Textures/Bridge/diffuse");
+            bridge.Textures = new Texture2D[1] { Content.Load<Texture2D>("Textures/Bridge/diffuse") };
             bridge.BumpMap = Content.Load<Texture2D>("Textures/Bridge/normal");
-            bridge.TextureEnabled = true;
+            bridge.TextureEnabled = new bool[1] {true};
             bridge.TexMult = 3f; // make the texture cover 3x more area before repeating.
             bridge.BumpConstant = 1f;
+            bridge.GlowMap = new Texture2D[1] { Content.Load<Texture2D>("Textures/Specular/specular_0") };
             bridge.standardEffect = objEffect;
             bridge.shadowEffect = objShadow;
 
@@ -268,24 +269,57 @@ namespace ERoD
 
             #region Ship loading
 
-            Model shipModel = Content.Load<Model>("Models/space_frigate");
-            Model shipModelT = Content.Load<Model>("Models/space_frigate_tangentOn");
-            Vector3 shipScale = new Vector3(0.06f, 0.06f, 0.06f);
+            Model shipModel = Content.Load<Model>("Models/NewShip");
+            Vector3 shipScale = new Vector3(0.14f, 0.14f, 0.14f);
             Vector3 shipPosition = new Vector3(865, -45, -255);
 
+            // Ship parts
+            /* 
+             * 0: Front inside lights
+             * 1: Door
+             * 2: Green ring lights
+             * 3: LightBlue side lights
+             * 4: "Engine"
+             * 5: Red engine things
+             * 6: Window
+             * 7: Window frame
+             * 8: Body
+             */
+
+            Texture2D doorTexture = Content.Load<Texture2D>("Textures/NewShip/door");
+            Texture2D[] bodyColors = new Texture2D[4];
+            bodyColors[0] = Content.Load<Texture2D>("Textures/NewShip/body_orange");
+            bodyColors[1] = Content.Load<Texture2D>("Textures/NewShip/body_blue");
+            bodyColors[2] = Content.Load<Texture2D>("Textures/NewShip/body_lightgreen");
+            bodyColors[3] = Content.Load<Texture2D>("Textures/NewShip/body_red");
+            
+            Texture2D[] shipGlow = new Texture2D[9];
+            Texture2D glow100 = Content.Load<Texture2D>("Textures/Specular/specular_100");
+            shipGlow[0] = glow100;
+            shipGlow[2] = glow100;
+            shipGlow[3] = glow100;
+            shipGlow[4] = glow100;
+            shipGlow[5] = glow100;
+            
             string[] names = new string[] { "Alex", "Anton", "Johan", "TheGovernator" };
 
             for (int i = 0; i < views.Length; i++)
             {
                 Entity entity = LoadEntityObject(shipModel, shipPosition + new Vector3(8 * i, 0, 0), shipScale);
-                Ship ship = new Ship(entity, shipModelT, shipScale, this);
+                Ship ship = new Ship(entity, shipModel, shipScale, this);
                 space.Add(entity);
-                ship.Texture = Content.Load<Texture2D>("Textures/Ship/diffuse");
-                ship.SpecularMap = Content.Load<Texture2D>("Textures/Ship/specular");
-                ship.TextureEnabled = true;
+                Texture2D[] shipTextures = new Texture2D[9];
+                shipTextures[1] = doorTexture;
+                shipTextures[8] = bodyColors[i];
+                ship.Textures = shipTextures;
+                bool[] textureEnabled = new bool[9];
+                textureEnabled[1] = true;
+                textureEnabled[8] = true;
+                ship.SpecularMap = Content.Load<Texture2D>("Textures/Specular/specular_100");
+                ship.GlowMap = shipGlow;
+                ship.TextureEnabled = textureEnabled;
                 ship.standardEffect = objEffect;
                 ship.shadowEffect = objShadow;
-                ship.Mask = true;
 
                 ship.AddCollidable(bridgeMesh);
 

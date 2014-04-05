@@ -21,17 +21,15 @@ namespace ERoD
         protected Quaternion rotation;
         
         protected Model model;
-        protected Texture2D diffuseTexture;
-        protected Texture2D specularMap;
-        protected Texture2D bumpMap;
-        protected Boolean textureEnabled;
-        protected Boolean mask;               //Used By motion Blur
+        
         protected float bumpConstant = 0f;    
         Matrix[] boneTransforms;
 
         public Effect standardEffect;
         public Effect shadowEffect;
-        
+
+        private Vector3[][] meshColors;
+
         /// <summary>
         ///  Increases the "size" of tiled textures.
         /// </summary>
@@ -42,13 +40,8 @@ namespace ERoD
             set { texMult = value;  } 
         }
 
-        public bool Mask
-        {
-            get { return mask; }
-            set { mask = value; }
-        }
-
-        public bool TextureEnabled
+        protected bool[] textureEnabled;
+        public bool[] TextureEnabled
         {
             get { return textureEnabled; }
             set { textureEnabled = value; }
@@ -58,6 +51,34 @@ namespace ERoD
         {
             get { return bumpConstant; }
             set { bumpConstant = value; }
+        }
+
+        protected Texture2D[] diffuseTexture;
+        public Texture2D[] Textures
+        {
+            get { return diffuseTexture; }
+            set { diffuseTexture = value; }
+        }
+
+        protected Texture2D specularMap;
+        public Texture2D SpecularMap
+        {
+            get { return specularMap; }
+            set { specularMap = value; }
+        }
+
+        protected Texture2D[] glowMap;
+        public Texture2D[] GlowMap
+        {
+            get { return glowMap; }
+            set { glowMap = value; }
+        }
+
+        protected Texture2D bumpMap;
+        public Texture2D BumpMap
+        {
+            get { return bumpMap; }
+            set { bumpMap = value; }
         }
 
         public Matrix World
@@ -71,41 +92,39 @@ namespace ERoD
             set { model = value; }
         }
 
-        public Texture2D Texture
-        {
-            get { return diffuseTexture; }
-            set { diffuseTexture = value; }
-        }
-
-        public Texture2D SpecularMap
-        {
-            get { return specularMap; }
-            set { specularMap = value; }
-        }
-
-        public Texture2D BumpMap
-        {
-            get { return bumpMap; }
-            set { bumpMap = value; }
-        }
-
         protected BaseObject(Model model, Game game)
             : base(game)
         {
             this.model = model;
             boneTransforms = new Matrix[model.Bones.Count];
+
+            meshColors = new Vector3[model.Meshes.Count][];
+            for (int i = 0; i < model.Meshes.Count; i++)
+            {
+                ModelMesh mesh = model.Meshes[i];
+                meshColors[i] = new Vector3[mesh.MeshParts.Count];
+                for (int j = 0; j < mesh.MeshParts.Count; j++)
+                {
+                    ModelMeshPart part = mesh.MeshParts[j];
+                    BasicEffect basicEffect = (BasicEffect)part.Effect;
+                    meshColors[i][j] = basicEffect.DiffuseColor;
+                }
+            }
+
         }
 
         public virtual void Draw(GameTime gameTime, Effect effect)
         {
             model.CopyAbsoluteBoneTransformsTo(boneTransforms);
 
-            foreach (ModelMesh mesh in model.Meshes)
+            for (int i = 0; i < model.Meshes.Count; i++ )
             {
+                ModelMesh mesh = model.Meshes[i];
                 Matrix meshWorld = boneTransforms[mesh.ParentBone.Index] * World;
 
-                foreach (ModelMeshPart part in mesh.MeshParts)
+                for (int j = 0; j < mesh.MeshParts.Count; j++)
                 {
+                    ModelMeshPart part = mesh.MeshParts[j];
                     part.Effect = effect;
                     if (effect.Parameters["World"] != null)
                     {
@@ -125,19 +144,23 @@ namespace ERoD
                     }
                     if (effect.Parameters["Color"] != null)
                     {
-                        effect.Parameters["Color"].SetValue(Color.White.ToVector3());
+                        effect.Parameters["Color"].SetValue(meshColors[i][j]);
                     }
                     if (effect.Parameters["TextureEnabled"] != null)
                     {
-                        effect.Parameters["TextureEnabled"].SetValue(textureEnabled);
+                        effect.Parameters["TextureEnabled"].SetValue(textureEnabled[i]);
                     }
                     if (effect.Parameters["DiffuseTexture"] != null)
                     {
-                        effect.Parameters["DiffuseTexture"].SetValue(diffuseTexture);
+                        effect.Parameters["DiffuseTexture"].SetValue(diffuseTexture[i]);
                     }
                     if (effect.Parameters["SpecularMap"] != null)
                     {
                         effect.Parameters["SpecularMap"].SetValue(specularMap);
+                    }
+                    if (glowMap != null && effect.Parameters["GlowMap"] != null)
+                    {
+                        effect.Parameters["GlowMap"].SetValue(glowMap[i]);
                     }
                     if (effect.Parameters["BumpMap"] != null)
                     {
@@ -150,10 +173,6 @@ namespace ERoD
                     if (effect.Parameters["TexMult"] != null)
                     {
                         effect.Parameters["TexMult"].SetValue(TexMult);
-                    }
-                    if (effect.Parameters["mask"] != null)
-                    {
-                        effect.Parameters["mask"].SetValue(mask);
                     }
                 }
                 mesh.Draw();

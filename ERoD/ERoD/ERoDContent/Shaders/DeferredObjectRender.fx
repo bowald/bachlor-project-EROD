@@ -4,8 +4,6 @@ float4x4 Projection;
 
 float3 TexMult = 1;
 
-bool Mask = false;
-
 // Color of the object.
 float3 Color = 1;
 
@@ -52,16 +50,16 @@ sampler SpecularSampler = sampler_state
 	MagFilter = LINEAR;
 };
 
-//texture GlowMap;
-//sampler GlowSampler = sampler_state
-//{
-//	Texture = <GlowMap>;
-//	AddressU = Wrap;
-//	AddressV = Wrap;
-//	MipFilter = LINEAR;
-//	MinFilter = LINEAR;
-//	MagFilter = LINEAR;
-//};
+texture GlowMap;
+sampler GlowSampler = sampler_state
+{
+	Texture = <GlowMap>;
+	AddressU = Wrap;
+	AddressV = Wrap;
+	MipFilter = LINEAR;
+	MinFilter = LINEAR;
+	MagFilter = LINEAR;
+};
 
 //texture ReflectionMap;
 //sampler ReflectionMap = sampler_state
@@ -136,15 +134,6 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input)
 		output.Color = float4(Color, 1);
 	}
 
-	if (Mask)
-	{
-		output.Color.a = 0;
-	}
-	else 
-	{
-		output.Color.a = 1;
-	}
-
 	float3 bumpValue = BumpConstant * (tex2D(BumpMapSampler, input.TexCoord) * 2.0f - 1.0f);
 
 	float3 bumpNormal = input.Normal + (bumpValue.x * input.Tangent + bumpValue.y * input.Binormal);
@@ -156,7 +145,7 @@ PixelShaderOutput PixelShaderFunction(VertexShaderOutput input)
 	output.Depth = float4(depth, 0, 0, 1);
 
 	output.SGR.r = tex2D(SpecularSampler, input.TexCoord);
-	output.SGR.g = 0;//tex2D(GlowSampler, input.TexCoord);
+	output.SGR.g = tex2D(GlowSampler, input.TexCoord);
 	output.SGR.b = 0;// tex2D(ReflectionMap, input.TexCoord);
 	output.SGR.w = 0;
 
