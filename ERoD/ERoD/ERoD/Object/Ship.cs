@@ -28,6 +28,8 @@ namespace ERoD
             AddCollidable(((ITerrain)Game.Services.GetService(typeof(ITerrain))).PhysicTerrain);
         }
 
+        #region Controls and Physics
+
         public void AddCollidable(StaticCollidable c)
         {
             Collidables.Add(c);
@@ -72,7 +74,8 @@ namespace ERoD
         /// Given an entity.OriantationMatrix-vector, returns wich direction it facing
         /// Helper for debugging rayCasting,
         /// </summary>
-        private String helper(BVector3 vec3){
+        private String helper(BVector3 vec3)
+        {
             if (vec3 == Entity.OrientationMatrix.Forward)
                 return "Forward";
             if (vec3 == Entity.OrientationMatrix.Right)
@@ -126,7 +129,7 @@ namespace ERoD
                 {
                     angularspeed = 0;
                 }
-                if (gamePadDirection < 0) 
+                if (gamePadDirection < 0)
                 {
                     gamePadDirection = -1.0f;
                 }
@@ -158,7 +161,7 @@ namespace ERoD
             back = verticalDistance(Collidables[0], Entity.OrientationMatrix.Forward * -ObjectConstants.OrientationRayLength);
 
 
-            for (int i = 1; i < Collidables.Count; i++ )
+            for (int i = 1; i < Collidables.Count; i++)
             {
                 float val = verticalDistance(Collidables[i]);
                 if (val <= 0)
@@ -167,7 +170,7 @@ namespace ERoD
                 }
 
                 h = Math.Min(h, val);
-                
+
                 if (h == val)
                 {
                     // Update front and back as well
@@ -176,7 +179,7 @@ namespace ERoD
                 }
             }
 
-            if (h < 1.2f * ObjectConstants.IdealHeight) 
+            if (h < 1.2f * ObjectConstants.IdealHeight)
             {
                 float diff = front - back;
                 // experimental values
@@ -191,7 +194,7 @@ namespace ERoD
                 angularVelocity = Entity.OrientationMatrix.Right * (-rad / 0.5235988f) * ((1 / 0.15f) * Math.Max(0, (0.15f - (1 - dot))));
             }
 
-            if ((ObjectConstants.IdealHeight - h) > 0) 
+            if ((ObjectConstants.IdealHeight - h) > 0)
             {
                 Entity.Position = new BVector3(Entity.Position.X, Entity.Position.Y + (ObjectConstants.IdealHeight - h), Entity.Position.Z);
                 return false;
@@ -216,7 +219,7 @@ namespace ERoD
         /// </summary>
         private BVector3 newVelocity(float dt, float strafeSpeed)
         {
-            BVector3 currentSpeed = new BVector3(Entity.LinearVelocity.X,0, Entity.LinearVelocity.Z);
+            BVector3 currentSpeed = new BVector3(Entity.LinearVelocity.X, 0, Entity.LinearVelocity.Z);
             float currentLength = currentSpeed.Length() - strafeSpeed;
             BVector3 newVelocity = BVector3.Zero;
             float accelerationLength;
@@ -275,6 +278,8 @@ namespace ERoD
             return rollValue;
         }
 
+        #endregion
+
         public void Update(GameTime gameTime, GamePadState gamePadState)
         {
             float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
@@ -282,7 +287,6 @@ namespace ERoD
             BVector3 shipStrafe = BVector3.Zero;
             BVector3 downward = BVector3.Zero;
             Single roll = 0;
-            //Debug.WriteLine(Entity.Position);
 
             //Aircontroll
             if (fly())

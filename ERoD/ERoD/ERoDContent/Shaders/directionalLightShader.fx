@@ -34,10 +34,21 @@ float FarPlane;
 float StaticBias = 2.0f;
 
 // color of the light 
-float3 Color;
+float3 LightColor;
 
 // true if the light casts shadows.
 bool CastShadow;
+
+texture ColorMap;
+sampler ColorSampler = sampler_state
+{
+	Texture = <ColorMap>;
+	AddressU = CLAMP;
+	AddressV = CLAMP;
+	MagFilter = LINEAR;
+	MinFilter = LINEAR;
+	Mipfilter = LINEAR;
+};
 
 texture NormalMap;
 sampler NormalSampler = sampler_state
@@ -246,7 +257,16 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 	// compute diffuse light
 	float NdL = saturate(dot(normal, lightVector));
 
-	clip(NdL - 0.00001f);
+	// Specular, Glow, Reflection map.
+	float4 SGR = tex2D(SGRSampler, input.TexCoord);
+
+	// Emissive
+	float4 emissive = SGR.g * tex2D(ColorSampler, input.TexCoord);
+
+	if (NdL - 0.00001f < 0)
+	{
+		return emissive;
+	}
 
 	float shading = 1.0f;
 
@@ -276,10 +296,8 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 	}
 
 	
-	float3 diffuseLight = (NdL * Color.rgb) * Power;
+	float3 diffuseLight = (NdL * LightColor.rgb) * Power;
 
-	// Specular, Glow, Reflection map.
-	float4 SGR = tex2D(SGRSampler, input.TexCoord);
 
 	// reflection vector
 	float3 r = normalize(2 * dot(lightVector, normal) * normal - lightVector);
@@ -288,12 +306,12 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 	float3 v = normalize(CameraPosition - positionWS);//Get worldpos from viewpos
 
 	// Calculate specular using phong shading
-	float4 specular = SGR.r * float4(Color, 1) * max(pow(dot(r, v), 20), 0);
+	float4 specular = SGR.r * float4(LightColor, 1) * max(pow(dot(r, v), 20), 0);
 
 	// Add specular to the Diffuse Light
 	diffuseLight += (specular * SpecularModifier * Power);
 
-	return float4(diffuseLight.rgb, 1) * shading;
+	return float4(diffuseLight.rgb, 1) * shading + emissive;
 	
 }
 

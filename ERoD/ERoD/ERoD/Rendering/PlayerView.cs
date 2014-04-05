@@ -57,7 +57,7 @@ namespace ERoD
         {
             this.ship = ship;
             chaseCamera = new ChaseCamera(ship.Entity,
-                new BEPUutilities.Vector3(0.0f, 0.0f, 0.0f), true, 25.0f, 0.1f, 3000.0f, Game);
+                new BEPUutilities.Vector3(0.0f, 3.0f, 0.0f), true, 25.0f, 0.1f, 3000.0f, Game);
             chaseCamera.Initialize(Viewport);
             FreeCameraActive = false;
         }

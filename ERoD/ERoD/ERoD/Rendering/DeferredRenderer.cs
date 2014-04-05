@@ -224,9 +224,10 @@ namespace ERoD
             // Load Light Params
             directionalLightShader.Parameters["HalfPixel"].SetValue(target.HalfPixel);
             directionalLightShader.Parameters["LightDirection"].SetValue(directionalLight.Direction);
-            directionalLightShader.Parameters["Color"].SetValue(directionalLight.Color.ToVector3());
+            directionalLightShader.Parameters["LightColor"].SetValue(directionalLight.Color.ToVector3());
 
             directionalLightShader.Parameters["NormalMap"].SetValue(target.normalMap);
+            directionalLightShader.Parameters["ColorMap"].SetValue(target.colorMap);
             directionalLightShader.Parameters["SGRMap"].SetValue(target.SGRMap);
             directionalLightShader.Parameters["DepthMap"].SetValue(target.depthMap);
             directionalLightShader.Parameters["Power"].SetValue(directionalLight.Intensity);
@@ -295,7 +296,7 @@ namespace ERoD
             pointLightShader.Parameters["SidesLengthVS"].SetValue(new Vector2(Camera.TanFovy * Camera.AspectRatio, -Camera.TanFovy));
             pointLightShader.Parameters["FarPlane"].SetValue(Camera.FarPlane);
 
-            pointLightShader.Parameters["Color"].SetValue(pointLight.Color.ToVector3());
+            pointLightShader.Parameters["LightColor"].SetValue(pointLight.Color.ToVector3());
             pointLightShader.Parameters["LightRadius"].SetValue(pointLight.Radius);
             pointLightShader.Parameters["LightIntensity"].SetValue(pointLight.Intensity);
 
