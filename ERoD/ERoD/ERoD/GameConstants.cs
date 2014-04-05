@@ -7,8 +7,6 @@ namespace ERoD
 {
     class GameConstants
     {
-        public const int NumberOfPlayers = 1;
-
         public const int WindowWidth = 1366;
         public const int WindowHeight = 768;
         //public const int WindowWidth = 1024;

@@ -54,16 +54,15 @@ namespace ERoD
         // Boolean for drawing the debug frame
         private bool RenderDebug;
 
+        private int NumberOfPlayers;
         private PlayerView[] views;
         private Viewport original;
+        private Viewport[][] ViewPorts;
 
         private RenderTarget2D finalScreenTarget;
         // GameLogic //
         GameLogic GameLogic;
 
-        //public Boolean DebugEnabled;
-        StaticMesh rockMesh;
-        
         HeightTerrainCDLOD terrain;
 
         public Space Space
@@ -91,18 +90,11 @@ namespace ERoD
             
             Content.RootDirectory = "Content";
 
-            Viewport[][] viewPorts = CreateViewPorts();
-
-            views = new PlayerView[GameConstants.NumberOfPlayers];
-
-            for (int i = 0; i < GameConstants.NumberOfPlayers; i++)
-            {
-                views[i] = new PlayerView(this, viewPorts[GameConstants.NumberOfPlayers - 1][i], i);
-            }
-
-            renderer = new DeferredRenderer(this, views);
-
+            LightHelper.Game = this;
+            LightHelper.ToolEnabled = false;
             RenderDebug = false;
+
+            ViewPorts = CreateViewPorts();
         }
 
         private Viewport[][] CreateViewPorts()
@@ -178,6 +170,8 @@ namespace ERoD
             return viewPorts;
         }
 
+
+
         /// <summary>
         /// Allows the game to perform any initialization it needs to before starting to run.
         /// This is where it can query for any required services and load any non-graphic
@@ -186,13 +180,6 @@ namespace ERoD
         /// </summary>
         protected override void Initialize()
         {
-            terrain = new HeightTerrainCDLOD(this, 7);
-            Components.Add(terrain);
-            Services.AddService(typeof(ITerrain), terrain);
-
-            GameLogic = new GameLogic(this);
-            this.Services.AddService(typeof(GameLogic), GameLogic);
-
             base.Initialize();
         }
 
@@ -218,23 +205,42 @@ namespace ERoD
             fontPos = new Microsoft.Xna.Framework.Vector2(graphics.GraphicsDevice.Viewport.Width / 2,
                 graphics.GraphicsDevice.Viewport.Height / 2);
 
-            Model cubeModel = Content.Load<Model>("Models/cube");
+            LoadingTexture = Content.Load<Texture2D>("Textures/loading");
+
+            Menu = new StartMenu(this);
+        }
+
+        /// <summary>
+        /// Load Game content that depends on the number of players selected
+        /// 
+        /// </summary>
+        private void LoadGameContent(int numberOfPlayers)
+        {
+
+            views = new PlayerView[numberOfPlayers];
+
+            for (int i = 0; i < numberOfPlayers; i++)
+            {
+                views[i] = new PlayerView(this, ViewPorts[numberOfPlayers - 1][i], i);
+            }
+
+            renderer = new DeferredRenderer(this, views);
 
             Effect objEffect = Content.Load<Effect>("Shaders/DeferredObjectRender");
             Effect objShadow = Content.Load<Effect>("Shaders/DeferredShadowShader");
 
-            LoadingTexture = Content.Load<Texture2D>("Textures/loading");
+            terrain = new HeightTerrainCDLOD(this, 7);
+            Components.Add(terrain);
+            Services.AddService(typeof(ITerrain), terrain);
+
+            GameLogic = new GameLogic(this);
+            this.Services.AddService(typeof(GameLogic), GameLogic);
 
             space = new Space();
             space.ForceUpdater.Gravity = new BVector3(0, GameConstants.Gravity, 0);
             Services.AddService(typeof(Space), space);
 
-            LightHelper.Game = this;
-
             space.Add(((ITerrain)Services.GetService(typeof(ITerrain))).PhysicTerrain);
-
-
-            Menu = new StartMenu(this);
 
             #region Bridge
 
@@ -267,7 +273,7 @@ namespace ERoD
             Vector3 shipScale = new Vector3(0.06f, 0.06f, 0.06f);
             Vector3 shipPosition = new Vector3(865, -45, -255);
 
-            string[] names = new string[] { "Alex", "Anton", "Johan", "TheGovernator"};
+            string[] names = new string[] { "Alex", "Anton", "Johan", "TheGovernator" };
 
             for (int i = 0; i < views.Length; i++)
             {
@@ -291,31 +297,8 @@ namespace ERoD
 
             #endregion
 
-            
 
-            #region Rock
-
-            Model rockModel = Content.Load<Model>("Models/rock");
-            AffineTransform rockTransform = new AffineTransform(
-                new BVector3(4, 4, 4),
-                BQuaternion.Identity,
-                new BVector3(0, 0, 0));
-            //var rockMesh
-            rockMesh = LoadStaticObject(rockModel, rockTransform);
-            StaticObject rock = new StaticObject(rockModel, rockMesh, this);
-            rock.SpecularMap = Content.Load<Texture2D>("Textures/Rock/specular");
-            rock.Texture = Content.Load<Texture2D>("Textures/Rock/diffuse");
-            rock.BumpMap = Content.Load<Texture2D>("Textures/Rock/normal");
-            rock.TextureEnabled = true;
-            rock.BumpConstant = 1f;
-            rock.standardEffect = objEffect;
-            rock.shadowEffect = objShadow;
-
-            //space.Add(rockMesh);
-            //Components.Add(rock);
-
-            #endregion
-
+            Model cubeModel = Content.Load<Model>("Models/cube");
             CreateCheckPoints(objEffect, cubeModel);
 
             #region Add PostProcess
@@ -325,7 +308,7 @@ namespace ERoD
                 views[i].Manager = new PostProcessingManager(this, renderer.renderTargets[i]);
             }
 
-            for (int i = 0; i < views.Length; i++ )
+            for (int i = 0; i < views.Length; i++)
             {
                 views[i].Manager.AddEffect(new Bloom(this, 0.5f, views[i].Viewport.Width, views[i].Viewport.Height));
                 views[i].Manager.AddEffect(new GodRays(this, new Vector3(100, 20, 100), 60.0f, 0.8f, 0.99f, 0.8f, 0.15f));
@@ -336,8 +319,7 @@ namespace ERoD
             #region Lights
 
             renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(2500, 2000, 2500), Vector3.Zero, Color.LightYellow, 0.4f, 7000.0f, GameConstants.ShadowsEnabled));
-            
-            LightHelper.ToolEnabled = false;
+
             renderer.PointLights.AddRange(LightHelper.ReadLights());
 
             #endregion
@@ -409,10 +391,15 @@ namespace ERoD
         {
             KeyBoardState = Keyboard.GetState();
 
-            if (CurrentState == GameState.GAME || CurrentState == GameState.LOAD_GAME)
+            if (CurrentState == GameState.GAME)
             {
                 UpdateGameLoop(gameTime);
                 base.Update(gameTime);
+            }
+            if (CurrentState == GameState.LOAD_GAME)
+            {
+                LoadGameContent(NumberOfPlayers);
+                space.Update();
                 CurrentState = GameState.GAME;
             }
             else if (CurrentState == GameState.MENU)
@@ -423,9 +410,20 @@ namespace ERoD
                     case StartMenu.MenuState.EXIT_GAME:
                         this.Exit();
                         break;
-                    case StartMenu.MenuState.START_GAME:
-                        // Get number of players
-                        // Initiate game stuff
+                    case StartMenu.MenuState.START_GAME_1:
+                        NumberOfPlayers = 1;
+                        CurrentState = GameState.LOAD_GAME;
+                        break;
+                    case StartMenu.MenuState.START_GAME_2:
+                        NumberOfPlayers = 2;
+                        CurrentState = GameState.LOAD_GAME;
+                        break;
+                    case StartMenu.MenuState.START_GAME_3:
+                        NumberOfPlayers = 3;
+                        CurrentState = GameState.LOAD_GAME;
+                        break;
+                    case StartMenu.MenuState.START_GAME_4:
+                        NumberOfPlayers = 4;
                         CurrentState = GameState.LOAD_GAME;
                         break;
                     default:
@@ -472,6 +470,8 @@ namespace ERoD
 
             space.Update();
 
+            #region LightHelper
+
             if (LightHelper.ToolEnabled)
             {
                 LightHelper.PlaceLightUpdate(KeyBoardState, LastKeyBoardState);
@@ -493,6 +493,8 @@ namespace ERoD
                     }
                 }
             }
+
+            #endregion
         }
 
         #region Message and FPS

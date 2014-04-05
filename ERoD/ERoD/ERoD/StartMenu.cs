@@ -14,8 +14,11 @@ namespace ERoD
         {
             MENU,
             SELECT_PLAYERS,
-            START_GAME,
-            EXIT_GAME
+            EXIT_GAME,
+            START_GAME_1,
+            START_GAME_2,
+            START_GAME_3,
+            START_GAME_4
         }
 
         public class MenuItem
@@ -51,13 +54,18 @@ namespace ERoD
 
         private MenuState currentState;
 
-        private MenuItem playItem;
-        private MenuItem exitItem;
-
         // Curently selected item
         private int selectedIndex = 0;
-        private const int numberOfChoices = 2;
-        private MenuItem[] selectableItems = new MenuItem[numberOfChoices];
+        private int numberOfChoices;
+        private MenuItem[] selectableItems;
+
+        // Start menu items
+        private const int numberOfChoicesMenu = 2;
+        private MenuItem[] selectableItemsMenu = new MenuItem[numberOfChoicesMenu];
+
+        // Select Players items
+        private const int numberOfChoicesPlayers = 5;
+        private MenuItem[] selectableItemsPlayers = new MenuItem[numberOfChoicesPlayers];
 
         // Controller input
         private GamePadState CurrentGamePadState, LastGamePadState;
@@ -74,28 +82,94 @@ namespace ERoD
 
             int centerX = width / 2 - itemSizeX / 2;
             int centerY = height / 2 - itemSizeY / 2;
-            
-            playItem = new MenuItem(centerX
+
+            MenuItem addItem;
+
+            #region StartMenu
+
+            addItem = new MenuItem(centerX
                 , centerY - (int)(0.07f * height)
                 , itemSizeX
                 , itemSizeY
                 , Game.Content.Load<Texture2D>("Textures/StartMenu/play")
                 , Game.Content.Load<Texture2D>("Textures/StartMenu/play_hilight")
                 );
-            playItem.pressFunction = (() => MenuState.START_GAME);
+            addItem.pressFunction = (() => MenuState.SELECT_PLAYERS);
+            addItem.Selected = true;
+            selectableItemsMenu[0] = addItem;
 
-            exitItem = new MenuItem(centerX
+            addItem = new MenuItem(centerX
                 , centerY + (int)(0.07f * height)
                 , itemSizeX
                 , itemSizeY
                 , Game.Content.Load<Texture2D>("Textures/StartMenu/exit")
                 , Game.Content.Load<Texture2D>("Textures/StartMenu/exit_hilight")
                 );
-            exitItem.pressFunction = (() => MenuState.EXIT_GAME);
+            addItem.pressFunction = (() => MenuState.EXIT_GAME);
+            selectableItemsMenu[1] = addItem;
 
-            playItem.Selected = true;
-            selectableItems[0] = playItem;
-            selectableItems[1] = exitItem;
+            #endregion
+
+            itemSizeX = width / 6;
+            itemSizeY = height / 7;
+
+            #region Select Players
+
+            addItem = new MenuItem(centerX
+                , centerY - (int)(0.25f * height)
+                , itemSizeX
+                , itemSizeY
+                , Game.Content.Load<Texture2D>("Textures/StartMenu/exit")
+                , Game.Content.Load<Texture2D>("Textures/StartMenu/exit_hilight")
+                );
+            addItem.Selected = true;
+            addItem.pressFunction = (() => MenuState.MENU);
+            selectableItemsPlayers[0] = addItem;
+
+            addItem = new MenuItem(centerX
+                , centerY - (int)(0.125f * height)
+                , itemSizeX
+                , itemSizeY
+                , Game.Content.Load<Texture2D>("Textures/StartMenu/players_one")
+                , Game.Content.Load<Texture2D>("Textures/StartMenu/players_one_hilight")
+                );
+            addItem.pressFunction = (() => MenuState.START_GAME_1);
+            selectableItemsPlayers[1] = addItem;
+
+            addItem = new MenuItem(centerX
+                , centerY - (int)(0.0f * height)
+                , itemSizeX
+                , itemSizeY
+                , Game.Content.Load<Texture2D>("Textures/StartMenu/players_two")
+                , Game.Content.Load<Texture2D>("Textures/StartMenu/players_two_hilight")
+                );
+            addItem.pressFunction = (() => MenuState.START_GAME_2);
+            selectableItemsPlayers[2] = addItem;
+
+            addItem = new MenuItem(centerX
+                , centerY + (int)(0.125f * height)
+                , itemSizeX
+                , itemSizeY
+                , Game.Content.Load<Texture2D>("Textures/StartMenu/players_three")
+                , Game.Content.Load<Texture2D>("Textures/StartMenu/players_three_hilight")
+                );
+            addItem.pressFunction = (() => MenuState.START_GAME_3);
+            selectableItemsPlayers[3] = addItem;
+
+            addItem = new MenuItem(centerX
+                , centerY + (int)(0.25f * height)
+                , itemSizeX
+                , itemSizeY
+                , Game.Content.Load<Texture2D>("Textures/StartMenu/players_four")
+                , Game.Content.Load<Texture2D>("Textures/StartMenu/players_four_hilight")
+                );
+            addItem.pressFunction = (() => MenuState.START_GAME_4);
+            selectableItemsPlayers[4] = addItem;
+
+            #endregion
+
+            numberOfChoices = numberOfChoicesMenu;
+            selectableItems = selectableItemsMenu;
         }
 
         public MenuState Update(GameTime gameTime)
@@ -127,10 +201,14 @@ namespace ERoD
                 if (currentState == MenuState.MENU)
                 {
                     // Show start menu
+                    numberOfChoices = numberOfChoicesMenu;
+                    selectableItems = selectableItemsMenu;
                 }
                 else if (currentState == MenuState.SELECT_PLAYERS)
                 {
                     // Show select players menu
+                    numberOfChoices = numberOfChoicesPlayers;
+                    selectableItems = selectableItemsPlayers;
                 }
             }
 
@@ -146,8 +224,10 @@ namespace ERoD
         public override void Draw(GameTime gameTime)
         {
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
-            spriteBatch.Draw(playItem.Texture, playItem.Rect, Color.White);
-            spriteBatch.Draw(exitItem.Texture, exitItem.Rect, Color.White);
+            for (int i = 0; i < selectableItems.Length; i++)
+            {
+                spriteBatch.Draw(selectableItems[i].Texture, selectableItems[i].Rect, Color.White);
+            }
             spriteBatch.End();
         }
     }

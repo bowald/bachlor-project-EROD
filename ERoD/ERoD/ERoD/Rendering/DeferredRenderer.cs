@@ -62,7 +62,6 @@ namespace ERoD
         public DeferredRenderer(Game game, PlayerView[] playerViews) 
             : base(game)
         {
-            game.Components.Add(this);
             sceneQuad = new ScreenQuad(game);
             shadowRenderer = new ShadowRenderer(this, game);
             renderTargets = new DeferredRenderTarget[playerViews.Length];
@@ -75,6 +74,7 @@ namespace ERoD
                 renderTargets[i].w = playerViews[i].Viewport.Width / 6;
                 renderTargets[i].h = playerViews[i].Viewport.Height / 4;
             }
+            game.Components.Add(this);
         }
 
         protected override void LoadContent()
