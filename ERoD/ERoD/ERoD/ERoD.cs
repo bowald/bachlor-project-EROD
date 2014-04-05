@@ -303,9 +303,12 @@ namespace ERoD
             
             string[] names = new string[] { "Alex", "Anton", "Johan", "TheGovernator" };
 
+            ConvexHullShape shipShape = CreateConvexHullShape(shipModel, shipScale);
+
             for (int i = 0; i < views.Length; i++)
             {
-                Entity entity = LoadEntityObject(shipModel, shipPosition + new Vector3(8 * i, 0, 0), shipScale);
+                Entity entity = new Entity(shipShape, 10);
+                entity.Position = ConversionHelper.MathConverter.Convert(shipPosition + new Vector3(8 * i, 0, 0));
                 Ship ship = new Ship(entity, shipModel, shipScale, this);
                 space.Add(entity);
                 Texture2D[] shipTextures = new Texture2D[9];
@@ -381,7 +384,7 @@ namespace ERoD
             }
         }
 
-        private Entity LoadEntityObject(Model model, Vector3 position, Vector3 scaling)
+        private ConvexHullShape CreateConvexHullShape(Model model, Vector3 scaling)
         {
             BVector3[] vertices;
             int[] indices;
@@ -389,14 +392,12 @@ namespace ERoD
             
             // Convert to list since array is read only.
             IList<BVector3> verts = new List<BVector3>(vertices);
+
             // Remove redundant vertices that causes the convexhullshape to crash.
             ConvexHullHelper.RemoveRedundantPoints(verts);
             vertices = verts.ToArray<BVector3>();
 
-            ConvexHullShape CHS = new ConvexHullShape(OurHelper.scaleVertices(vertices, scaling));
-            Entity entity = new Entity(CHS, 10);
-            entity.Position = ConversionHelper.MathConverter.Convert(position);
-            return entity;
+            return new ConvexHullShape(OurHelper.scaleVertices(vertices, scaling));
         }
 
         private StaticMesh LoadStaticObject(Model model, AffineTransform transform) 
