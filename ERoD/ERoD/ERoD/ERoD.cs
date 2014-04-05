@@ -269,7 +269,7 @@ namespace ERoD
 
             #region Ship loading
 
-            Model shipModel = Content.Load<Model>("Models/NewShip");
+            Model shipModel = Content.Load<Model>("Models/racer");
             Vector3 shipScale = new Vector3(0.14f, 0.14f, 0.14f);
             Vector3 shipPosition = new Vector3(865, -45, -255);
 
@@ -286,12 +286,12 @@ namespace ERoD
              * 8: Body
              */
 
-            Texture2D doorTexture = Content.Load<Texture2D>("Textures/NewShip/door");
+            Texture2D doorTexture = Content.Load<Texture2D>("Textures/Racer/door");
             Texture2D[] bodyColors = new Texture2D[4];
-            bodyColors[0] = Content.Load<Texture2D>("Textures/NewShip/body_orange");
-            bodyColors[1] = Content.Load<Texture2D>("Textures/NewShip/body_blue");
-            bodyColors[2] = Content.Load<Texture2D>("Textures/NewShip/body_lightgreen");
-            bodyColors[3] = Content.Load<Texture2D>("Textures/NewShip/body_red");
+            bodyColors[0] = Content.Load<Texture2D>("Textures/Racer/body_orange");
+            bodyColors[1] = Content.Load<Texture2D>("Textures/Racer/body_blue");
+            bodyColors[2] = Content.Load<Texture2D>("Textures/Racer/body_lightgreen");
+            bodyColors[3] = Content.Load<Texture2D>("Textures/Racer/body_red");
             
             Texture2D[] shipGlow = new Texture2D[9];
             Texture2D glow100 = Content.Load<Texture2D>("Textures/Specular/specular_100");
@@ -315,7 +315,7 @@ namespace ERoD
                 bool[] textureEnabled = new bool[9];
                 textureEnabled[1] = true;
                 textureEnabled[8] = true;
-                ship.SpecularMap = Content.Load<Texture2D>("Textures/Specular/specular_100");
+                ship.SpecularMap = glow100;
                 ship.GlowMap = shipGlow;
                 ship.TextureEnabled = textureEnabled;
                 ship.standardEffect = objEffect;
