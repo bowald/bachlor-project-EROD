@@ -60,6 +60,7 @@ namespace ERoD
         private Viewport[][] ViewPorts;
 
         private RenderTarget2D finalScreenTarget;
+
         // GameLogic //
         GameLogic GameLogic;
 
@@ -318,6 +319,7 @@ namespace ERoD
                 bool[] textureEnabled = new bool[9];
                 textureEnabled[1] = true;
                 textureEnabled[8] = true;
+                ship.meshColors[5] = new Vector3[] { (new Color(0.0f, 150.0f, 255.0f)).ToVector3() };
                 ship.SpecularMap = glow100;
                 ship.GlowMap = shipGlow;
                 ship.TextureEnabled = textureEnabled;
@@ -325,6 +327,10 @@ namespace ERoD
                 ship.shadowEffect = objShadow;
 
                 ship.AddCollidable(bridgeMesh);
+
+                // Add two thruster emitters for each ship.
+                renderer.Emitters.Add(new ThrusterEmitter(2000, 60, 50, 1.0f, 0.002f, entity, new Vector3(1.2f, 0.90f, 3.40f)));
+                renderer.Emitters.Add(new ThrusterEmitter(2000, 60, 50, 1.0f, 0.002f, entity, new Vector3(-1.2f, 0.90f, 3.40f)));
 
                 Components.Add(ship);
                 GameLogic.AddPlayer(ship, names[i]);
@@ -334,9 +340,15 @@ namespace ERoD
 
             #endregion
 
+            List<Texture2D> textures = new List<Texture2D> { Content.Load<Texture2D>("Textures/Particles/Plasma") };
+            foreach (BaseEmitter emitter in renderer.Emitters)
+            {
+                emitter.LoadContent(textures, GraphicsDevice);
+            }
 
             Model cubeModel = Content.Load<Model>("Models/cube");
             CreateCheckPoints(objEffect, cubeModel);
+            
 
             #region Add PostProcess
 
@@ -347,6 +359,7 @@ namespace ERoD
 
             for (int i = 0; i < views.Length; i++)
             {
+                views[i].Manager.AddEffect(new HeatHaze(this, false));
                 views[i].Manager.AddEffect(new Bloom(this, 0.5f, views[i].Viewport.Width, views[i].Viewport.Height));
                 views[i].Manager.AddEffect(new GodRays(this, new Vector3(100, 20, 100), 60.0f, 0.8f, 0.99f, 0.8f, 0.15f));
             }

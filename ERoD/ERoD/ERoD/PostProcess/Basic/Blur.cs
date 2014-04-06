@@ -17,6 +17,8 @@ namespace ERoD
         private Vector4[] sampleOffsets;
         private float[] sampleWeights;
 
+        private DeferredRenderer renderer;
+
         private const int Sample_Count = 11;
         // Render size
         private int width;
@@ -43,7 +45,7 @@ namespace ERoD
 
         //If BiliteralBlur is false, Guassian is Used.
         //If Horizontal is false, Vertical is Used.
-        public Blur(ERoD game, float amount, Boolean BiliteralBlur, Boolean Horizontal, int width, int height)
+        public Blur(Game game, float amount, Boolean BiliteralBlur, Boolean Horizontal, int width, int height)
             : base(game)
         {
             this.BiliteralBlur = BiliteralBlur;

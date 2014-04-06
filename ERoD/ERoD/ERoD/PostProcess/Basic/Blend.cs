@@ -15,7 +15,7 @@ namespace ERoD
         private float OriginalIntensity;
         private float LastSceneIntensity;
 
-        public Blend(ERoD game, float OriginalSaturation, float LastSceneSaturation, float OriginalIntensity, float LastSceneIntensity)
+        public Blend(Game game, float OriginalSaturation, float LastSceneSaturation, float OriginalIntensity, float LastSceneIntensity)
             : base(game)
         {
             this.OriginalSaturation = OriginalSaturation;

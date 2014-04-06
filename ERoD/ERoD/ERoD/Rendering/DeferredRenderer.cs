@@ -27,6 +27,7 @@ namespace ERoD
             public RenderTarget2D depthMap;
             public RenderTarget2D colorMap;
             public RenderTarget2D normalMap;
+            public RenderTarget2D particleMap;
             public RenderTarget2D SGRMap;
             public RenderTarget2D lightMap;
             public RenderTarget2D finalBackBuffer;
@@ -44,6 +45,11 @@ namespace ERoD
         // Skybox //
         Skybox skybox;
 
+
+        // Particles //
+
+        BumpmapBlur heatHaze;
+
         Model pointLightMesh;
         Matrix[] boneTransforms;
 
@@ -58,12 +64,16 @@ namespace ERoD
         public List<IPointLight> PointLights = new List<IPointLight>();
         public List<IDirectionalLight> DirectionalLights = new List<IDirectionalLight>();
 
+        public List<BaseEmitter> Emitters = new List<BaseEmitter>();
+
         ScreenQuad sceneQuad;
+
         public DeferredRenderer(Game game, PlayerView[] playerViews) 
             : base(game)
         {
             sceneQuad = new ScreenQuad(game);
             shadowRenderer = new ShadowRenderer(this, game);
+
             renderTargets = new DeferredRenderTarget[playerViews.Length];
             for (int i = 0; i < playerViews.Length; i++)
             {
@@ -95,6 +105,9 @@ namespace ERoD
                 renderTargets[i].normalMap = new RenderTarget2D(GraphicsDevice, width, height, false,
                     SurfaceFormat.Rgba1010102, DepthFormat.None);
 
+                renderTargets[i].particleMap = new RenderTarget2D(GraphicsDevice, width, height, false,
+                    SurfaceFormat.Color, DepthFormat.Depth24Stencil8);
+
                 renderTargets[i].SGRMap = new RenderTarget2D(GraphicsDevice, width, height, false,
                     SurfaceFormat.Rgba1010102, DepthFormat.None);
 
@@ -114,6 +127,10 @@ namespace ERoD
 
             pointLightShader = Game.Content.Load<Effect>("Shaders/PointLightShader");
             deferredShader = Game.Content.Load<Effect>("Shaders/DeferredRender");
+
+            TextureQuad.ParticleEffect = Game.Content.Load<Effect>("Shaders/ParticleEffect");
+
+            heatHaze = new BumpmapBlur(Game, true);
 
             deferredShadowShader = Game.Content.Load<Effect>("Shaders/DeferredShadowShader");
 
@@ -138,6 +155,15 @@ namespace ERoD
         public void Draw(GameTime gameTime, int renderTargetIndex)
         {
             RenderDeferred(gameTime, renderTargets[renderTargetIndex]);
+        }
+
+        public override void Update(GameTime gameTime)
+        {
+            foreach (ThrusterEmitter emitter in Emitters)
+            {
+                emitter.Emit(gameTime);
+                emitter.Update(gameTime);
+            }
         }
 
         private void RenderDeferred(GameTime gameTime, DeferredRenderTarget target)
@@ -169,6 +195,24 @@ namespace ERoD
             GraphicsDevice.SetRenderTargets(target.finalBackBuffer);
             DrawDeferred(target);
 
+            DrawParticles(gameTime, target);
+
+            GraphicsDevice.SetRenderTarget(null);
+        }
+
+        private void DrawParticles(GameTime gameTime, DeferredRenderTarget target)
+        {
+            // Particles
+            TextureQuad.ParticleEffect.Parameters["DepthMap"].SetValue(target.depthMap);
+            TextureQuad.ParticleEffect.Parameters["HalfPixel"].SetValue(target.HalfPixel);
+
+            GraphicsDevice.SetRenderTarget(target.particleMap);
+            GraphicsDevice.Clear(Color.Black);
+
+            foreach(ThrusterEmitter emitter in Emitters)
+            {
+                emitter.Draw(GraphicsDevice, Camera);
+            }
             GraphicsDevice.SetRenderTarget(null);
         }
 
@@ -350,7 +394,7 @@ namespace ERoD
         public void RenderDebug(DeferredRenderTarget target)
         {
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
-            spriteBatch.Draw(target.colorMap, new Rectangle(1, 1, target.w, target.h), Color.White);
+            spriteBatch.Draw(target.particleMap, new Rectangle(1, 1, target.w, target.h), Color.White);
             spriteBatch.Draw(target.SGRMap, new Rectangle((target.w * 4) + 4, 1, target.w, target.h), Color.White);
             spriteBatch.Draw(target.normalMap, new Rectangle(target.w + 2, 1, target.w, target.h), Color.White);
 

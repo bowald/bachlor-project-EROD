@@ -86,6 +86,7 @@ namespace ERoD
                     // Set G-buffers
                     postProcesses[p].DepthBuffer = target.depthMap;
                     postProcesses[p].NormalBuffer = target.normalMap;
+                    postProcesses[p].ParticleBuffer = target.particleMap;
 
                     // Set original scene
                     postProcesses[p].originalBuffer = originalScene;

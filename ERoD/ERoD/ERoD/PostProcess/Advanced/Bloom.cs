@@ -1,6 +1,7 @@
 ﻿// Implementet using this Guide:
 //http://digitalerr0r.wordpress.com/2009/10/04/xna-shader-programming-tutorial-24-bloom/
 
+using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,9 +19,7 @@ namespace ERoD
 
         public float Threshold;
 
-        
-
-        public Bloom(ERoD game, float Threshold, int width, int height)
+        public Bloom(Game game, float Threshold, int width, int height)
             : base(game)
         {
             mask = new BloomMask(game, Threshold);

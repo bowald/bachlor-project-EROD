@@ -16,7 +16,7 @@ namespace ERoD
         private float Weight;
         private float Exposure;
 
-        public LightRays(ERoD game, Vector3 lightPosition, float density, float decay, float weight, float exposure) 
+        public LightRays(Game game, Vector3 lightPosition, float density, float decay, float weight, float exposure) 
             : base(game)
         {
             this.LightPosition = lightPosition;
