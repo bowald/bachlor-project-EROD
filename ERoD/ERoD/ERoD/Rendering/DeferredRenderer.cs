@@ -33,7 +33,8 @@ namespace ERoD
 
 
         // Particles //
-        //private BaseEmitter particleEffect;
+
+        HeatHaze heatHaze;
 
         Model pointLightMesh;
         Matrix[] boneTransforms;
@@ -45,7 +46,6 @@ namespace ERoD
         Effect deferredShadowShader;
 
         Texture2D randomTexture;
-
 
         public List<IPointLight> PointLights = new List<IPointLight>();
         public List<IDirectionalLight> DirectionalLights = new List<IDirectionalLight>();
@@ -100,7 +100,8 @@ namespace ERoD
             deferredShader = Game.Content.Load<Effect>("Shaders/DeferredRender");
 
             TextureQuad.ParticleEffect = Game.Content.Load<Effect>("Shaders/ParticleEffect");
-          
+
+            heatHaze = new HeatHaze(Game, true);
 
             deferredShadowShader = Game.Content.Load<Effect>("Shaders/DeferredShadowShader");
 
@@ -165,20 +166,23 @@ namespace ERoD
             GraphicsDevice.SetRenderTargets(finalBackBuffer);
             DrawDeferred();
 
-            DrawParticles();
+            DrawParticles(gameTime);
 
             GraphicsDevice.SetRenderTarget(null);
         }
 
-        private void DrawParticles()
+        private void DrawParticles(GameTime gameTime)
         {
             // Particles
             TextureQuad.ParticleEffect.Parameters["DepthMap"].SetValue(depthMap);
             TextureQuad.ParticleEffect.Parameters["HalfPixel"].SetValue(halfPixel);
 
-            foreach(BaseEmitter emitter in Emitters)
+            foreach(ThrusterEmitter emitter in Emitters)
             {
                 emitter.Draw(GraphicsDevice, Camera);
+                GraphicsDevice.SetRenderTarget(emitter.ParticleRenderTarget);
+                //heatHaze.Draw(gameTime);
+                GraphicsDevice.SetRenderTarget(null);
             }
         }
 

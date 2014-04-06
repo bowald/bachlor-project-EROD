@@ -8,12 +8,12 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace ERoD
 {
-    public class BumpmapDistort : BasicPostProcess
+    public class HeatHaze : BasicPostProcess
     {
         private double elapsedTime = 0;
         public bool High = true;
 
-        public BumpmapDistort(ERoD game, bool high)
+        public HeatHaze(Game game, bool high)
             : base(game)
         {
             High = high;

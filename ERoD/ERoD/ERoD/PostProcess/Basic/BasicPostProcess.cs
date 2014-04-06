@@ -39,10 +39,10 @@ namespace ERoD
         ScreenQuad sq;
 
         protected Effect effect;
-        protected ERoD Game;
+        protected Game Game;
         
 
-        public BasicPostProcess(ERoD game)
+        public BasicPostProcess(Game game)
         {
             Game = game;
             spriteBatch = new SpriteBatch(Game.GraphicsDevice);

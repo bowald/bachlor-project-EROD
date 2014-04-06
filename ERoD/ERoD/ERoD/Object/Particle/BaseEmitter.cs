@@ -21,6 +21,12 @@ namespace ERoD
 
         protected Random random = new Random();
 
+        public RenderTarget2D ParticleRenderTarget
+        {
+            get { return particleRenderTarget; }
+            set { particleRenderTarget = value; }
+        }
+
         public BaseEmitter(int maxParticles, int particleLifespan, int emitAmount, float particleSpeed, float scaling, Vector3 position)
         {
             this.particleLifeSpan = particleLifespan;

@@ -24,8 +24,8 @@ namespace ERoD
             :base(game)
         {
             mask = new BloomMask(game, Threshold);
-            BlurV = new Blur(game, 2.0f, false, false);
-            BlurH = new Blur(game, 2.0f, false, true);
+            BlurV = new Blur(game, 2.0f, false, false, game.Renderer);
+            BlurH = new Blur(game, 2.0f, false, true, game.Renderer);
             blend = new Blend(game, 1.0f, 1.6f, 1.0f, 1.3f);
 
             AddPostProcess(mask);

@@ -17,6 +17,8 @@ namespace ERoD
         private Vector4[] sampleOffsets;
         private float[] sampleWeights;
 
+        private DeferredRenderer renderer;
+
         private const int Sample_Count = 11;
 
         protected float blurAmount;
@@ -40,7 +42,7 @@ namespace ERoD
 
         //If BiliteralBlur is false, Guassian is Used.
         //If Horisantal is false, Vertical is Used.
-        public Blur(ERoD game, float amount, Boolean BiliteralBlur, Boolean Horizontal)
+        public Blur(Game game, float amount, Boolean BiliteralBlur, Boolean Horizontal, DeferredRenderer renderer)
             : base(game)
         {
             this.BiliteralBlur = BiliteralBlur;
@@ -64,8 +66,8 @@ namespace ERoD
                 {
                     effect = Game.Content.Load<Effect>("Shaders/PostProcessing/BiliteralBlur");
                     effect.CurrentTechnique = effect.Techniques["BiliteralBlur"];
-                    effect.Parameters["DepthMap"].SetValue(Game.Renderer.depthMap);
-                    effect.Parameters["NormalMap"].SetValue(Game.Renderer.normalMap);
+                    effect.Parameters["DepthMap"].SetValue(renderer.depthMap);
+                    effect.Parameters["NormalMap"].SetValue(renderer.normalMap);
                 }
                 else
                 {
