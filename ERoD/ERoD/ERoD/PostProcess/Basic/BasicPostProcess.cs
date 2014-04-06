@@ -22,6 +22,7 @@ namespace ERoD
         public Texture2D DepthBuffer;
         public Texture2D NormalBuffer;
         public Texture2D BackBuffer;
+        public Texture2D ParticleBuffer;
 
         public Texture2D originalBuffer;
 

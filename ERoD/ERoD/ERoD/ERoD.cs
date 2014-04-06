@@ -328,7 +328,7 @@ namespace ERoD
                 ship.AddCollidable(bridgeMesh);
 
                 // Add one thruster emitter for each ship.
-                //renderer.Emitters.Add(new ThrusterEmitter(6000, 60, 800, 1.0f, 0.0005f, entity));
+                renderer.Emitters.Add(new ThrusterEmitter(4000, 60, 200, 1.0f, 0.001f, entity));
 
                 Components.Add(ship);
                 GameLogic.AddPlayer(ship, names[i]);
@@ -357,6 +357,7 @@ namespace ERoD
 
             for (int i = 0; i < views.Length; i++)
             {
+                views[i].Manager.AddEffect(new HeatHaze(this, false));
                 views[i].Manager.AddEffect(new Bloom(this, 0.5f, views[i].Viewport.Width, views[i].Viewport.Height));
                 views[i].Manager.AddEffect(new GodRays(this, new Vector3(100, 20, 100), 60.0f, 0.8f, 0.99f, 0.8f, 0.15f));
             }

@@ -8,7 +8,7 @@ uniform extern texture  Bumpmap;
 
 uniform extern float Offset;
 
-float2 halfPixel;
+float2 HalfPixel;
 
 sampler BackGroundSampler : register(s0);
 /* = sampler_state
@@ -31,57 +31,79 @@ sampler FractalSampler = sampler_state
 	AddressV = WRAP;
 };
 
-//Costly distort - 8 texture reads
-float4 HighPS(float2 texC : TEXCOORD0) : COLOR0
+struct VertexShaderInput
 {
-	texC -= halfPixel;
-	float2 bgTexC = texC;
+	float3 Position : POSITION0;
+	float2 TexCoord : TEXCOORD0;
+};
 
-		texC.y += Offset;
-	float2 offset0 = tex2D(FractalSampler, texC).xy * .05f;
-		texC.y -= Offset;
+struct VertexShaderOutput
+{
+	float4 Position : POSITION0;
+	float2 TexCoord : TEXCOORD0;
+};
 
-	texC.y -= Offset;
-	float2 offset1 = tex2D(FractalSampler, texC).xy * .05f;
-		texC.y += Offset;
+VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
+{
+	VertexShaderOutput output;
 
-	texC.x += Offset;
-	float2 offset2 = tex2D(FractalSampler, texC).xy * .05f;
-		texC.x -= Offset;
+	output.Position = float4(input.Position, 1);
+	output.TexCoord = input.TexCoord - HalfPixel;
 
-	texC.x -= Offset;
-	float2 offset3 = tex2D(FractalSampler, texC).xy * .05f;
+	return output;
+}
 
-		float4 c0 = tex2D(BackGroundSampler, bgTexC + (offset0 - .025f));
-		float4 c1 = tex2D(BackGroundSampler, bgTexC + (offset1 - .025f));
-		float4 c2 = tex2D(BackGroundSampler, bgTexC + (offset2 - .025f));
-		float4 c3 = tex2D(BackGroundSampler, bgTexC + (offset3 - .025f));
+//Costly distort - 8 texture reads
+float4 HighPS(VertexShaderOutput input) : COLOR0
+{
+	input.TexCoord -= HalfPixel;
+	float2 bgTexC = input.TexCoord;
 
-		return (c0 + c1 + c2 + c3) * .25f;
+	input.TexCoord.y += Offset;
+	float2 offset0 = tex2D(FractalSampler, input.TexCoord).xy * .05f;
+	input.TexCoord.y -= Offset;
+
+	input.TexCoord.y -= Offset;
+	float2 offset1 = tex2D(FractalSampler, input.TexCoord).xy * .05f;
+	input.TexCoord.y += Offset;
+
+	input.TexCoord.x += Offset;
+	float2 offset2 = tex2D(FractalSampler, input.TexCoord).xy * .05f;
+	input.TexCoord.x -= Offset;
+
+	input.TexCoord.x -= Offset;
+	float2 offset3 = tex2D(FractalSampler, input.TexCoord).xy * .05f;
+
+	float4 c0 = tex2D(BackGroundSampler, bgTexC + (offset0 - .025f));
+	float4 c1 = tex2D(BackGroundSampler, bgTexC + (offset1 - .025f));
+	float4 c2 = tex2D(BackGroundSampler, bgTexC + (offset2 - .025f));
+	float4 c3 = tex2D(BackGroundSampler, bgTexC + (offset3 - .025f));
+
+	return (c0 + c1 + c2 + c3) * .25f;
 }
 
 //Similar distort, not quite as blurry - 5 texture reads
-float4 LowPS(float2 texC : TEXCOORD0) : COLOR0
+float4 LowPS(VertexShaderOutput input) : COLOR0
 {
-	texC -= halfPixel;
-	float2 bgTexC = texC;
+	input.TexCoord -= HalfPixel;
+	float2 bgTexC = input.TexCoord;
 
-		texC.y += Offset;
-	float2 offset0 = tex2D(FractalSampler, texC).xy * .05f;
-		texC.y -= Offset;
+	input.TexCoord.y += Offset;
+	float2 offset0 = tex2D(FractalSampler, input.TexCoord).xy * .05f;
+	input.TexCoord.y -= Offset;
 
-	texC.y -= Offset;
-	float2 offset1 = tex2D(FractalSampler, texC).xy * .05f;
-		texC.y == Offset;
+	input.TexCoord.y -= Offset;
+	float2 offset1 = tex2D(FractalSampler, input.TexCoord).xy * .05f;
+	input.TexCoord.y == Offset;
 
-	texC.x += Offset;
-	float2 offset2 = tex2D(FractalSampler, texC).xy * .05f;
-		texC.x -= Offset;
+	input.TexCoord.x += Offset;
+	float2 offset2 = tex2D(FractalSampler, input.TexCoord).xy * .05f;
+	input.TexCoord.x -= Offset;
 
-	texC.x -= Offset;
-	float2 offset3 = tex2D(FractalSampler, texC).xy * .05f;
+	input.TexCoord.x -= Offset;
+	float2 offset3 = tex2D(FractalSampler, input.TexCoord).xy * .05f;
 
-		offset0 = offset0 + offset1 + offset2 + offset3;
+	offset0 = offset0 + offset1 + offset2 + offset3;
 	offset0 *= .25f;
 
 	//if(texC.y > .5)
@@ -94,7 +116,8 @@ technique High
 {
 	pass P0
 	{
-		pixelShader = compile ps_2_0 HighPS();
+		VertexShader = compile vs_3_0 VertexShaderFunction();
+		PixelShader = compile ps_3_0 HighPS();
 	}
 }
 
@@ -102,6 +125,7 @@ technique Low
 {
 	pass P0
 	{
-		pixelShader = compile ps_2_0 LowPS();
+		VertexShader = compile vs_3_0 VertexShaderFunction();
+		PixelShader = compile ps_3_0 LowPS();
 	}
 }

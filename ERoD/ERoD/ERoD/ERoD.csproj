@@ -114,7 +114,8 @@
     <Compile Include="Object\Particle\ThrusterEmitter.cs" />
     <Compile Include="Object\Ship.cs" />
     <Compile Include="Object\StaticObject.cs" />
-    <Compile Include="PostProcess\Basic\HeatHaze.cs" />
+    <Compile Include="PostProcess\Advanced\HeatHaze.cs" />
+    <Compile Include="PostProcess\Basic\BumpmapBlur.cs" />
     <Compile Include="Object\Terrain\HeightTerrainCDLOD.cs" />
     <Compile Include="Object\Terrain\QuadTree.cs" />
     <Compile Include="PostProcess\Advanced\AdvancedPostProcess.cs" />

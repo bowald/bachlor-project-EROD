@@ -8,14 +8,15 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace ERoD
 {
-    public class HeatHaze : BasicPostProcess
+    public class BumpmapBlur : BasicPostProcess
     {
         private double elapsedTime = 0;
         public bool High = true;
 
-        public HeatHaze(Game game, bool high)
+        public BumpmapBlur(Game game, bool high)
             : base(game)
         {
+            UsesVertexShader = true;
             High = high;
         }
 
@@ -38,12 +39,16 @@ namespace ERoD
             elapsedTime += gameTime.ElapsedGameTime.TotalSeconds;
 
             if (elapsedTime >= 10.0f)
+            {
                 elapsedTime = 0.0f;
+            }
 
             effect.Parameters["Offset"].SetValue((float)elapsedTime * .1f);
             effect.Parameters["Bumpmap"].SetValue(Game.Content.Load<Texture2D>("Textures/Particles/bumpmap"));
 
-            effect.Parameters["halfPixel"].SetValue(HalfPixel);
+            effect.Parameters["HalfPixel"].SetValue(HalfPixel);
+
+            Game.GraphicsDevice.Textures[0] = ParticleBuffer;
 
             // Set Params.
             base.Draw(gameTime);

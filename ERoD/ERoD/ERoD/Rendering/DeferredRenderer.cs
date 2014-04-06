@@ -27,6 +27,7 @@ namespace ERoD
             public RenderTarget2D depthMap;
             public RenderTarget2D colorMap;
             public RenderTarget2D normalMap;
+            public RenderTarget2D particleMap;
             public RenderTarget2D SGRMap;
             public RenderTarget2D lightMap;
             public RenderTarget2D finalBackBuffer;
@@ -47,7 +48,7 @@ namespace ERoD
 
         // Particles //
 
-        HeatHaze heatHaze;
+        BumpmapBlur heatHaze;
 
         Model pointLightMesh;
         Matrix[] boneTransforms;
@@ -104,6 +105,9 @@ namespace ERoD
                 renderTargets[i].normalMap = new RenderTarget2D(GraphicsDevice, width, height, false,
                     SurfaceFormat.Rgba1010102, DepthFormat.None);
 
+                renderTargets[i].particleMap = new RenderTarget2D(GraphicsDevice, width, height, false,
+                    SurfaceFormat.Color, DepthFormat.Depth24Stencil8);
+
                 renderTargets[i].SGRMap = new RenderTarget2D(GraphicsDevice, width, height, false,
                     SurfaceFormat.Rgba1010102, DepthFormat.None);
 
@@ -126,7 +130,7 @@ namespace ERoD
 
             TextureQuad.ParticleEffect = Game.Content.Load<Effect>("Shaders/ParticleEffect");
 
-            heatHaze = new HeatHaze(Game, true);
+            heatHaze = new BumpmapBlur(Game, true);
 
             deferredShadowShader = Game.Content.Load<Effect>("Shaders/DeferredShadowShader");
 
@@ -202,13 +206,14 @@ namespace ERoD
             TextureQuad.ParticleEffect.Parameters["DepthMap"].SetValue(target.depthMap);
             TextureQuad.ParticleEffect.Parameters["HalfPixel"].SetValue(target.HalfPixel);
 
+            GraphicsDevice.SetRenderTarget(target.particleMap);
+            GraphicsDevice.Clear(Color.Black);
+
             foreach(ThrusterEmitter emitter in Emitters)
             {
                 emitter.Draw(GraphicsDevice, Camera);
-                GraphicsDevice.SetRenderTarget(emitter.ParticleRenderTarget);
-                //heatHaze.Draw(gameTime);
-                GraphicsDevice.SetRenderTarget(null);
             }
+            GraphicsDevice.SetRenderTarget(null);
         }
 
         private void DeferredShadows(GameTime gameTime, ICamera camera)
@@ -389,7 +394,7 @@ namespace ERoD
         public void RenderDebug(DeferredRenderTarget target)
         {
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
-            spriteBatch.Draw(target.colorMap, new Rectangle(1, 1, target.w, target.h), Color.White);
+            spriteBatch.Draw(target.particleMap, new Rectangle(1, 1, target.w, target.h), Color.White);
             spriteBatch.Draw(target.SGRMap, new Rectangle((target.w * 4) + 4, 1, target.w, target.h), Color.White);
             spriteBatch.Draw(target.normalMap, new Rectangle(target.w + 2, 1, target.w, target.h), Color.White);
 
