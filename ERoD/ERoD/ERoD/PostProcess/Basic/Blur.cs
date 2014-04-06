@@ -20,6 +20,9 @@ namespace ERoD
         private DeferredRenderer renderer;
 
         private const int Sample_Count = 11;
+        // Render size
+        private int width;
+        private int height;
 
         protected float blurAmount;
         public float BlurAmount
@@ -31,25 +34,28 @@ namespace ERoD
                 if (sampleOffsets != null)
                 {
                     if (Horizontal)
-                        SetBlurEffectParameters(1.0f / (float)(this.Game.GraphicsDevice.Viewport.Width / 2f), 0, ref sampleOffsets, ref sampleWeights);
+                        SetBlurEffectParameters(2.0f / height, 0, ref sampleOffsets, ref sampleWeights);
                     else
                     {
-                        SetBlurEffectParameters(0, 1.0f / (float)(this.Game.GraphicsDevice.Viewport.Width / 2f), ref sampleOffsets, ref sampleWeights);
+                        SetBlurEffectParameters(0, 2.0f / width, ref sampleOffsets, ref sampleWeights);
                     }
                 }
             }
         }
 
         //If BiliteralBlur is false, Guassian is Used.
-        //If Horisantal is false, Vertical is Used.
-        public Blur(Game game, float amount, Boolean BiliteralBlur, Boolean Horizontal, DeferredRenderer renderer)
+        //If Horizontal is false, Vertical is Used.
+        public Blur(Game game, float amount, Boolean BiliteralBlur, Boolean Horizontal, int width, int height)
             : base(game)
         {
             this.BiliteralBlur = BiliteralBlur;
             this.Horizontal = Horizontal;
 
             blurAmount = amount;
-            newSceneSurfaceFormat = SurfaceFormat.Vector4;
+            newSceneSurfaceFormat = SurfaceFormat.Color;
+            this.width = width;
+            this.height = height;
+
             Sampler = SamplerState.PointClamp;
 
             if (BiliteralBlur)
@@ -66,8 +72,8 @@ namespace ERoD
                 {
                     effect = Game.Content.Load<Effect>("Shaders/PostProcessing/BiliteralBlur");
                     effect.CurrentTechnique = effect.Techniques["BiliteralBlur"];
-                    effect.Parameters["DepthMap"].SetValue(renderer.depthMap);
-                    effect.Parameters["NormalMap"].SetValue(renderer.normalMap);
+                    effect.Parameters["DepthMap"].SetValue(DepthBuffer);
+                    effect.Parameters["NormalMap"].SetValue(NormalBuffer);
                 }
                 else
                 {
@@ -78,12 +84,11 @@ namespace ERoD
                 sampleOffsets = new Vector4[Sample_Count];
                 sampleWeights = new float[Sample_Count];
                 if (Horizontal)
-                    SetBlurEffectParameters(1.0f / (float)(this.Game.GraphicsDevice.Viewport.Width / 2f), 0, ref sampleOffsets, ref sampleWeights);
+                    SetBlurEffectParameters(2.0f / width, 0, ref sampleOffsets, ref sampleWeights);
                 else
                 {
-                    SetBlurEffectParameters(0, 1.0f / (float)(this.Game.GraphicsDevice.Viewport.Width / 2f), ref sampleOffsets, ref sampleWeights);
+                    SetBlurEffectParameters(0, 2.0f / height, ref sampleOffsets, ref sampleWeights);
                 }
-
             }
 
             effect.Parameters["SampleOffsets"].SetValue(sampleOffsets);

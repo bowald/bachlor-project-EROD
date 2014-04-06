@@ -15,7 +15,7 @@ namespace ERoD
         private float OriginalIntensity;
         private float LastSceneIntensity;
 
-        public Blend(ERoD game, float OriginalSaturation, float LastSceneSaturation, float OriginalIntensity, float LastSceneIntensity)
+        public Blend(Game game, float OriginalSaturation, float LastSceneSaturation, float OriginalIntensity, float LastSceneIntensity)
             : base(game)
         {
             this.OriginalSaturation = OriginalSaturation;
@@ -36,7 +36,7 @@ namespace ERoD
             effect.Parameters["LastSceneSaturation"].SetValue(LastSceneSaturation);
             effect.Parameters["OriginalIntensity"].SetValue(OriginalIntensity);
             effect.Parameters["LastSceneIntensity"].SetValue(LastSceneIntensity);
-            effect.Parameters["OrgScene"].SetValue(orgBuffer);
+            effect.Parameters["OriginalScene"].SetValue(originalBuffer);
 
             base.Draw(gameTime);
 

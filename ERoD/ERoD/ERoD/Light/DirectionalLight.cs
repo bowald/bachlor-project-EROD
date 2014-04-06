@@ -25,8 +25,8 @@ namespace ERoD
             {
                 return Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver2,
                     camera.Viewport.AspectRatio,
-                    camera.Viewport.MinDepth,
-                    camera.Viewport.MaxDepth);
+                    camera.NearPlane,
+                    camera.FarPlane);
             }
         }
 

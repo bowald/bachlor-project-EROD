@@ -13,16 +13,29 @@ namespace ERoD
     {
         public ICamera Camera
         {
-            get { return ((ICamera)Game.Services.GetService(typeof(ICamera))); }
+            get 
+            {
+                return (ICamera)Game.Services.GetService(typeof(ICamera));
+            }
         }
 
-        public RenderTarget2D depthMap;
-        public RenderTarget2D colorMap;
-        public RenderTarget2D normalMap;
-        public RenderTarget2D SGRMap;
-        public RenderTarget2D lightMap;
-        public RenderTarget2D finalBackBuffer;
-        public RenderTarget2D skyMap;
+        public struct DeferredRenderTarget
+        {
+            public int width, height;
+            public int w, h;
+
+            public RenderTarget2D depthMap;
+            public RenderTarget2D colorMap;
+            public RenderTarget2D normalMap;
+            public RenderTarget2D SGRMap;
+            public RenderTarget2D lightMap;
+            public RenderTarget2D finalBackBuffer;
+            public RenderTarget2D skyMap;
+
+            public Vector2 HalfPixel;
+        }
+
+        public DeferredRenderTarget[] renderTargets;
 
         SpriteBatch spriteBatch;
 
@@ -45,52 +58,64 @@ namespace ERoD
 
         Effect deferredShadowShader;
 
-        Texture2D randomTexture;
+        Effect DepthRender;
 
         public List<IPointLight> PointLights = new List<IPointLight>();
         public List<IDirectionalLight> DirectionalLights = new List<IDirectionalLight>();
 
         public List<BaseEmitter> Emitters = new List<BaseEmitter>();
 
-        Vector2 halfPixel;
-
         ScreenQuad sceneQuad;
 
-        public DeferredRenderer(Game game) : base(game)
+        public DeferredRenderer(Game game, PlayerView[] playerViews) 
+            : base(game)
         {
-            game.Components.Add(this);
             sceneQuad = new ScreenQuad(game);
             shadowRenderer = new ShadowRenderer(this, game);
-            //particleEffect = new BaseEmitter(2000, 7500, 2, 2f, Vector3.Zero);
+
+            renderTargets = new DeferredRenderTarget[playerViews.Length];
+            for (int i = 0; i < playerViews.Length; i++)
+            {
+                renderTargets[i].width = playerViews[i].Viewport.Width;
+                renderTargets[i].height = playerViews[i].Viewport.Height;
+
+                // Debug render
+                renderTargets[i].w = playerViews[i].Viewport.Width / 6;
+                renderTargets[i].h = playerViews[i].Viewport.Height / 4;
+            }
+            game.Components.Add(this);
         }
 
         protected override void LoadContent()
         {
-            int width = GraphicsDevice.Viewport.Width;
-            int height = GraphicsDevice.Viewport.Height;
+            for (int i = 0; i < renderTargets.Length; i++)
+            {
+                int width = renderTargets[i].width;
+                int height = renderTargets[i].height;
 
-            halfPixel = -new Vector2(0.5f / (float)width, 0.5f / (float)height);
+                renderTargets[i].HalfPixel = -new Vector2(0.5f / (float)width, 0.5f / (float)height);
 
-            depthMap = new RenderTarget2D(GraphicsDevice, width, height, false,
-                SurfaceFormat.Single, DepthFormat.Depth24Stencil8);
+                renderTargets[i].depthMap = new RenderTarget2D(GraphicsDevice, width, height, false,
+                    SurfaceFormat.Single, DepthFormat.Depth24Stencil8);
 
-            colorMap = new RenderTarget2D(GraphicsDevice, width, height, false,
-                SurfaceFormat.Color, DepthFormat.Depth24Stencil8);
+                renderTargets[i].colorMap = new RenderTarget2D(GraphicsDevice, width, height, false,
+                    SurfaceFormat.Color, DepthFormat.Depth24Stencil8);
 
-            normalMap = new RenderTarget2D(GraphicsDevice, width, height, false,
-                SurfaceFormat.Rgba1010102, DepthFormat.None);
+                renderTargets[i].normalMap = new RenderTarget2D(GraphicsDevice, width, height, false,
+                    SurfaceFormat.Rgba1010102, DepthFormat.None);
 
-            SGRMap = new RenderTarget2D(GraphicsDevice, width, height, false,
-                SurfaceFormat.Rgba1010102, DepthFormat.None);
+                renderTargets[i].SGRMap = new RenderTarget2D(GraphicsDevice, width, height, false,
+                    SurfaceFormat.Rgba1010102, DepthFormat.None);
 
-            lightMap = new RenderTarget2D(GraphicsDevice, width, height, false,
-                SurfaceFormat.Color, DepthFormat.None);
+                renderTargets[i].lightMap = new RenderTarget2D(GraphicsDevice, width, height, false,
+                    SurfaceFormat.Color, DepthFormat.None);
 
-            skyMap = new RenderTarget2D(GraphicsDevice, width, height, false,
-                SurfaceFormat.Color, DepthFormat.Depth24Stencil8);
+                renderTargets[i].skyMap = new RenderTarget2D(GraphicsDevice, width, height, false,
+                    SurfaceFormat.Color, DepthFormat.Depth24Stencil8);
 
-            finalBackBuffer = new RenderTarget2D(GraphicsDevice, width, height, false,
-                SurfaceFormat.Color, DepthFormat.None);
+                renderTargets[i].finalBackBuffer = new RenderTarget2D(GraphicsDevice, width, height, false,
+                    SurfaceFormat.Color, DepthFormat.None);
+            }
 
             skybox = new Skybox("Skyboxes/skybox", Game.Content);
 
@@ -107,8 +132,6 @@ namespace ERoD
 
             // Debug depth renderer
             DepthRender = Game.Content.Load<Effect>("Shaders/depthRender");
-            w = GraphicsDevice.Viewport.Width / 6;
-            h = GraphicsDevice.Viewport.Height / 4;
 
             pointLightMesh = Game.Content.Load<Model>("Models/lightmesh");
             pointLightMesh.Meshes[0].MeshParts[0].Effect = pointLightShader;
@@ -125,9 +148,9 @@ namespace ERoD
             base.Initialize();
         }
 
-        public override void Draw(GameTime gameTime)
+        public void Draw(GameTime gameTime, int renderTargetIndex)
         {
-            RenderDeferred(gameTime);
+            RenderDeferred(gameTime, renderTargets[renderTargetIndex]);
         }
 
         public override void Update(GameTime gameTime)
@@ -139,9 +162,10 @@ namespace ERoD
             }
         }
 
-        private void RenderDeferred(GameTime gameTime)
+        private void RenderDeferred(GameTime gameTime, DeferredRenderTarget target)
         {
-            GraphicsDevice.SetRenderTargets(colorMap, normalMap, depthMap, SGRMap);
+            GraphicsDevice.SetRenderTargets(target.colorMap, target.normalMap
+                , target.depthMap, target.SGRMap);
 
             GraphicsDevice.Clear(Color.Black);
             GraphicsDevice.DepthStencilState = DepthStencilState.Default;
@@ -156,26 +180,27 @@ namespace ERoD
             }
 
             GraphicsDevice.SetRenderTarget(null);
+            DeferredShadows(gameTime, Camera);
 
-            DeferredShadows(gameTime);
-            DeferredLightning(gameTime);
+            GraphicsDevice.SetRenderTarget(target.lightMap);
+            DeferredLightning(gameTime, target);
 
-            GraphicsDevice.SetRenderTarget(skyMap);
-            DrawSkybox();
+            GraphicsDevice.SetRenderTarget(target.skyMap);
+            DrawSkybox(Camera);
 
-            GraphicsDevice.SetRenderTargets(finalBackBuffer);
-            DrawDeferred();
+            GraphicsDevice.SetRenderTargets(target.finalBackBuffer);
+            DrawDeferred(target);
 
-            DrawParticles(gameTime);
+            DrawParticles(gameTime, target);
 
             GraphicsDevice.SetRenderTarget(null);
         }
 
-        private void DrawParticles(GameTime gameTime)
+        private void DrawParticles(GameTime gameTime, DeferredRenderTarget target)
         {
             // Particles
-            TextureQuad.ParticleEffect.Parameters["DepthMap"].SetValue(depthMap);
-            TextureQuad.ParticleEffect.Parameters["HalfPixel"].SetValue(halfPixel);
+            TextureQuad.ParticleEffect.Parameters["DepthMap"].SetValue(target.depthMap);
+            TextureQuad.ParticleEffect.Parameters["HalfPixel"].SetValue(target.HalfPixel);
 
             foreach(ThrusterEmitter emitter in Emitters)
             {
@@ -186,7 +211,7 @@ namespace ERoD
             }
         }
 
-        private void DeferredShadows(GameTime gameTime)
+        private void DeferredShadows(GameTime gameTime, ICamera camera)
         {
             GraphicsDevice.DepthStencilState = DepthStencilState.Default;
             List<ILight> lights = new List<ILight>(DirectionalLights.Where(entity => entity.Intensity > 0 && entity.Color != Color.Black && entity.CastShadow));
@@ -203,15 +228,13 @@ namespace ERoD
 
             foreach (IDirectionalLight light in lights)
             {
-                shadowRenderer.RenderCascadedShadowMap(light, Camera, gameTime);
+                shadowRenderer.RenderCascadedShadowMap(light, camera, gameTime);
             }
         }
 
         // Render all lights to a texture.
-        private void DeferredLightning(GameTime gameTime)
+        private void DeferredLightning(GameTime gameTime, DeferredRenderTarget target)
         {
-            GraphicsDevice.SetRenderTarget(lightMap);
-
             GraphicsDevice.Clear(Color.Transparent);
             GraphicsDevice.BlendState = BlendState.Additive;
             GraphicsDevice.DepthStencilState = DepthStencilState.None;
@@ -220,31 +243,32 @@ namespace ERoD
             // Render all directional lights
             foreach (IDirectionalLight dirLight in DirectionalLights)
             {
-                RenderDirectionalLight(dirLight);
+                RenderDirectionalLight(dirLight, target);
             }
 
             // Render all point-lights
             foreach (IPointLight pointLight in PointLights) 
             {
-                RenderPointLight(pointLight);
+                RenderPointLight(pointLight, target);
             }
             if (LightHelper.ToolEnabled)
             {
-                RenderPointLight(LightHelper.Light);
+                RenderPointLight(LightHelper.Light, target);
             }
             GraphicsDevice.SetRenderTarget(null);
         }
 
-        private void RenderDirectionalLight(IDirectionalLight directionalLight)
+        private void RenderDirectionalLight(IDirectionalLight directionalLight, DeferredRenderTarget target)
         {
             // Load Light Params
-            directionalLightShader.Parameters["HalfPixel"].SetValue(halfPixel);
+            directionalLightShader.Parameters["HalfPixel"].SetValue(target.HalfPixel);
             directionalLightShader.Parameters["LightDirection"].SetValue(directionalLight.Direction);
-            directionalLightShader.Parameters["Color"].SetValue(directionalLight.Color.ToVector3());
+            directionalLightShader.Parameters["LightColor"].SetValue(directionalLight.Color.ToVector3());
 
-            directionalLightShader.Parameters["NormalMap"].SetValue(normalMap);
-            directionalLightShader.Parameters["SGRMap"].SetValue(SGRMap);
-            directionalLightShader.Parameters["DepthMap"].SetValue(depthMap);
+            directionalLightShader.Parameters["NormalMap"].SetValue(target.normalMap);
+            directionalLightShader.Parameters["ColorMap"].SetValue(target.colorMap);
+            directionalLightShader.Parameters["SGRMap"].SetValue(target.SGRMap);
+            directionalLightShader.Parameters["DepthMap"].SetValue(target.depthMap);
             directionalLightShader.Parameters["Power"].SetValue(directionalLight.Intensity);
 
             directionalLightShader.Parameters["CameraPosition"].SetValue(Camera.Position);
@@ -285,16 +309,16 @@ namespace ERoD
             sceneQuad.Draw(-Vector2.One, Vector2.One);
         }
 
-        private void RenderPointLight(IPointLight pointLight)
+        private void RenderPointLight(IPointLight pointLight, DeferredRenderTarget target)
         {
             // TODO: Remove debug hack for release, also in shader
             pointLightShader.Parameters["DebugPosition"].SetValue(LightHelper.DebugPosition);
 
-            pointLightShader.Parameters["HalfPixel"].SetValue(halfPixel);
-            pointLightShader.Parameters["SGRMap"].SetValue(SGRMap);
-            pointLightShader.Parameters["ColorMap"].SetValue(colorMap);
-            pointLightShader.Parameters["NormalMap"].SetValue(normalMap);
-            pointLightShader.Parameters["DepthMap"].SetValue(depthMap);
+            pointLightShader.Parameters["HalfPixel"].SetValue(target.HalfPixel);
+            pointLightShader.Parameters["SGRMap"].SetValue(target.SGRMap);
+            pointLightShader.Parameters["ColorMap"].SetValue(target.colorMap);
+            pointLightShader.Parameters["NormalMap"].SetValue(target.normalMap);
+            pointLightShader.Parameters["DepthMap"].SetValue(target.depthMap);
 
             pointLightShader.Parameters["CameraPosition"].SetValue(Camera.Position);
 
@@ -311,7 +335,7 @@ namespace ERoD
             pointLightShader.Parameters["SidesLengthVS"].SetValue(new Vector2(Camera.TanFovy * Camera.AspectRatio, -Camera.TanFovy));
             pointLightShader.Parameters["FarPlane"].SetValue(Camera.FarPlane);
 
-            pointLightShader.Parameters["Color"].SetValue(pointLight.Color.ToVector3());
+            pointLightShader.Parameters["LightColor"].SetValue(pointLight.Color.ToVector3());
             pointLightShader.Parameters["LightRadius"].SetValue(pointLight.Radius);
             pointLightShader.Parameters["LightIntensity"].SetValue(pointLight.Intensity);
 
@@ -334,22 +358,22 @@ namespace ERoD
             
         }
 
-        private void DrawSkybox()
+        private void DrawSkybox(ICamera camera)
         {
             GraphicsDevice.RasterizerState = RasterizerState.CullClockwise;
-            skybox.Draw(Camera.View, Camera.Projection, Camera.Position);
+            skybox.Draw(camera.View, camera.Projection, camera.Position);
             GraphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
         }
 
-        private void DrawDeferred()
+        private void DrawDeferred(DeferredRenderTarget target)
         {
             GraphicsDevice.Clear(Color.White);
 
-            deferredShader.Parameters["HalfPixel"].SetValue(halfPixel);
-            deferredShader.Parameters["ColorMap"].SetValue(colorMap);
-            deferredShader.Parameters["LightMap"].SetValue(lightMap);
-            deferredShader.Parameters["DepthMap"].SetValue(depthMap);
-            deferredShader.Parameters["SkyMap"].SetValue(skyMap);
+            deferredShader.Parameters["HalfPixel"].SetValue(target.HalfPixel);
+            deferredShader.Parameters["ColorMap"].SetValue(target.colorMap);
+            deferredShader.Parameters["LightMap"].SetValue(target.lightMap);
+            deferredShader.Parameters["DepthMap"].SetValue(target.depthMap);
+            deferredShader.Parameters["SkyMap"].SetValue(target.skyMap);
 
             deferredShader.CurrentTechnique.Passes[0].Apply();
 
@@ -362,16 +386,14 @@ namespace ERoD
 
         }
 
-        int w, h;
-        Effect DepthRender;
-        public void RenderDebug()
+        public void RenderDebug(DeferredRenderTarget target)
         {
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
-            spriteBatch.Draw(colorMap, new Rectangle(1, 1, w, h), Color.White);
-            spriteBatch.Draw(SGRMap, new Rectangle((w * 4) + 4, 1, w, h), Color.White);
-            spriteBatch.Draw(normalMap, new Rectangle(w + 2, 1, w, h), Color.White);
-            
-            spriteBatch.Draw(lightMap, new Rectangle((w * 2) + 3, 1, w, h), Color.White);
+            spriteBatch.Draw(target.colorMap, new Rectangle(1, 1, target.w, target.h), Color.White);
+            spriteBatch.Draw(target.SGRMap, new Rectangle((target.w * 4) + 4, 1, target.w, target.h), Color.White);
+            spriteBatch.Draw(target.normalMap, new Rectangle(target.w + 2, 1, target.w, target.h), Color.White);
+
+            spriteBatch.Draw(target.lightMap, new Rectangle((target.w * 2) + 3, 1, target.w, target.h), Color.White);
             
             spriteBatch.End();
             
@@ -379,7 +401,7 @@ namespace ERoD
             DepthRender.CurrentTechnique.Passes[0].Apply();
             GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
             DepthRender.CurrentTechnique.Passes[0].Apply();
-            spriteBatch.Draw(depthMap, new Rectangle((w * 3) + 4, 1, w, h), Color.White);
+            spriteBatch.Draw(target.depthMap, new Rectangle((target.w * 3) + 4, 1, target.w, target.h), Color.White);
             //spriteBatch.Draw(DirectionalLights[0].ShadowMapEntry.ShadowMap, new Rectangle(1, 1, w*3, h), Color.White);
             spriteBatch.End();
         }

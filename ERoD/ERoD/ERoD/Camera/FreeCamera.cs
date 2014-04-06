@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
@@ -11,7 +12,7 @@ namespace ERoD
     {
         public float Speed { set; get; }
 
-        public FreeCamera(ERoD game, float nearPlane, float farPlane, Vector3 position, float speed) 
+        public FreeCamera(Game game, float nearPlane, float farPlane, Vector3 position, float speed) 
             : base(game, nearPlane, farPlane)
         {
             Position = position;
@@ -65,10 +66,9 @@ namespace ERoD
         float yaw;
         float pitch;
 
-        public override void Update(GameTime gameTime)
+        public void Update(GameTime gameTime, GamePadState gamePadState)
         {
             float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
-            GamePadState gamePadState = ((ERoD)Game).GamePadState;
 
             yaw += gamePadState.ThumbSticks.Right.X * -1.5f * deltaTime;
             pitch += gamePadState.ThumbSticks.Right.Y * 1.5f * deltaTime;

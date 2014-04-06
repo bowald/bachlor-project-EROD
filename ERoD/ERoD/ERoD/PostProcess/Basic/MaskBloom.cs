@@ -11,7 +11,7 @@ namespace ERoD
     {
         public float Threshold;
 
-        public BloomMask(ERoD game, float Threshold) 
+        public BloomMask(Game game, float Threshold) 
             : base(game)
         {
             this.Threshold = Threshold;

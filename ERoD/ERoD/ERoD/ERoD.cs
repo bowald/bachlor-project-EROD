@@ -34,24 +34,36 @@ namespace ERoD
     /// </summary>
     public class ERoD : Microsoft.Xna.Framework.Game
     {
+        public enum GameState
+        {
+            MENU,
+            GAME,
+            LOAD_GAME
+        }
+
+        public GameState CurrentState = GameState.MENU;
+
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
+
+        private StartMenu Menu;
+        private Texture2D LoadingTexture;
 
         private Space space;
 
         // Boolean for drawing the debug frame
         private bool RenderDebug;
-        // Camera Variables
-        public BaseCamera ChaseCamera;
-        public BaseCamera FreeCamera;
-        Boolean FreeCameraActive;
+
+        private int NumberOfPlayers;
+        private PlayerView[] views;
+        private Viewport original;
+        private Viewport[][] ViewPorts;
+
+        private RenderTarget2D finalScreenTarget;
 
         // GameLogic //
         GameLogic GameLogic;
 
-        public Boolean DebugEnabled;
-        StaticMesh rockMesh;
-        
         HeightTerrainCDLOD terrain;
 
         public Space Space
@@ -65,28 +77,101 @@ namespace ERoD
             get { return renderer; }
         }
 
-        protected PostProcessingManager manager;
-
-
         public ModelDrawer modelDrawer;  //Used to draw entities for debug.
 
-        public GamePadState GamePadState { get; set; }
-        public GamePadState LastGamePadState { get; set; }
         public KeyboardState KeyBoardState { get; set; }
         public KeyboardState LastKeyBoardState { get; set; }
 
         public ERoD()
         {
             graphics = new GraphicsDeviceManager(this);
-            graphics.PreferredBackBufferHeight = 768;
-            graphics.PreferredBackBufferWidth = 1360;
-            //graphics.IsFullScreen = true;
 
+            graphics.PreferredBackBufferWidth = GameConstants.WindowWidth;
+            graphics.PreferredBackBufferHeight = GameConstants.WindowHeight;
+            
             Content.RootDirectory = "Content";
-            renderer = new DeferredRenderer(this);
 
+            LightHelper.Game = this;
+            LightHelper.ToolEnabled = false;
             RenderDebug = false;
+
+            ViewPorts = CreateViewPorts();
         }
+
+        private Viewport[][] CreateViewPorts()
+        {
+            // Use different viewports depending on 1, 2, 3 or 4 players
+            // 1: original
+            // 2: left + right
+            // 3: left + topright + bottomright
+            // 4: topLeft, topRight, bottomLeft, bottomRight
+
+            original = new Viewport();
+            original.X = 0;
+            original.Y = 0;
+            original.Width = graphics.PreferredBackBufferWidth;
+            original.Height = graphics.PreferredBackBufferHeight;
+            original.MinDepth = 0;
+            original.MaxDepth = 1;
+
+            Viewport left = new Viewport();
+            left.X = 0;
+            left.Y = 0;
+            left.Width = original.Width / 2;
+            left.Height = original.Height;
+            left.MinDepth = 0;
+            left.MaxDepth = 1;
+
+            Viewport right = new Viewport();
+            right.X = original.Width / 2;
+            right.Y = 0;
+            right.Width = original.Width / 2;
+            right.Height = original.Height;
+            right.MinDepth = 0;
+            right.MaxDepth = 1;
+
+            Viewport topLeft = new Viewport();
+            topLeft.X = 0;
+            topLeft.Y = 0;
+            topLeft.Width = original.Width / 2;
+            topLeft.Height = original.Height / 2;
+            topLeft.MinDepth = 0;
+            topLeft.MaxDepth = 1;
+
+            Viewport topRight = new Viewport();
+            topRight.X = original.Width / 2;
+            topRight.Y = 0;
+            topRight.Width = original.Width / 2;
+            topRight.Height = original.Height / 2;
+            topRight.MinDepth = 0;
+            topRight.MaxDepth = 1;
+
+            Viewport bottomLeft = new Viewport();
+            bottomLeft.X = 0;
+            bottomLeft.Y = original.Height / 2;
+            bottomLeft.Width = original.Width / 2;
+            bottomLeft.Height = original.Height / 2;
+            bottomLeft.MinDepth = 0;
+            bottomLeft.MaxDepth = 1;
+
+            Viewport bottomRight = new Viewport();
+            bottomRight.X = original.Width / 2;
+            bottomRight.Y = original.Height / 2;
+            bottomRight.Width = original.Width / 2;
+            bottomRight.Height = original.Height / 2;
+            bottomRight.MinDepth = 0;
+            bottomRight.MaxDepth = 1;
+
+            // Assign viewports to number of players
+            Viewport[][] viewPorts = new Viewport[4][];
+            viewPorts[0] = new Viewport[1] { original };
+            viewPorts[1] = new Viewport[2] { left, right };
+            viewPorts[2] = new Viewport[3] { left, topRight, bottomRight };
+            viewPorts[3] = new Viewport[4] { topLeft, topRight, bottomLeft, bottomRight };
+            return viewPorts;
+        }
+
+
 
         /// <summary>
         /// Allows the game to perform any initialization it needs to before starting to run.
@@ -96,20 +181,6 @@ namespace ERoD
         /// </summary>
         protected override void Initialize()
         {
-            terrain = new HeightTerrainCDLOD(this, 7);
-            Components.Add(terrain);
-            Services.AddService(typeof(ITerrain), terrain);
-
-            FreeCamera = new FreeCamera(this, 0.1f, 7000.0f, new Vector3(25f, 150.0f, 25f), 270.0f);
-
-            this.Services.AddService(typeof(ICamera), FreeCamera);
-            FreeCameraActive = true;
-
-            manager = new PostProcessingManager(this);
-
-            GameLogic = new GameLogic(this);
-            this.Services.AddService(typeof(GameLogic), GameLogic);
-
             base.Initialize();
         }
 
@@ -119,138 +190,201 @@ namespace ERoD
         /// </summary>
         protected override void LoadContent()
         {
-            spriteBatch = new SpriteBatch(GraphicsDevice);
-
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
             font = Content.Load<SpriteFont>("Sprites/Lap1");
 
+            finalScreenTarget = new RenderTarget2D(GraphicsDevice
+                    , original.Width
+                    , original.Height
+                    , false
+                    , SurfaceFormat.Color
+                    , DepthFormat.None
+                    , 0
+                    , RenderTargetUsage.PreserveContents);
 
-            // TODO: Load your game content here            
             fontPos = new Microsoft.Xna.Framework.Vector2(graphics.GraphicsDevice.Viewport.Width / 2,
                 graphics.GraphicsDevice.Viewport.Height / 2);
 
-            Model cubeModel = Content.Load<Model>("Models/cube");
+            LoadingTexture = Content.Load<Texture2D>("Textures/loading");
+
+            Menu = new StartMenu(this);
+        }
+
+        /// <summary>
+        /// Load Game content that depends on the number of players selected
+        /// 
+        /// </summary>
+        private void LoadGameContent(int numberOfPlayers)
+        {
+
+            views = new PlayerView[numberOfPlayers];
+
+            for (int i = 0; i < numberOfPlayers; i++)
+            {
+                views[i] = new PlayerView(this, ViewPorts[numberOfPlayers - 1][i], i);
+            }
+
+            renderer = new DeferredRenderer(this, views);
 
             Effect objEffect = Content.Load<Effect>("Shaders/DeferredObjectRender");
             Effect objShadow = Content.Load<Effect>("Shaders/DeferredShadowShader");
-            
+
+            terrain = new HeightTerrainCDLOD(this, 7);
+            Components.Add(terrain);
+            Services.AddService(typeof(ITerrain), terrain);
+
+            GameLogic = new GameLogic(this);
+            this.Services.AddService(typeof(GameLogic), GameLogic);
+
             space = new Space();
+            space.ForceUpdater.Gravity = new BVector3(0, GameConstants.Gravity, 0);
             Services.AddService(typeof(Space), space);
 
-            LightHelper.Game = this;
-
             space.Add(((ITerrain)Services.GetService(typeof(ITerrain))).PhysicTerrain);
-
-            manager.AddEffect(new Bloom(this, 0.5f));
-
-            #region Ship loading
-
-            Model shipModel = Content.Load<Model>("Models/space_frigate");
-            Model shipModelT = Content.Load<Model>("Models/space_frigate_tangentOn");
-            Vector3 shipScale = new Vector3(0.06f, 0.06f, 0.06f);
-            Vector3 shipPosition = new Vector3(150, 20, 300);
-
-
-            Entity entity = LoadEntityObject(shipModel, shipPosition, shipScale);
-
-            Ship ship = new Ship(entity, shipModelT, shipScale, this);
-
-            space.Add(entity);
-            ship.Texture = Content.Load<Texture2D>("Textures/Ship/diffuse");
-            ship.SpecularMap = Content.Load<Texture2D>("Textures/Ship/specular");
-            ship.TextureEnabled = true;
-            ship.standardEffect = objEffect;
-            ship.shadowEffect = objShadow;
-            ship.Mask = true;
-            Components.Add(ship);
-            GameLogic.AddPlayer(ship, "Anton");
-
-            #endregion
-
-            
-            
-            ChaseCamera = new ChaseCamera(ship.Entity, new BEPUutilities.Vector3(0.0f, 0.0f, 0.0f), true, 25.0f, 0.1f, 3000.0f, this);
-            ((ChaseCamera)ChaseCamera).Initialize();
 
             #region Bridge
 
             // Load the bridge model
             Model bridgeModel = Content.Load<Model>("Models/bridge");
             AffineTransform bridgeTransform = new AffineTransform(
-                new BVector3(6f, 6f, 6f), 
-                BQuaternion.Identity, 
+                new BVector3(6f, 6f, 6f),
+                BQuaternion.Identity,
                 new BVector3(138.5f, -71, -145));
             var bridgeMesh = LoadStaticObject(bridgeModel, bridgeTransform);
             StaticObject bridge = new StaticObject(bridgeModel, bridgeMesh, this);
-            bridge.SpecularMap  = Content.Load<Texture2D>("Textures/Bridge/specular");
-            bridge.Texture = Content.Load<Texture2D>("Textures/Bridge/diffuse");
+            bridge.SpecularMap = Content.Load<Texture2D>("Textures/Bridge/specular");
+            bridge.Textures = new Texture2D[1] { Content.Load<Texture2D>("Textures/Bridge/diffuse") };
             bridge.BumpMap = Content.Load<Texture2D>("Textures/Bridge/normal");
-            bridge.TextureEnabled = true;
+            bridge.TextureEnabled = new bool[1] {true};
             bridge.TexMult = 3f; // make the texture cover 3x more area before repeating.
             bridge.BumpConstant = 1f;
+            bridge.GlowMap = new Texture2D[1] { Content.Load<Texture2D>("Textures/Specular/specular_0") };
             bridge.standardEffect = objEffect;
             bridge.shadowEffect = objShadow;
 
             space.Add(bridgeMesh);
             Components.Add(bridge);
-            ship.AddCollidable(bridgeMesh);
 
             #endregion
 
-            #region Rock
+            #region Ship loading
 
-            Model rockModel = Content.Load<Model>("Models/rock");
-            AffineTransform rockTransform = new AffineTransform(
-                new BVector3(4, 4, 4),
-                BQuaternion.Identity,
-                new BVector3(0, 0, 0));
-            //var rockMesh
-            rockMesh = LoadStaticObject(rockModel, rockTransform);
-            StaticObject rock = new StaticObject(rockModel, rockMesh, this);
-            rock.SpecularMap = Content.Load<Texture2D>("Textures/Rock/specular");
-            rock.Texture = Content.Load<Texture2D>("Textures/Rock/diffuse");
-            rock.BumpMap = Content.Load<Texture2D>("Textures/Rock/normal");
-            rock.TextureEnabled = true;
-            rock.BumpConstant = 1f;
-            rock.standardEffect = objEffect;
-            rock.shadowEffect = objShadow;
+            Model shipModel = Content.Load<Model>("Models/racer");
+            Vector3 shipScale = new Vector3(0.14f, 0.14f, 0.14f);
+            Vector3 shipPosition = new Vector3(865, -45, -255);
 
-            //space.Add(rockMesh);
-            //Components.Add(rock);
+            // Ship parts
+            /* 
+             * 0: Front inside lights
+             * 1: Door
+             * 2: Green ring lights
+             * 3: LightBlue side lights
+             * 4: "Engine"
+             * 5: Red engine things
+             * 6: Window
+             * 7: Window frame
+             * 8: Body
+             */
+
+            Texture2D doorTexture = Content.Load<Texture2D>("Textures/Racer/door");
+            Texture2D[] bodyColors = new Texture2D[4];
+            bodyColors[0] = Content.Load<Texture2D>("Textures/Racer/body_orange");
+            bodyColors[1] = Content.Load<Texture2D>("Textures/Racer/body_blue");
+            bodyColors[2] = Content.Load<Texture2D>("Textures/Racer/body_lightgreen");
+            bodyColors[3] = Content.Load<Texture2D>("Textures/Racer/body_red");
+            
+            Texture2D[] shipGlow = new Texture2D[9];
+            Texture2D glow100 = Content.Load<Texture2D>("Textures/Specular/specular_100");
+            shipGlow[0] = glow100;
+            shipGlow[2] = glow100;
+            shipGlow[3] = glow100;
+            shipGlow[4] = glow100;
+            shipGlow[5] = glow100;
+            
+            string[] names = new string[] { "Alex", "Anton", "Johan", "TheGovernator" };
+
+            ConvexHullShape shipShape = CreateConvexHullShape(shipModel, shipScale);
+
+            for (int i = 0; i < views.Length; i++)
+            {
+                Entity entity = new Entity(shipShape, 10);
+                entity.Position = ConversionHelper.MathConverter.Convert(shipPosition + new Vector3(8 * i, 0, 0));
+                Ship ship = new Ship(entity, shipModel, shipScale, this);
+                space.Add(entity);
+                Texture2D[] shipTextures = new Texture2D[9];
+                shipTextures[1] = doorTexture;
+                shipTextures[8] = bodyColors[i];
+                ship.Textures = shipTextures;
+                bool[] textureEnabled = new bool[9];
+                textureEnabled[1] = true;
+                textureEnabled[8] = true;
+                ship.SpecularMap = glow100;
+                ship.GlowMap = shipGlow;
+                ship.TextureEnabled = textureEnabled;
+                ship.standardEffect = objEffect;
+                ship.shadowEffect = objShadow;
+
+                ship.AddCollidable(bridgeMesh);
+
+                // Add one thruster emitter for each ship.
+                //renderer.Emitters.Add(new ThrusterEmitter(6000, 60, 800, 1.0f, 0.0005f, entity));
+
+                Components.Add(ship);
+                GameLogic.AddPlayer(ship, names[i]);
+                views[i].SetChaseTarget(ship);
+                Components.Add(views[i]);
+            }
 
             #endregion
-
-            CreateCheckPoints(objEffect, cubeModel);
-
-            space.ForceUpdater.Gravity = new BVector3(0, GameConstants.Gravity, 0);
-
-            renderer.Emitters.Add(new ThrusterEmitter(6000, 60, 800, 1.0f, 0.0005f, entity));
-
 
             List<Texture2D> textures = new List<Texture2D> { Content.Load<Texture2D>("Textures/Particles/Plasma") };
-
             foreach (BaseEmitter emitter in renderer.Emitters)
             {
                 emitter.LoadContent(textures, GraphicsDevice);
             }
 
+            Model cubeModel = Content.Load<Model>("Models/cube");
+            CreateCheckPoints(objEffect, cubeModel);
             
-            renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(2500, 2000, 2500), Vector3.Zero, Color.LightYellow, 0.4f, 7000.0f, true));
 
-            LightHelper.ToolEnabled = false;
+            #region Add PostProcess
+
+            for (int i = 0; i < views.Length; i++)
+            {
+                views[i].Manager = new PostProcessingManager(this, renderer.renderTargets[i]);
+            }
+
+            for (int i = 0; i < views.Length; i++)
+            {
+                views[i].Manager.AddEffect(new Bloom(this, 0.5f, views[i].Viewport.Width, views[i].Viewport.Height));
+                views[i].Manager.AddEffect(new GodRays(this, new Vector3(100, 20, 100), 60.0f, 0.8f, 0.99f, 0.8f, 0.15f));
+            }
+
+            #endregion
+
+            #region Lights
+
+            renderer.DirectionalLights.Add(new DirectionalLight(this, new Vector3(2500, 2000, 2500), Vector3.Zero, Color.LightYellow, 0.4f, 7000.0f, GameConstants.ShadowsEnabled));
+
             renderer.PointLights.AddRange(LightHelper.ReadLights());
+
+            #endregion
         }
 
         private void CreateCheckPoints(Effect effect, Model model)
         {
-            int nbrPoints = GameConstants.NumberOfCheckpoints; // Update!!
+            int nbrPoints = GameConstants.NumberOfCheckpoints;
             int i = 0;
             Checkpoint[] points = new Checkpoint[nbrPoints];
-            points[i++] = GameLogic.AddCheckpoint(new BVector3(30, 20, 5), new BVector3(-5, 0, 0), BEPUutilities.MathHelper.ToRadians(10f));
-            points[i++] = GameLogic.AddCheckpoint(new BVector3(40, 30, 5), new BVector3(165, 10, -150), BEPUutilities.MathHelper.ToRadians(-20f));
-            points[i++] = GameLogic.AddCheckpoint(new BVector3(30, 20, 5), new BVector3(-175, 5, -15), BEPUutilities.MathHelper.ToRadians(-15f));
-            points[i++] = GameLogic.AddCheckpoint(new BVector3(30, 20, 5), new BVector3(0, 5, 115), BEPUutilities.MathHelper.ToRadians(75f));
+            points[i++] = GameLogic.AddCheckpoint(new BVector3(450, 80, 5), new BVector3(886, -38, -632), BEPUutilities.MathHelper.ToRadians(9f));
+            points[i++] = GameLogic.AddCheckpoint(new BVector3(250, 60, 5), new BVector3(-5, -14, -1178), BEPUutilities.MathHelper.ToRadians(83f));
+            points[i++] = GameLogic.AddCheckpoint(new BVector3(300, 60, 5), new BVector3(-402, -27, -630), BEPUutilities.MathHelper.ToRadians(72f));
+            points[i++] = GameLogic.AddCheckpoint(new BVector3(300, 50, 5), new BVector3(-456, -45, 37), BEPUutilities.MathHelper.ToRadians(-63f));
+            points[i++] = GameLogic.AddCheckpoint(new BVector3(250, 50, 5), new BVector3(-97, -29, 782), BEPUutilities.MathHelper.ToRadians(45f));
+            points[i++] = GameLogic.AddCheckpoint(new BVector3(150, 50, 5), new BVector3(846, -55, 842), BEPUutilities.MathHelper.ToRadians(16f));
+            points[i++] = GameLogic.AddCheckpoint(new BVector3(80, 35, 5), new BVector3(3, 10, -85), BEPUutilities.MathHelper.ToRadians(-8f));
+            points[i++] = GameLogic.AddCheckpoint(new BVector3(100, 50, 5), new BVector3(623, 43, -239), BEPUutilities.MathHelper.ToRadians(0f));
 
             foreach(Checkpoint p in points)
             {
@@ -260,7 +394,7 @@ namespace ERoD
             }
         }
 
-        private Entity LoadEntityObject(Model model, Vector3 position, Vector3 scaling)
+        private ConvexHullShape CreateConvexHullShape(Model model, Vector3 scaling)
         {
             BVector3[] vertices;
             int[] indices;
@@ -268,14 +402,12 @@ namespace ERoD
             
             // Convert to list since array is read only.
             IList<BVector3> verts = new List<BVector3>(vertices);
+
             // Remove redundant vertices that causes the convexhullshape to crash.
             ConvexHullHelper.RemoveRedundantPoints(verts);
             vertices = verts.ToArray<BVector3>();
 
-            ConvexHullShape CHS = new ConvexHullShape(OurHelper.scaleVertices(vertices, scaling));
-            Entity entity = new Entity(CHS, 10);
-            entity.Position = ConversionHelper.MathConverter.Convert(position);
-            return entity;
+            return new ConvexHullShape(OurHelper.scaleVertices(vertices, scaling));
         }
 
         private StaticMesh LoadStaticObject(Model model, AffineTransform transform) 
@@ -302,13 +434,59 @@ namespace ERoD
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
-            GamePadState = GamePad.GetState(PlayerIndex.One);
             KeyBoardState = Keyboard.GetState();
 
+            if (CurrentState == GameState.GAME)
+            {
+                UpdateGameLoop(gameTime);
+                base.Update(gameTime);
+            }
+            if (CurrentState == GameState.LOAD_GAME)
+            {
+                LoadGameContent(NumberOfPlayers);
+                space.Update();
+                CurrentState = GameState.GAME;
+            }
+            else if (CurrentState == GameState.MENU)
+            {
+                // Update Menu (Input)
+                switch(Menu.Update(gameTime))
+                {
+                    case StartMenu.MenuState.EXIT_GAME:
+                        this.Exit();
+                        break;
+                    case StartMenu.MenuState.START_GAME_1:
+                        NumberOfPlayers = 1;
+                        CurrentState = GameState.LOAD_GAME;
+                        break;
+                    case StartMenu.MenuState.START_GAME_2:
+                        NumberOfPlayers = 2;
+                        CurrentState = GameState.LOAD_GAME;
+                        break;
+                    case StartMenu.MenuState.START_GAME_3:
+                        NumberOfPlayers = 3;
+                        CurrentState = GameState.LOAD_GAME;
+                        break;
+                    case StartMenu.MenuState.START_GAME_4:
+                        NumberOfPlayers = 4;
+                        CurrentState = GameState.LOAD_GAME;
+                        break;
+                    default:
+                        // Not an interesting case
+                        break;
+                }
+            }
+
+            LastKeyBoardState = KeyBoardState;
+        }
+
+        private void UpdateGameLoop(GameTime gameTime)
+        {
             // Allows the game to exit
+            // TODO: Change this before "release", close with menu
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
             {
-                if (LightHelper.ToolEnabled) 
+                if (LightHelper.ToolEnabled)
                 {
                     Console.WriteLine("All lights:");
                     foreach (IPointLight light in renderer.PointLights)
@@ -319,29 +497,27 @@ namespace ERoD
                 this.Exit();
             }
 
-            if ((GamePadState.Buttons.B == ButtonState.Pressed) && (LastGamePadState.Buttons.B == ButtonState.Released ))
+
+            if (KeyBoardState.IsKeyDown(Keys.F1) && LastKeyBoardState.IsKeyUp(Keys.F1))
             {
-                Services.RemoveService(typeof(ICamera));
-                if (FreeCameraActive)
-                {
-                    FreeCameraActive = false;
-                    Services.AddService(typeof(ICamera), ChaseCamera);
-                }
-                else
-                {
-                    FreeCameraActive = true;
-                    Services.AddService(typeof(ICamera), FreeCamera);
-                }
+                // Show deferred debug
+                RenderDebug = !RenderDebug;
             }
 
-            if ((GamePadState.Buttons.Y == ButtonState.Pressed) && (LastGamePadState.Buttons.Y == ButtonState.Released))
+            if (KeyBoardState.IsKeyDown(Keys.F2) && LastKeyBoardState.IsKeyUp(Keys.F2))
             {
-                RenderDebug = !RenderDebug;
+                // Swap cameras
+                for (int i = 0; i < views.Length; i++)
+                {
+                    views[i].FreeCameraActive = !views[i].FreeCameraActive;
+                }
             }
 
             space.Update();
 
-            if (LightHelper.ToolEnabled) 
+            #region LightHelper
+
+            if (LightHelper.ToolEnabled)
             {
                 LightHelper.PlaceLightUpdate(KeyBoardState, LastKeyBoardState);
 
@@ -363,58 +539,7 @@ namespace ERoD
                 }
             }
 
-            LastGamePadState = GamePadState;
-
-            LastKeyBoardState = KeyBoardState;
-            base.Update(gameTime);
-        }
-
-        private float ChangeStrength = 1.0f;
-        private void PlaceRockUpdate()
-        {
-            KeyboardState keyState = Keyboard.GetState();
-            BVector3 translation = rockMesh.WorldTransform.Translation;
-
-            if (keyState.IsKeyDown(Keys.Z))
-            {
-                ChangeStrength = 0.1f;
-            }
-            if (keyState.IsKeyDown(Keys.X))
-            {
-                ChangeStrength = 1.0f;
-            }
-
-            if (keyState.IsKeyDown(Keys.W))
-            {
-                //+z
-                translation.Z += ChangeStrength;
-            }
-            if (keyState.IsKeyDown(Keys.S))
-            {
-                //-z
-                translation.Z -= ChangeStrength;
-            }
-            if (keyState.IsKeyDown(Keys.A))
-            {
-                //-x
-                translation.X += ChangeStrength;
-            }
-            if (keyState.IsKeyDown(Keys.D))
-            {
-                //+x
-                translation.X -= ChangeStrength;
-            }
-            if (keyState.IsKeyDown(Keys.Q))
-            {
-                //+y
-                translation.Y += ChangeStrength;
-            }
-            if (keyState.IsKeyDown(Keys.E))
-            {
-                //-y
-                translation.Y -= ChangeStrength;
-            }
-            rockMesh.WorldTransform = new AffineTransform(new BVector3(4,4,4), BQuaternion.Identity, translation);
+            #endregion
         }
 
         #region Message and FPS
@@ -428,9 +553,6 @@ namespace ERoD
         {
             this.message = message;
             endTime = startTime + seconds;
-            Console.WriteLine(startTime);
-            Console.WriteLine(endTime);
-            Console.WriteLine("---");
         }
 
         private void PrintMessage()
@@ -475,28 +597,63 @@ namespace ERoD
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
-            renderer.Draw(gameTime);
-
-            //GraphicsDevice.Clear(Color.Coral);
-
-            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque,
-            SamplerState.PointClamp, DepthStencilState.Default,
-            RasterizerState.CullCounterClockwise);
-            spriteBatch.Draw(renderer.finalBackBuffer, new Rectangle(0, 0, GraphicsDevice.Viewport.Width,
-            GraphicsDevice.Viewport.Height), Color.White);
-            spriteBatch.End();
-
-            logFPS(gameTime);
-
-            PrintMessage();
-
-            manager.Draw(gameTime, renderer.finalBackBuffer, renderer.depthMap, renderer.normalMap);
-            //manager.Draw(gameTime);
-
-            if (RenderDebug)
+            if (CurrentState == GameState.GAME)
             {
-                renderer.RenderDebug();
+                RenderGame(gameTime);
             }
+            else if (CurrentState == GameState.LOAD_GAME)
+            {
+                GraphicsDevice.Clear(Color.Black);
+                spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
+                spriteBatch.Draw(LoadingTexture, new Rectangle(0, 0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height), Color.White);
+                spriteBatch.End();
+            }
+            else if (CurrentState == GameState.MENU)
+            {
+                GraphicsDevice.Clear(Color.Black);
+                Menu.Draw(gameTime);
+            }
+        }
+
+        private void RenderGame(GameTime gameTime)
+        {
+            // Do Deferred Render pass for each viewport
+            for (int i = 0; i < views.Length; i++)
+            {
+                Services.RemoveService(typeof(ICamera));
+                Services.AddService(typeof(ICamera), views[i].Camera);
+                renderer.Draw(gameTime, i);
+            }
+            // Clear final screen target
+            GraphicsDevice.SetRenderTarget(finalScreenTarget);
+            GraphicsDevice.Clear(Color.Black);
+
+            // Draw the finalbackbuffer and postprocesses to the final screen
+            for (int i = 0; i < views.Length; i++)
+            {
+                Services.RemoveService(typeof(ICamera));
+                Services.AddService(typeof(ICamera), views[i].Camera);
+
+                GraphicsDevice.Viewport = views[i].Viewport;
+
+                views[i].Manager.Draw(gameTime, finalScreenTarget);
+
+                //PrintMessage();
+                //logFPS(gameTime);
+
+                if (RenderDebug)
+                {
+                    renderer.RenderDebug(renderer.renderTargets[i]);
+                }
+            }
+
+            // Draw the final screen to the backbuffer
+            graphics.GraphicsDevice.SetRenderTarget(null);
+            graphics.GraphicsDevice.Viewport = original;
+
+            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque, SamplerState.AnisotropicWrap, DepthStencilState.Default, RasterizerState.CullCounterClockwise);
+            spriteBatch.Draw(finalScreenTarget, new Rectangle(0, 0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height), Color.White);
+            spriteBatch.End();
         }
     }
 }

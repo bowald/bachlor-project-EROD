@@ -5,7 +5,7 @@ using System.Text;
 
 namespace ERoD
 {
-    class Player
+    public class Player
     {
         public int Lap;
         public int LastCheckpoint;

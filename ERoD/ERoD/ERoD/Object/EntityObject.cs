@@ -10,7 +10,7 @@ using System.Text;
 
 namespace ERoD
 {
-    class EntityObject : BaseObject
+    public class EntityObject : BaseObject
     {
         public Entity Entity;
 

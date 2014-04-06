@@ -91,14 +91,12 @@ namespace ERoD
             game.Components.Add(this);
         }
 
-        public override void Initialize()
+        public void Initialize(Viewport viewport)
         {
-            viewport = Game.GraphicsDevice.Viewport;
-            viewport.MinDepth = nearPlane;
-            viewport.MaxDepth = farPlane;
+            this.viewport = viewport;
 
             projection = Matrix.CreatePerspectiveFieldOfView(fieldOfView
-                , viewport.AspectRatio, viewport.MinDepth, viewport.MaxDepth);
+                , viewport.AspectRatio, nearPlane, farPlane);
 
             frustum = new BoundingFrustum(View * Projection);
         }

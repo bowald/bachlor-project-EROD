@@ -12,9 +12,10 @@ namespace ERoD
     {
         public Vector2 HalfPixel;
         public Texture2D lastScene;
-        public Texture2D orgScene;
 
+        public Texture2D originalScene;
         protected List<BasicPostProcess> postProcesses = new List<BasicPostProcess>();
+
         public bool Enabled = true;
         protected Game Game;
 
@@ -32,12 +33,12 @@ namespace ERoD
         {
             Game = game;
         }
-        
-        //Used by the manager when there is only one Basic Postprocess
-        public AdvancedPostProcess(Game game, BasicPostProcess basic)
+
+        public static AdvancedPostProcess CreateFromBasic(Game game, BasicPostProcess basic)
         {
-            Game = game;
-            AddPostProcess(basic);
+            AdvancedPostProcess process = new AdvancedPostProcess(game);
+            process.AddPostProcess(basic);
+            return process;
         }
 
         public void AddPostProcess(BasicPostProcess postProcess)
@@ -57,12 +58,12 @@ namespace ERoD
             }
         }
 
-        public virtual void Draw(GameTime gameTime, Texture2D scene, Texture2D depth, Texture2D normal)
+        public virtual void Draw(GameTime gameTime, Texture2D scene, DeferredRenderer.DeferredRenderTarget target)
         {
             if (!Enabled)
                 return;
 
-            orgScene = scene;
+            originalScene = scene;
 
             int maxProcess = postProcesses.Count;
             lastScene = null;
@@ -73,38 +74,49 @@ namespace ERoD
                 {
                     // Set Half Pixel value.
                     if (postProcesses[p].HalfPixel == Vector2.Zero)
+                    {
                         postProcesses[p].HalfPixel = HalfPixel;
-
-                    // Set original scene
-                    postProcesses[p].orgBuffer = orgScene;
-
-                    // Ready render target if needed.
-                    if (postProcesses[p].newScene == null)
-                        postProcesses[p].newScene = new RenderTarget2D(Game.GraphicsDevice, Game.GraphicsDevice.Viewport.Width, Game.GraphicsDevice.Viewport.Height, false, postProcesses[p].newSceneSurfaceFormat, DepthFormat.None);
-
-                    Game.GraphicsDevice.SetRenderTarget(postProcesses[p].newScene);
-                    
-                    Game.GraphicsDevice.Clear(Color.Black);
-                    
+                    }
                     // Has the scene been rendered yet
                     if (lastScene == null)
-                        lastScene = orgScene;
+                    {
+                        lastScene = originalScene;
+                    }
+
+                    // Set G-buffers
+                    postProcesses[p].DepthBuffer = target.depthMap;
+                    postProcesses[p].NormalBuffer = target.normalMap;
+
+                    // Set original scene
+                    postProcesses[p].originalBuffer = originalScene;
+
+                    if (postProcesses[p].NewScene == null)
+                    {
+                        postProcesses[p].NewScene = new RenderTarget2D(Game.GraphicsDevice
+                            , target.width
+                            , target.height
+                            , false
+                            , SurfaceFormat.Color
+                            , DepthFormat.None);
+                    }
+                    Viewport original = Game.GraphicsDevice.Viewport;
+                    Game.GraphicsDevice.SetRenderTarget(postProcesses[p].NewScene);
+                    Game.GraphicsDevice.Clear(Color.Black);
 
                     postProcesses[p].BackBuffer = lastScene;
-
-                    postProcesses[p].DepthBuffer = depth;
-                    postProcesses[p].NormalBuffer = normal;
                     Game.GraphicsDevice.Textures[0] = postProcesses[p].BackBuffer;
                     postProcesses[p].Draw(gameTime);
 
                     Game.GraphicsDevice.SetRenderTarget(null);
-
-                    lastScene = postProcesses[p].newScene;
+                    Game.GraphicsDevice.Viewport = original;
+                    lastScene = postProcesses[p].NewScene;
                 }
             }
 
             if (lastScene == null)
+            {
                 lastScene = scene;
+            }
         }
     }
 }
