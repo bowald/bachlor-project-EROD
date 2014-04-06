@@ -159,7 +159,7 @@ namespace ERoD
 
         public override void Update(GameTime gameTime)
         {
-            foreach (BaseEmitter emitter in Emitters)
+            foreach (ThrusterEmitter emitter in Emitters)
             {
                 emitter.Emit(gameTime);
                 emitter.Update(gameTime);

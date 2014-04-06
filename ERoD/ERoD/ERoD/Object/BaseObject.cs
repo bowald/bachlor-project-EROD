@@ -28,7 +28,7 @@ namespace ERoD
         public Effect standardEffect;
         public Effect shadowEffect;
 
-        private Vector3[][] meshColors;
+        public Vector3[][] meshColors;
 
         /// <summary>
         ///  Increases the "size" of tiled textures.

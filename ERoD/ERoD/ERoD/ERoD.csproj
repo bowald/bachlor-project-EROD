@@ -127,6 +127,7 @@
     <Compile Include="PostProcess\Basic\LightSource.cs" />
     <Compile Include="PostProcess\Basic\MaskBloom.cs" />
     <Compile Include="PostProcess\Basic\BasicPostProcess.cs" />
+    <Compile Include="PostProcess\Basic\ParticleBumpmapBlur.cs" />
     <Compile Include="PostProcess\Basic\SceneMask.cs" />
     <Compile Include="PostProcess\PostProcessingManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

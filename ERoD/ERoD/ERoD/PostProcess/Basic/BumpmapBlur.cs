@@ -48,8 +48,6 @@ namespace ERoD
 
             effect.Parameters["HalfPixel"].SetValue(HalfPixel);
 
-            Game.GraphicsDevice.Textures[0] = ParticleBuffer;
-
             // Set Params.
             base.Draw(gameTime);
         }

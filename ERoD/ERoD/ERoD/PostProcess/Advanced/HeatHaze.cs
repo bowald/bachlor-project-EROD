@@ -13,7 +13,7 @@ namespace ERoD
 
         public HeatHaze(Game game, bool highBlur) : base(game)
         {
-            Blur = new BumpmapBlur(game, highBlur);
+            Blur = new ParticleBumpmapBlur(game, highBlur);
             Blend = new Blend(game, 1.0f, 1.6f, 1.0f, 1.3f);
 
             AddPostProcess(Blur);

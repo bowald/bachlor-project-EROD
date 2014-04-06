@@ -11,12 +11,14 @@ namespace ERoD
     class ThrusterEmitter : BaseEmitter
     {
         public Entity Ship { get; set; }
+        public Vector3 EmitPosOffsets { get; set; }
         private Vector3 lastEmitPos;
 
-        public ThrusterEmitter(int maxParticles, int particleLifespan, int emitAmount, float particleSpeed, float particleScaling, Entity ship) 
+        public ThrusterEmitter(int maxParticles, int particleLifespan, int emitAmount, float particleSpeed, float particleScaling, Entity ship, Vector3 emitPosOffsets) 
             : base(maxParticles, particleLifespan, emitAmount, particleSpeed, particleScaling, ConversionHelper.MathConverter.Convert(ship.Position))
         {
             Ship = ship;
+            EmitPosOffsets = emitPosOffsets;
         }
 
         public override void LoadContent(List<Texture2D> textures, GraphicsDevice graphicsDevice)
@@ -40,7 +42,7 @@ namespace ERoD
             Vector3 shipBackwardVector = ConversionHelper.MathConverter.Convert(Ship.OrientationMatrix.Backward);
             Vector3 shipPos = ConversionHelper.MathConverter.Convert(Ship.Position);
             float offsetScale = 0.4f;
-            Vector3 emitPos = shipPos + shipBackwardVector * 2.8f + shipMatrix.Down * 0.17f;
+            Vector3 emitPos = shipPos + shipMatrix.Right * EmitPosOffsets.X + shipMatrix.Up * EmitPosOffsets.Y + shipBackwardVector * EmitPosOffsets.Z;
 
             int maxParticles = Math.Min(emitAmount, freeParticles.Count);
 
@@ -52,7 +54,6 @@ namespace ERoD
                 Vector3 offset = new Vector3(shipMatrix.Left.X * (float)random.NextDouble() * offsetScale + shipMatrix.Right.X * (float)random.NextDouble() * offsetScale + shipMatrix.Up.X * (float)random.NextDouble() * offsetScale/2 + shipMatrix.Down.X * (float)random.NextDouble() * offsetScale/2
                                             , shipMatrix.Left.Y * (float)random.NextDouble() * offsetScale + shipMatrix.Right.Y * (float)random.NextDouble() * offsetScale + shipMatrix.Up.Y * (float)random.NextDouble() * offsetScale/2 + shipMatrix.Down.Y * (float)random.NextDouble() * offsetScale/2,
                                               shipMatrix.Left.Z * (float)random.NextDouble() * offsetScale + shipMatrix.Right.Z * (float)random.NextDouble() * offsetScale + shipMatrix.Up.Z * (float)random.NextDouble() * offsetScale/2 + shipMatrix.Down.Z * (float)random.NextDouble() * offsetScale/2);
-                
 
                 particle.Position = Vector3.Lerp(emitPos, lastEmitPos, timeWeight) + offset;
                 

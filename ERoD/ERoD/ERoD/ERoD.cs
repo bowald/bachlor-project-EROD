@@ -319,6 +319,7 @@ namespace ERoD
                 bool[] textureEnabled = new bool[9];
                 textureEnabled[1] = true;
                 textureEnabled[8] = true;
+                ship.meshColors[5] = new Vector3[] { (new Color(0.0f, 150.0f, 255.0f)).ToVector3() };
                 ship.SpecularMap = glow100;
                 ship.GlowMap = shipGlow;
                 ship.TextureEnabled = textureEnabled;
@@ -327,8 +328,9 @@ namespace ERoD
 
                 ship.AddCollidable(bridgeMesh);
 
-                // Add one thruster emitter for each ship.
-                renderer.Emitters.Add(new ThrusterEmitter(4000, 60, 200, 1.0f, 0.001f, entity));
+                // Add two thruster emitters for each ship.
+                renderer.Emitters.Add(new ThrusterEmitter(2000, 60, 50, 1.0f, 0.002f, entity, new Vector3(1.2f, 0.90f, 3.40f)));
+                renderer.Emitters.Add(new ThrusterEmitter(2000, 60, 50, 1.0f, 0.002f, entity, new Vector3(-1.2f, 0.90f, 3.40f)));
 
                 Components.Add(ship);
                 GameLogic.AddPlayer(ship, names[i]);
