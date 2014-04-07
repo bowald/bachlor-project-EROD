@@ -11,13 +11,15 @@ namespace ERoD
         public int LastCheckpoint;
         public Ship Ship;
         public String Name;
+        public int PlayerIndex;
 
         // How many checkpoints the player has passed towards a full lap
         public int CheckpointsPassed;
 
-        public Player(Ship ship, String name)
+        public Player(Ship ship, int playerIndex)
         {
-            Name = name;
+            PlayerIndex = playerIndex;
+            Name = GameConstants.PlayerNames[playerIndex];
             Ship = ship;
             Lap = 0; //start before 1st checkpt
             LastCheckpoint = 0;

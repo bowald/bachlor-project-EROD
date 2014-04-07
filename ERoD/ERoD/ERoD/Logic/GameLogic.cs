@@ -24,6 +24,9 @@ namespace ERoD
 
         Game Game;
 
+        public int WinnerIndex = -1;
+        public float RaceTime = 0.0f;
+
         Space Space
         {
             get { return (Space)Game.Services.GetService(typeof(Space)); }
@@ -35,11 +38,12 @@ namespace ERoD
             Game = game;
             Players = new List<Player>();
             Triggers = new List<Trigger>();
+            Checkpoint.resetID();
         }
 
-        public void AddPlayer(Ship ship, String name)
+        public void AddPlayer(Ship ship, int playerIndex)
         {
-            Players.Add(new Player(ship, name));
+            Players.Add(new Player(ship, playerIndex));
             CollisionHandler.addShipGroup(ship);
         }
 
@@ -64,36 +68,36 @@ namespace ERoD
             return point;
         }
 
-        // Increments the counter on each ship for each trigger they pass
-        // Decrements if going the wrong way
-        // A ship needs to pass 4 triggers in the right order to run a full lap
-        // When a ship has run 3 laps, it wins the game. 
-
         public void CheckpointPassed(int checkpointID, Player player)
         {
             Console.WriteLine("{0} has passed checkpoint {1}", player.Name, checkpointID);
             int lastID = player.LastCheckpoint;
 
             // If the Checkpoint hit is the next Checkpoint
-            if (checkpointID == lastID + 1 || (lastID == GameConstants.NumberOfCheckpoints && checkpointID == 1))
+            // Checkpoints start with ID = 1 and go up to ID = NumberOfCheckpoints
+            // The player starts with lastID = 0
+            // When you hit the start/goal, ID = 1 the lastID need to be 0 or Numberofcheckpoints
+            // lastID % NumberOfCheckpoints is 0 in both cases.
+            // LastID = 0 or nbr gives checkpointID = 1 for true
+            // 0 < LastID < Nbr gives checkpointID = lastId + 1
+            if (checkpointID == (lastID % GameConstants.NumberOfCheckpoints) + 1)
             {
+                // Update LastCheckpoint when passed in correct order.
                 player.LastCheckpoint = checkpointID;
+
                 // If the player have passed enough Checkpoints to make a full lap
+                // ID = 1 is the first/goal/start checkpoint
                 if (checkpointID == 1)
                 {
                     player.Lap++;
+
                     // If the player have ran enough Laps to finish the race
                     if (player.Lap == GameConstants.NumberOfLaps + 1)
                     {
-                        // TODO: Need to check which player was first in goal
-                        //Debug.WriteLine("{0} has finished, was he first???", player.Name);
-                        (Game as ERoD).DisplayMessage("You Won!", 3.0f);
-                    }
-                    else
-                    {
-                        (Game as ERoD).DisplayMessage("You Started your " +
-                            ((player.Lap == 1) ? "1st" : "2nd")
-                            + " Lap", 1.0f);
+                        // A player finished the race.
+                        Console.WriteLine("A player finished the race");
+                        WinnerIndex = player.PlayerIndex;
+                        // Set game state to GAME_OVER
                     }
                 }
             }

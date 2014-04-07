@@ -101,16 +101,12 @@ namespace ERoD
             meshColors = new Vector3[model.Meshes.Count][];
             for (int i = 0; i < model.Meshes.Count; i++)
             {
-                ModelMesh mesh = model.Meshes[i];
-                meshColors[i] = new Vector3[mesh.MeshParts.Count];
-                for (int j = 0; j < mesh.MeshParts.Count; j++)
+                meshColors[i] = new Vector3[model.Meshes[i].MeshParts.Count];
+                for (int j = 0; j < model.Meshes[i].MeshParts.Count; j++)
                 {
-                    ModelMeshPart part = mesh.MeshParts[j];
-                    BasicEffect basicEffect = (BasicEffect)part.Effect;
-                    meshColors[i][j] = basicEffect.DiffuseColor;
+                    meshColors[i][j] = new Vector3(1, 1, 1);
                 }
             }
-
         }
 
         public virtual void Draw(GameTime gameTime, Effect effect)
@@ -158,7 +154,7 @@ namespace ERoD
                     {
                         effect.Parameters["SpecularMap"].SetValue(specularMap);
                     }
-                    if (glowMap != null && effect.Parameters["GlowMap"] != null)
+                    if (effect.Parameters["GlowMap"] != null)
                     {
                         effect.Parameters["GlowMap"].SetValue(glowMap[i]);
                     }
