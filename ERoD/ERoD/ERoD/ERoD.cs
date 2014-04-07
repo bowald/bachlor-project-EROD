@@ -214,6 +214,8 @@ namespace ERoD
             LoadingTexture = Content.Load<Texture2D>("Textures/loading");
 
             Menu = new StartMenu(this);
+
+            SoundManager.Initialize(this);
         }
 
         /// <summary>
