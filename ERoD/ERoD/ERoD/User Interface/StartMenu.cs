@@ -176,6 +176,7 @@ namespace ERoD
         {
             CurrentGamePadState = GamePad.GetState(PlayerIndex.One);
 
+            bool pressed = false;
             if (CurrentGamePadState.IsButtonDown(Buttons.DPadUp) && !LastGamePadState.IsButtonDown(Buttons.DPadUp))
             {
                 selectableItems[selectedIndex].Selected = false;
@@ -183,6 +184,7 @@ namespace ERoD
                 //selectedIndex = selectedIndex >= 0 ? selectedIndex : numberOfChoices - 1; // Looping
                 selectedIndex = selectedIndex >= 0 ? selectedIndex : 0;
                 selectableItems[selectedIndex].Selected = true;
+                pressed = true;
             }
 
             if (CurrentGamePadState.IsButtonDown(Buttons.DPadDown) && !LastGamePadState.IsButtonDown(Buttons.DPadDown))
@@ -192,6 +194,7 @@ namespace ERoD
                 //selectedIndex = selectedIndex < numberOfChoices ? selectedIndex : 0; // Looping
                 selectedIndex = selectedIndex < numberOfChoices ? selectedIndex : numberOfChoices - 1;
                 selectableItems[selectedIndex].Selected = true;
+                pressed = true;
             }
 
             if (CurrentGamePadState.IsButtonDown(Buttons.A) && !LastGamePadState.IsButtonDown(Buttons.A))
@@ -210,6 +213,12 @@ namespace ERoD
                     numberOfChoices = numberOfChoicesPlayers;
                     selectableItems = selectableItemsPlayers;
                 }
+                pressed = true;
+            }
+
+            if (pressed)
+            {
+                SoundManager.MenuSelection.Play();
             }
 
             if (CurrentGamePadState.Buttons.Back == ButtonState.Pressed)
