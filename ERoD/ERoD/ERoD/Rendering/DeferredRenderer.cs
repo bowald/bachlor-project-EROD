@@ -75,50 +75,68 @@ namespace ERoD
             shadowRenderer = new ShadowRenderer(this, game);
 
             renderTargets = new DeferredRenderTarget[playerViews.Length];
+
             for (int i = 0; i < playerViews.Length; i++)
             {
-                renderTargets[i].width = playerViews[i].Viewport.Width;
-                renderTargets[i].height = playerViews[i].Viewport.Height;
-
-                // Debug render
-                renderTargets[i].w = playerViews[i].Viewport.Width / 6;
-                renderTargets[i].h = playerViews[i].Viewport.Height / 4;
+                changeTargetSize(i, playerViews[i].Viewport);
             }
+
             game.Components.Add(this);
+        }
+
+        /// <summary>
+        /// Change the size of the deferred rendertarget
+        /// Must call reloadtarget after size change
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="newView"></param>
+        public void changeTargetSize(int target, Viewport newView)
+        {
+            renderTargets[target].width = newView.Width;
+            renderTargets[target].height = newView.Height;
+
+            // Debug render
+            renderTargets[target].w = newView.Width / 6;
+            renderTargets[target].h = newView.Height / 4;
+        }
+
+        public void reloadTarget(int target)
+        {
+            int width = renderTargets[target].width;
+            int height = renderTargets[target].height;
+
+            renderTargets[target].HalfPixel = -new Vector2(0.5f / (float)width, 0.5f / (float)height);
+
+            renderTargets[target].depthMap = new RenderTarget2D(GraphicsDevice, width, height, false,
+                SurfaceFormat.Single, DepthFormat.Depth24Stencil8);
+
+            renderTargets[target].colorMap = new RenderTarget2D(GraphicsDevice, width, height, false,
+                SurfaceFormat.Color, DepthFormat.Depth24Stencil8);
+
+            renderTargets[target].normalMap = new RenderTarget2D(GraphicsDevice, width, height, false,
+                SurfaceFormat.Rgba1010102, DepthFormat.None);
+
+            renderTargets[target].particleMap = new RenderTarget2D(GraphicsDevice, width, height, false,
+                SurfaceFormat.Color, DepthFormat.Depth24Stencil8);
+
+            renderTargets[target].SGRMap = new RenderTarget2D(GraphicsDevice, width, height, false,
+                SurfaceFormat.Rgba1010102, DepthFormat.None);
+
+            renderTargets[target].lightMap = new RenderTarget2D(GraphicsDevice, width, height, false,
+                SurfaceFormat.Color, DepthFormat.None);
+
+            renderTargets[target].skyMap = new RenderTarget2D(GraphicsDevice, width, height, false,
+                SurfaceFormat.Color, DepthFormat.Depth24Stencil8);
+
+            renderTargets[target].finalBackBuffer = new RenderTarget2D(GraphicsDevice, width, height, false,
+                SurfaceFormat.Color, DepthFormat.None);
         }
 
         protected override void LoadContent()
         {
             for (int i = 0; i < renderTargets.Length; i++)
             {
-                int width = renderTargets[i].width;
-                int height = renderTargets[i].height;
-
-                renderTargets[i].HalfPixel = -new Vector2(0.5f / (float)width, 0.5f / (float)height);
-
-                renderTargets[i].depthMap = new RenderTarget2D(GraphicsDevice, width, height, false,
-                    SurfaceFormat.Single, DepthFormat.Depth24Stencil8);
-
-                renderTargets[i].colorMap = new RenderTarget2D(GraphicsDevice, width, height, false,
-                    SurfaceFormat.Color, DepthFormat.Depth24Stencil8);
-
-                renderTargets[i].normalMap = new RenderTarget2D(GraphicsDevice, width, height, false,
-                    SurfaceFormat.Rgba1010102, DepthFormat.None);
-
-                renderTargets[i].particleMap = new RenderTarget2D(GraphicsDevice, width, height, false,
-                    SurfaceFormat.Color, DepthFormat.Depth24Stencil8);
-
-                renderTargets[i].SGRMap = new RenderTarget2D(GraphicsDevice, width, height, false,
-                    SurfaceFormat.Rgba1010102, DepthFormat.None);
-
-                renderTargets[i].lightMap = new RenderTarget2D(GraphicsDevice, width, height, false,
-                    SurfaceFormat.Color, DepthFormat.None);
-
-                renderTargets[i].skyMap = new RenderTarget2D(GraphicsDevice, width, height, false,
-                    SurfaceFormat.Color, DepthFormat.Depth24Stencil8);
-
-                renderTargets[i].finalBackBuffer = new RenderTarget2D(GraphicsDevice, width, height, false,
-                    SurfaceFormat.Color, DepthFormat.None);
+                reloadTarget(i);
             }
 
             skybox = new Skybox("Skyboxes/skybox", Game.Content);

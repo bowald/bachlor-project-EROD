@@ -17,9 +17,8 @@ namespace ERoD
         private Vector4[] sampleOffsets;
         private float[] sampleWeights;
 
-        private DeferredRenderer renderer;
-
         private const int Sample_Count = 11;
+
         // Render size
         private int width;
         private int height;

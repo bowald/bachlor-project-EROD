@@ -172,7 +172,7 @@ namespace ERoD
             selectableItems = selectableItemsMenu;
         }
 
-        public MenuState Update(GameTime gameTime)
+        public new MenuState Update(GameTime gameTime)
         {
             CurrentGamePadState = GamePad.GetState(PlayerIndex.One);
 
