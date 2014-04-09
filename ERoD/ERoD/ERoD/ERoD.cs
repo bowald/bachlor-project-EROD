@@ -334,6 +334,7 @@ namespace ERoD
             shipGlow[5] = glow100;
             
             ConvexHullShape shipShape = CreateConvexHullShape(shipModel, shipScale);
+            
 
             for (int i = 0; i < views.Length; i++)
             {
