@@ -26,6 +26,7 @@ using BEPUphysics.DataStructures;
 using BEPUphysics.CollisionShapes.ConvexShapes;
 using BEPUphysicsDrawer.Models;
 using ERoD.Helper;
+using System.Diagnostics;
 
 namespace ERoD
 {
@@ -334,8 +335,7 @@ namespace ERoD
             shipGlow[5] = glow100;
             
             ConvexHullShape shipShape = CreateConvexHullShape(shipModel, shipScale);
-            
-
+            //BoxShape shipShape = new BoxShape(10,5,20);
             for (int i = 0; i < views.Length; i++)
             {
                 Entity entity = new Entity(shipShape, 10);

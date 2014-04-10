@@ -218,7 +218,7 @@ namespace ERoD
         /// </summary>
         private BVector3 newVelocity(float dt, float strafeSpeed)
         {
-            BVector3 currentSpeed = new BVector3(Entity.LinearVelocity.X, 0, Entity.LinearVelocity.Z);
+            BVector3 currentSpeed = Entity.LinearVelocity;
             float currentLength = currentSpeed.Length() - strafeSpeed;
             BVector3 newVelocity = BVector3.Zero;
             float accelerationLength;
@@ -262,7 +262,7 @@ namespace ERoD
         {
             float rollValue = 0;
             float angle = getYAngle();
-            if (angle > 1.0f && gamepadX == 0)
+            if (angle > 4.0f && gamepadX == 0)
             {
                 rollValue = (Entity.LinearVelocity.Length() * 1.5f) / ObjectConstants.MaxSpeed * ObjectConstants.RollSpeed * dt + 0.005f;
                 if (ifRollRight())
@@ -286,8 +286,11 @@ namespace ERoD
         public void makeNormal(){
             if (getYAngle() > 100)
             {
-                BEPUutilities.Quaternion AddRot = BEPUutilities.Quaternion.CreateFromYawPitchRoll(0, 0, -1);
-                Entity.Orientation *= AddRot;
+                Entity.Position = new BVector3(Entity.Position.X, Entity.Position.Y + 5f, Entity.Position.Z);
+                BEPUutilities.Matrix3x3 Orientation = new BEPUutilities.Matrix3x3(Entity.OrientationMatrix.M11, Entity.OrientationMatrix.M12, Entity.OrientationMatrix.M13, 
+                                                                                  0f,1f,0f,
+                                                                                  Entity.OrientationMatrix.M31, Entity.OrientationMatrix.M32, Entity.OrientationMatrix.M33);
+                Entity.OrientationMatrix = Orientation;
             }
             Entity.BecomeKinematic();
             State = ShipState.Normal;
@@ -342,10 +345,10 @@ namespace ERoD
             // Applies the roll
             BEPUutilities.Quaternion AddRot = BEPUutilities.Quaternion.CreateFromYawPitchRoll(0, 0, -roll);
             Entity.Orientation *= AddRot;
-
             // Applies all speed
             Entity.LinearVelocity = shipStrafe + forward + downward;
 
+            Debug.WriteLine(Entity.Position);
 
 
             // Checks for collitions
