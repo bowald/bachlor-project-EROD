@@ -16,9 +16,9 @@ namespace ERoD
             RETURN_TO_START_MENU
         }
 
-        public class MenuItem
+        public class ImageItem
         {
-            public MenuItem(int x, int y, int width, int height, Texture2D texture)
+            public ImageItem(int x, int y, int width, int height, Texture2D texture)
             {
                 this.texture = texture;
                 Rect = new Rectangle(x, y, width, height);
@@ -74,7 +74,7 @@ namespace ERoD
 
         private MenuState currentState = MenuState.SHOW_RESULT;
 
-        private MenuItem Background;
+        private ImageItem Background;
         private TextItem WinnerName;
         private TextItem WinnerTime;
         private TextItem BackMessage;
@@ -94,7 +94,7 @@ namespace ERoD
             int width = Game.GraphicsDevice.Viewport.Width;
             int height = Game.GraphicsDevice.Viewport.Height;
 
-            Background = new MenuItem((int)(width * 0.25f), (int)(height * 0.25f), (int)(width * 0.5f), (int)(height * 0.5f), Game.Content.Load<Texture2D>("Textures/ResultScreen/background"));
+            Background = new ImageItem((int)(width * 0.25f), (int)(height * 0.25f), (int)(width * 0.5f), (int)(height * 0.5f), Game.Content.Load<Texture2D>("Textures/ResultScreen/background"));
 
             WinnerName = new TextItem((int)(width * 0.50f), (int)(height * 0.4f), 1.0f, Game.Content.Load<SpriteFont>("Sprites/Lap1"));
             WinnerName.Message = GameConstants.PlayerNames[winnerIndex].ToUpper() + " WON!";

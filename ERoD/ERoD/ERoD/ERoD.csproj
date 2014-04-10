@@ -144,6 +144,7 @@
     <Compile Include="Rendering\Skybox.cs" />
     <Compile Include="Rendering\VertexType.cs" />
     <Compile Include="Sound\SoundManager.cs" />
+    <Compile Include="User Interface\HUD.cs" />
     <Compile Include="User Interface\ResultScreen.cs" />
     <Compile Include="User Interface\StartMenu.cs" />
   </ItemGroup>

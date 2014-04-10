@@ -282,6 +282,7 @@ namespace ERoD
                 #endregion
 
             }
+
             #region Ship loading
 
             Model shipModel = Content.Load<Model>("Models/racer");
@@ -384,6 +385,8 @@ namespace ERoD
             for (int i = 0; i < views.Length; i++)
             {
                 views[i].Manager = new PostProcessingManager(this, renderer.renderTargets[i]);
+                views[i].initializeHUD(GameLogic.Players[i]);
+                Components.Add(views[i].UserInterface);
             }
 
             for (int i = 0; i < views.Length; i++)
@@ -669,6 +672,7 @@ namespace ERoD
             if (CurrentState == GameState.GAME)
             {
                 RenderGame(gameTime);
+                RenderUI(gameTime);
             } 
             if (CurrentState == GameState.GAME_OVER)
             {
@@ -766,10 +770,7 @@ namespace ERoD
                 GraphicsDevice.Viewport = views[i].Viewport;
 
                 views[i].Manager.Draw(gameTime, finalScreenTarget);
-
-                //PrintMessage();
-                //logFPS(gameTime);
-
+                
                 if (RenderDebug)
                 {
                     renderer.RenderDebug(renderer.renderTargets[i]);
@@ -783,6 +784,14 @@ namespace ERoD
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque, SamplerState.AnisotropicWrap, DepthStencilState.Default, RasterizerState.CullCounterClockwise);
             spriteBatch.Draw(finalScreenTarget, new Rectangle(0, 0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height), Color.White);
             spriteBatch.End();
+        }
+
+        private void RenderUI(GameTime gameTime)
+        {
+            for (int i = 0; i < views.Length; i++)
+            {
+                views[i].UserInterface.Draw(gameTime);
+            }
         }
     }
 }
