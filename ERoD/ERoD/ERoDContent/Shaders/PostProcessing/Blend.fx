@@ -1,4 +1,4 @@
-// Intensity
+ // Intensity
 float LastSceneIntensity;		//= 1.3;
 float OriginalIntensity;		//= 1.0;
 
