@@ -16,9 +16,13 @@ namespace ERoD
 {
     public partial class Ship : EntityObject
     {
+        //Variables
         List<StaticCollidable> Collidables = new List<StaticCollidable>();
         BVector3 angularVelocity;
         ShipState State;
+        float airTime = 0;
+        float bestAirTime = 0;
+        BVector3 shipVelocity = BVector3.Zero;
 
         enum ShipState
         {
@@ -65,27 +69,9 @@ namespace ERoD
         private float verticalDistance(StaticCollidable staticObject, BVector3 offset)
         {
             BEPUutilities.RayHit hit;
-            BRay ray = new BRay(Entity.Position + offset, Entity.OrientationMatrix.Down);
+            BRay ray = new BRay(Entity.Position + offset, BVector3.Down);
             staticObject.RayCast(ray, 100.0f, out hit);
             return hit.T;
-        }
-        /// <summary>
-        /// Given an entity.OriantationMatrix-vector, returns wich direction it facing
-        /// Helper for debugging rayCasting,
-        /// </summary>
-        private String helper(BVector3 vec3)
-        {
-            if (vec3 == Entity.OrientationMatrix.Forward)
-                return "Forward";
-            if (vec3 == Entity.OrientationMatrix.Right)
-                return "Right";
-            if (vec3 == Entity.OrientationMatrix.Left)
-                return "Left";
-            if (vec3 == Entity.OrientationMatrix.Up)
-                return "Up";
-            if (vec3 == Entity.OrientationMatrix.Down)
-                return "Down";
-            return "no match";
         }
 
         private void dontCollide(BRay ray, float rayLength, float gamePadDirection, StaticCollidable staticObject)
@@ -216,13 +202,11 @@ namespace ERoD
         /// Returns the ships new velocity.
         /// Used to make the ship accelerate.
         /// </summary>
-        private BVector3 newVelocity(float dt, float strafeSpeed)
+        private BVector3 newVelocity(float dt)
         {
-            BVector3 currentSpeed = Entity.LinearVelocity;
-            float currentLength = currentSpeed.Length() - strafeSpeed;
             BVector3 newVelocity = BVector3.Zero;
             float accelerationLength;
-            float a = currentLength / ObjectConstants.MaxSpeed;
+            float a = shipVelocity.Length() / ObjectConstants.MaxSpeed;
             if (a < 0.1f)
             {
                 newVelocity = Entity.OrientationMatrix.Forward * ObjectConstants.MaxSpeed * 0.12f;
@@ -230,17 +214,17 @@ namespace ERoD
             else if (a < ObjectConstants.FirstCase)
             {
                 accelerationLength = ObjectConstants.MaxSpeed * ObjectConstants.StartAcceleration * dt;
-                newVelocity = Entity.OrientationMatrix.Forward * (Entity.LinearVelocity.Length() + accelerationLength);
+                newVelocity = Entity.OrientationMatrix.Forward * (shipVelocity.Length() + accelerationLength);
             }
             else if (a < ObjectConstants.SecondCase)
             {
                 accelerationLength = ObjectConstants.MaxSpeed * ObjectConstants.MidAcceleration * dt;
-                newVelocity = Entity.OrientationMatrix.Forward * (Entity.LinearVelocity.Length() + accelerationLength);
+                newVelocity = Entity.OrientationMatrix.Forward * (shipVelocity.Length() + accelerationLength);
             }
             else if (a < 1.0f)
             {
                 accelerationLength = ObjectConstants.MaxSpeed * ObjectConstants.EndAcceleration * dt;
-                newVelocity = Entity.OrientationMatrix.Forward * (Entity.LinearVelocity.Length() + accelerationLength);
+                newVelocity = Entity.OrientationMatrix.Forward * (shipVelocity.Length() + accelerationLength);
             }
             else
             {
@@ -314,10 +298,28 @@ namespace ERoD
             //Aircontroll
             if (fly())
             {
-                downward = new BVector3(0, -ObjectConstants.FallingSpeed, 0);
-                downward.Y -= gamePadState.ThumbSticks.Left.Y * ObjectConstants.ControllSpeed;
-            }
+                //Velocity downwards based on airtime.
+                airTime += (float)gameTime.ElapsedGameTime.TotalSeconds;
+                float downwardSpeed = Math.Max(ObjectConstants.FallingSpeed * airTime, ObjectConstants.FallingSpeed);
+                downward = BVector3.Down * downwardSpeed;
 
+                //Yaw ship each 0.1 second of airtime
+                int round =(int) Math.Round(airTime, 1) * 10;
+                if (round % 2 == 0 && airTime > 0.3f)
+                {
+                    BEPUutilities.Quaternion yaw = BEPUutilities.Quaternion.CreateFromYawPitchRoll(-0.002f, 0, 0);
+                    Entity.Orientation *= yaw;
+                }
+            }
+            else
+            {
+                if (airTime > bestAirTime)
+                {
+                    bestAirTime = airTime;
+                }
+                airTime = 0;
+            }
+            Debug.WriteLine("Airtime: " + airTime);
             // Turning, strafing and rolling the ship
             if (gamePadState.ThumbSticks.Left.X != 0)
             {
@@ -335,21 +337,18 @@ namespace ERoD
             // Gets forwad Acceleration
             if (gamePadState.IsButtonDown(Buttons.A))
             {
-                forward = newVelocity(dt, shipStrafe.Length());
+                shipVelocity = newVelocity(dt);
             }
-            // Gets forwad and downward decrease
+            // Gets forwad decrease
             else
             {
-                forward = (getPlanarSpeedVector() * ObjectConstants.Decceleration) - shipStrafe + new BVector3(0, Entity.LinearVelocity.Y * 0.5f, 0);
+                shipVelocity *= ObjectConstants.Decceleration;
             }
             // Applies the roll
             BEPUutilities.Quaternion AddRot = BEPUutilities.Quaternion.CreateFromYawPitchRoll(0, 0, -roll);
             Entity.Orientation *= AddRot;
             // Applies all speed
-            Entity.LinearVelocity = shipStrafe + forward + downward;
-
-            Debug.WriteLine(Entity.Position);
-
+            Entity.LinearVelocity = shipStrafe + shipVelocity + downward;
 
             // Checks for collitions
             foreach (StaticCollidable c in Collidables)

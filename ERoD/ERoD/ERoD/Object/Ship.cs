@@ -25,7 +25,6 @@ namespace ERoD
 
         public void Update(GameTime gameTime, GamePadState gamePadState)
         {
-            Debug.WriteLine(Math.Acos(BVector3.Dot(Entity.OrientationMatrix.Up, BVector3.Up)) * 180.0 / Math.PI);
             if (gamePadState.IsButtonDown(Buttons.Y))
             {
                 makeDestroyed();
