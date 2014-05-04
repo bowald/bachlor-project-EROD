@@ -82,10 +82,10 @@ namespace ERoD
                 sampleOffsets = new Vector4[Sample_Count];
                 sampleWeights = new float[Sample_Count];
                 if (Horizontal)
-                    SetBlurEffectParameters(2.0f / width, 0, ref sampleOffsets, ref sampleWeights);
+                    SetBlurEffectParameters(0.5f / width, 0, ref sampleOffsets, ref sampleWeights);
                 else
                 {
-                    SetBlurEffectParameters(0, 2.0f / height, ref sampleOffsets, ref sampleWeights);
+                    SetBlurEffectParameters(0, 0.5f / height, ref sampleOffsets, ref sampleWeights);
                 }
             }
 

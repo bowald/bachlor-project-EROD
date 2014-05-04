@@ -32,12 +32,12 @@ namespace ERoD
 
             AddPostProcess(ssao);
 
-            AddPostProcess(BlurV);
-            AddPostProcess(BlurH);
-            AddPostProcess(BlurV);
-            AddPostProcess(BlurH);
+            //AddPostProcess(BlurV);
+            //AddPostProcess(BlurH);
+            //AddPostProcess(BlurV);
+            //AddPostProcess(BlurH);
 
-            AddPostProcess(Blend);
+            //AddPostProcess(Blend);
         }
     }
 }
