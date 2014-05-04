@@ -51,7 +51,7 @@ namespace ERoD
         }
 
         public SpriteBatch spriteBatch;
-
+        public Texture2D backgroundTexture;
         private MenuState currentState;
 
         // Curently selected item
@@ -73,12 +73,13 @@ namespace ERoD
         public StartMenu(Game game) : base(game)
         {
             spriteBatch = new SpriteBatch(Game.GraphicsDevice);
+            backgroundTexture = Game.Content.Load<Texture2D>("Textures/StartMenu/menu_bg");
+
             int width = Game.GraphicsDevice.Viewport.Width;
             int height = Game.GraphicsDevice.Viewport.Height;
 
             int itemSizeX = width / 6;
             int itemSizeY = height / 8;
-
 
             int centerX = width / 2 - itemSizeX / 2;
             int centerY = height / 2 - itemSizeY / 2;
@@ -230,9 +231,17 @@ namespace ERoD
             return currentState;
         }
 
+        private void DrawBackground(int screenWidth, int screenHeight)
+        {
+            Rectangle screenRectangle = new Rectangle(0, 0, screenWidth, screenHeight);
+            spriteBatch.Draw(backgroundTexture, screenRectangle, Color.White);
+        }
+
         public override void Draw(GameTime gameTime)
         {
-            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
+            spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);
+            //spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
+            DrawBackground(Game.GraphicsDevice.Viewport.Width, Game.GraphicsDevice.Viewport.Height);
             for (int i = 0; i < selectableItems.Length; i++)
             {
                 spriteBatch.Draw(selectableItems[i].Texture, selectableItems[i].Rect, Color.White);

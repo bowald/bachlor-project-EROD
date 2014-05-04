@@ -33,10 +33,10 @@ namespace ERoD
                 if (sampleOffsets != null)
                 {
                     if (Horizontal)
-                        SetBlurEffectParameters(2.0f / height, 0, ref sampleOffsets, ref sampleWeights);
+                        SetBlurEffectParameters(0.5f / height, 0, ref sampleOffsets, ref sampleWeights);
                     else
                     {
-                        SetBlurEffectParameters(0, 2.0f / width, ref sampleOffsets, ref sampleWeights);
+                        SetBlurEffectParameters(0, 0.5f / width, ref sampleOffsets, ref sampleWeights);
                     }
                 }
             }
