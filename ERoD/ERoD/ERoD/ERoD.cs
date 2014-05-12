@@ -391,7 +391,7 @@ namespace ERoD
             {
                 views[i].Manager.AddEffect(new HeatHaze(this, false));
                 views[i].Manager.AddEffect(new Bloom(this, 0.5f, views[i].Viewport.Width, views[i].Viewport.Height));
-                views[i].Manager.AddEffect(new GodRays(this, new Vector3(100, 20, 100), 60.0f, 0.8f, 0.99f, 0.8f, 0.15f));
+                views[i].Manager.AddEffect(new GodRays(this, new Vector3(80, 20, 80), 60.0f, 0.5f, 0.97f, 1.0f, 0.05f));
             }
 
             #endregion
@@ -670,6 +670,7 @@ namespace ERoD
             if (CurrentState == GameState.GAME)
             {
                 RenderGame(gameTime);
+               // GameLogic.DrawTriggers(gameTime);
             } 
             if (CurrentState == GameState.GAME_OVER)
             {

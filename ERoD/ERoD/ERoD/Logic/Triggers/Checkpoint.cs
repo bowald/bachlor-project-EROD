@@ -58,6 +58,7 @@ namespace ERoD
             this.ID = sID;
             sID++;
             Entity.CollisionInformation.CollisionRules.Group = collisionGroup;
+            //model = game.Content.Load<Model>("Models/cube");
         }
 
         public Checkpoint(Game game, GameLogic gameLogic, BVector3 size, BVector3 position, float rotation, CollisionGroup collisionGroup)
@@ -82,14 +83,14 @@ namespace ERoD
 
         public void Draw(GameTime gameTime, Effect effect)
         {
-            if (Model == null)
+            if (model == null)
             {
                 return;
             }
 
-            Model.CopyAbsoluteBoneTransformsTo(boneTransforms);
+            model.CopyAbsoluteBoneTransformsTo(boneTransforms);
 
-            foreach (ModelMesh mesh in Model.Meshes)
+            foreach (ModelMesh mesh in model.Meshes)
             {
                 Matrix meshWorld = boneTransforms[mesh.ParentBone.Index] * Transform * ConversionHelper.MathConverter.Convert(Entity.WorldTransform);
 

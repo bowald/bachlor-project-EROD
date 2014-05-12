@@ -20,7 +20,7 @@ namespace ERoD
         // A list of all the players currently racing
         List<Player> Players;
 
-        List<Trigger> Triggers; // No use at the moment.
+        List<Trigger> Triggers;
 
         Game Game;
 
@@ -101,6 +101,13 @@ namespace ERoD
                     }
                 }
             }
+        }
+
+        public void DrawTriggers(GameTime gameTime)
+        {
+           foreach(Trigger t in Triggers){
+               t.Draw(gameTime);
+           }
         }
 
         // Returns a Player from a Ship

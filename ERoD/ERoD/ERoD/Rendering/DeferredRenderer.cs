@@ -139,7 +139,7 @@ namespace ERoD
                 reloadTarget(i);
             }
 
-            skybox = new Skybox("Skyboxes/skybox", Game.Content);
+            skybox = new Skybox("Skyboxes/grimnight", Game.Content);
 
             directionalLightShader = Game.Content.Load<Effect>("Shaders/DirectionalLightShader");
 

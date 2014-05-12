@@ -12,8 +12,8 @@ namespace ERoD
         public static string[] PlayerNames = new string[] { "Alex", "Anton", "Johan", "TheGovernator" };
         public static Color[] PlayerColors = new Color[] { Color.Orange, Color.Blue, Color.LightGreen, Color.Red };
 
-        public const int WindowWidth = 1366;
-        public const int WindowHeight = 768;
+        public const int WindowWidth = 1680;
+        public const int WindowHeight = 1050;
         //public const int WindowWidth = 1024;
         //public const int WindowHeight = 576;
 
