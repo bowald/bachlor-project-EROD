@@ -18,6 +18,7 @@ namespace ERoD
         private float[] sampleWeights;
 
         private const int Sample_Count = 11;
+
         // Render size
         private int width;
         private int height;
@@ -32,10 +33,10 @@ namespace ERoD
                 if (sampleOffsets != null)
                 {
                     if (Horizontal)
-                        SetBlurEffectParameters(2.0f / height, 0, ref sampleOffsets, ref sampleWeights);
+                        SetBlurEffectParameters(0.5f / height, 0, ref sampleOffsets, ref sampleWeights);
                     else
                     {
-                        SetBlurEffectParameters(0, 2.0f / width, ref sampleOffsets, ref sampleWeights);
+                        SetBlurEffectParameters(0, 0.5f / width, ref sampleOffsets, ref sampleWeights);
                     }
                 }
             }
@@ -43,7 +44,7 @@ namespace ERoD
 
         //If BiliteralBlur is false, Guassian is Used.
         //If Horizontal is false, Vertical is Used.
-        public Blur(ERoD game, float amount, Boolean BiliteralBlur, Boolean Horizontal, int width, int height)
+        public Blur(Game game, float amount, Boolean BiliteralBlur, Boolean Horizontal, int width, int height)
             : base(game)
         {
             this.BiliteralBlur = BiliteralBlur;

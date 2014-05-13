@@ -13,7 +13,7 @@ namespace ERoD
         private float SunSize;
         private Vector3 LightPosition;
 
-        public LightSource(ERoD game, Vector3 lightPosition, float sunSize)
+        public LightSource(Game game, Vector3 lightPosition, float sunSize)
             : base(game)
         {
             this.SunSize = sunSize;

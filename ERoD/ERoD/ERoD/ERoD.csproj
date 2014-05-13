@@ -88,8 +88,6 @@
     <Compile Include="Camera\ChaseCamera.cs" />
     <Compile Include="Camera\FreeCamera.cs" />
     <Compile Include="Interface\ITrigger.cs" />
-    <Compile Include="Light\LightHelper.Placer.cs" />
-    <Compile Include="Light\LightHelper.cs" />
     <Compile Include="Logic\CollisionHandler.cs" />
     <Compile Include="GameConstants.cs" />
     <Compile Include="Helper\OurHelper.cs" />
@@ -110,8 +108,15 @@
     <Compile Include="Object\EntityObject.cs" />
     <Compile Include="Object\Ground.cs" />
     <Compile Include="Object\ObjectConstants.cs" />
+    <Compile Include="Object\Particle\BaseEmitter.cs" />
+    <Compile Include="Object\Particle\Particle.cs" />
+    <Compile Include="Object\Particle\TextureQuad.cs" />
+    <Compile Include="Object\Particle\ThrusterEmitter.cs" />
     <Compile Include="Object\Ship.cs" />
     <Compile Include="Object\StaticObject.cs" />
+    <Compile Include="Object\ShipFunctions.cs" />
+    <Compile Include="PostProcess\Advanced\HeatHaze.cs" />
+    <Compile Include="PostProcess\Basic\BumpmapBlur.cs" />
     <Compile Include="Object\Terrain\HeightTerrainCDLOD.cs" />
     <Compile Include="Object\Terrain\QuadTree.cs" />
     <Compile Include="PostProcess\Advanced\AdvancedPostProcess.cs" />
@@ -125,6 +130,7 @@
     <Compile Include="PostProcess\Basic\LightSource.cs" />
     <Compile Include="PostProcess\Basic\MaskBloom.cs" />
     <Compile Include="PostProcess\Basic\BasicPostProcess.cs" />
+    <Compile Include="PostProcess\Basic\ParticleBumpmapBlur.cs" />
     <Compile Include="PostProcess\Basic\SceneMask.cs" />
     <Compile Include="PostProcess\Basic\SSAOBlend.cs" />
     <Compile Include="PostProcess\PostProcessingManager.cs" />
@@ -134,11 +140,16 @@
     <Compile Include="Rendering\DeferredRenderer.cs" />
     <Compile Include="Light\BaseLight.cs" />
     <Compile Include="Light\PointLight.cs" />
+    <Compile Include="Light\LightHelper.Placer.cs" />
+    <Compile Include="Light\LightHelper.cs" />
     <Compile Include="Rendering\PlayerView.cs" />
     <Compile Include="Rendering\ScreenQuad.cs" />
     <Compile Include="Rendering\ShadowRenderer.cs" />
     <Compile Include="Rendering\Skybox.cs" />
     <Compile Include="Rendering\VertexType.cs" />
+    <Compile Include="Sound\SoundManager.cs" />
+    <Compile Include="User Interface\ResultScreen.cs" />
+    <Compile Include="User Interface\StartMenu.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Game.ico" />

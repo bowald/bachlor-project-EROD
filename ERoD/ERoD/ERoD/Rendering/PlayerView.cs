@@ -15,6 +15,13 @@ namespace ERoD
         public PlayerIndex Index;
 
         private Ship ship;
+        public Ship Ship
+        {
+            get
+            {
+                return ship;
+            }
+        }
 
         public PostProcessingManager Manager;
 
@@ -40,7 +47,18 @@ namespace ERoD
         public Viewport Viewport
         {
             get { return viewport; }
-            set { viewport = value; }
+            set 
+            { 
+                viewport = value;
+                if (freeCamera != null)
+                {
+                    freeCamera.Initialize(value);
+                }
+                if (chaseCamera != null)
+                {
+                    chaseCamera.Initialize(value);
+                }
+            }
         }
 
         public PlayerView(Game game, Viewport viewport, int index)
@@ -57,7 +75,7 @@ namespace ERoD
         {
             this.ship = ship;
             chaseCamera = new ChaseCamera(ship.Entity,
-                new BEPUutilities.Vector3(0.0f, 0.0f, 0.0f), true, 25.0f, 0.1f, 3000.0f, Game);
+                new BEPUutilities.Vector3(0.0f, 3.0f, 0.0f), true, 25.0f, 0.1f, 3000.0f, Game);
             chaseCamera.Initialize(Viewport);
             FreeCameraActive = false;
         }
@@ -66,6 +84,13 @@ namespace ERoD
         {
             GamePadState = GamePad.GetState(Index);
 
+            // Only listen to controllers in game state.
+            if ((Game as ERoD).CurrentState == ERoD.GameState.GAME_OVER)
+            {
+                GamePadState = new GamePadState();
+            }
+
+            // chaseCamera must be updated after the ship
             ship.Update(gameTime, GamePadState);
             chaseCamera.Update(gameTime);
             freeCamera.Update(gameTime, GamePadState);

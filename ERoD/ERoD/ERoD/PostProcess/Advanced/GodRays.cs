@@ -28,7 +28,7 @@ namespace ERoD
         private Blend Blend;
 
 
-        public GodRays(ERoD game, Vector3 sunPosition, float sunSize, float density, float decay, float weight, float exposure) :
+        public GodRays(Game game, Vector3 sunPosition, float sunSize, float density, float decay, float weight, float exposure) :
             base(game)
         {
 

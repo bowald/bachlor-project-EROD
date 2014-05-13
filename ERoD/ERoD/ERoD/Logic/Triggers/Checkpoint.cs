@@ -22,6 +22,10 @@ namespace ERoD
     {
         private int ID;
         private static int sID = 1;
+        public static void resetID()
+        {
+            sID = 1;
+        }
 
         #region Drawable
 

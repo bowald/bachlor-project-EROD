@@ -5,7 +5,7 @@ float4x4 ViewInv;
 
 float3 CameraPosition;
 
-float3 Color;
+float3 LightColor;
 
 float3 LightPosition;
 
@@ -115,7 +115,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 	lightVector = normalize(lightVector);
 
 	float NdotL = saturate(dot(normal, lightVector));
-	float3 diffuseLight = NdotL * Color.rgb;
+	float3 diffuseLight = NdotL * LightColor.rgb;
 
 	if (DebugPosition && attenuation < 0.001)
 	{
@@ -126,12 +126,15 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 	float3 r = normalize(reflect(-lightVector, normal));
 	float3 v = normalize(CameraPosition - positionWS);
 
-	float specularMask = tex2D(SGRSampler, texCoord).r;
+	float3 SGR = tex2D(SGRSampler, texCoord);
 
 	float3 h = normalize(r + v);
-	float4 specular = float4(pow(saturate(dot(normalData, h)), 25) * specularMask * Color.rgb, 1);
+	float4 specular = float4(pow(saturate(dot(normalData, h)), 25) * SGR.r * LightColor.rgb, 1);
 
-	return (attenuation * LightIntensity * (float4(diffuseLight.rgb, 1) + specular));
+	// Emissive
+	float3 emissive = SGR.g * tex2D(ColorSampler, texCoord);
+
+	return (attenuation * LightIntensity * (float4(diffuseLight.rgb + emissive, 1) + specular));
 }
 
 technique Technique1

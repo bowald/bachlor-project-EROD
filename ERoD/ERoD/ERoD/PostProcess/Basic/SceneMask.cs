@@ -12,7 +12,7 @@ namespace ERoD
 
         private Vector3 LightPosition;
 
-        public SceneMask(ERoD game, Vector3 lightPosition)
+        public SceneMask(Game game, Vector3 lightPosition)
             :base(game)
         {
             this.LightPosition = lightPosition;

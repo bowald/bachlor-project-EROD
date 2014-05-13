@@ -12,7 +12,7 @@ namespace ERoD
 
         //Ship
         // *** Velocity *** ///
-        public const float MaxSpeed = 90.0f;
+        public const float MaxSpeed = 130.0f;
         public const float Decceleration = 0.98f;   // must be less then 1.0f
         public const float FirstCase = 0.7f;        // Acceleration case, obs 0.1 < FirstCase < SecondCase < 1.0f
         public const float SecondCase = 0.9f;   
@@ -31,7 +31,7 @@ namespace ERoD
 
         // *** Fly *** //
         public const float IdealHeight = 2.5f;
-        public const float FallingSpeed = 15.0f;
+        public const float FallingSpeed = 20.0f;
         public const float ControllSpeed = 2.0f;    //Amount of speed the player is able to change in Y-direction
 
         // *** Turning *** //

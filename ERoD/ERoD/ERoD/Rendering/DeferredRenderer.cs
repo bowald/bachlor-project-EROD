@@ -27,6 +27,7 @@ namespace ERoD
             public RenderTarget2D depthMap;
             public RenderTarget2D colorMap;
             public RenderTarget2D normalMap;
+            public RenderTarget2D particleMap;
             public RenderTarget2D SGRMap;
             public RenderTarget2D lightMap;
             public RenderTarget2D finalBackBuffer;
@@ -44,6 +45,11 @@ namespace ERoD
         // Skybox //
         Skybox skybox;
 
+
+        // Particles //
+
+        BumpmapBlur heatHaze;
+
         Model pointLightMesh;
         Matrix[] boneTransforms;
 
@@ -58,54 +64,79 @@ namespace ERoD
         public List<IPointLight> PointLights = new List<IPointLight>();
         public List<IDirectionalLight> DirectionalLights = new List<IDirectionalLight>();
 
+        public List<BaseEmitter> Emitters = new List<BaseEmitter>();
+
         ScreenQuad sceneQuad;
+
         public DeferredRenderer(Game game, PlayerView[] playerViews) 
             : base(game)
         {
-            game.Components.Add(this);
             sceneQuad = new ScreenQuad(game);
             shadowRenderer = new ShadowRenderer(this, game);
+
             renderTargets = new DeferredRenderTarget[playerViews.Length];
+
             for (int i = 0; i < playerViews.Length; i++)
             {
-                renderTargets[i].width = playerViews[i].Viewport.Width;
-                renderTargets[i].height = playerViews[i].Viewport.Height;
-
-                // Debug render
-                renderTargets[i].w = playerViews[i].Viewport.Width / 6;
-                renderTargets[i].h = playerViews[i].Viewport.Height / 4;
+                changeTargetSize(i, playerViews[i].Viewport);
             }
+
+            game.Components.Add(this);
+        }
+
+        /// <summary>
+        /// Change the size of the deferred rendertarget
+        /// Must call reloadtarget after size change
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="newView"></param>
+        public void changeTargetSize(int target, Viewport newView)
+        {
+            renderTargets[target].width = newView.Width;
+            renderTargets[target].height = newView.Height;
+
+            // Debug render
+            renderTargets[target].w = newView.Width / 6;
+            renderTargets[target].h = newView.Height / 4;
+        }
+
+        public void reloadTarget(int target)
+        {
+            int width = renderTargets[target].width;
+            int height = renderTargets[target].height;
+
+            renderTargets[target].HalfPixel = -new Vector2(0.5f / (float)width, 0.5f / (float)height);
+
+            renderTargets[target].depthMap = new RenderTarget2D(GraphicsDevice, width, height, false,
+                SurfaceFormat.Single, DepthFormat.Depth24Stencil8);
+
+            renderTargets[target].colorMap = new RenderTarget2D(GraphicsDevice, width, height, false,
+                SurfaceFormat.Color, DepthFormat.Depth24Stencil8);
+
+            renderTargets[target].normalMap = new RenderTarget2D(GraphicsDevice, width, height, false,
+                SurfaceFormat.Rgba1010102, DepthFormat.None);
+
+            renderTargets[target].particleMap = new RenderTarget2D(GraphicsDevice, width, height, false,
+                SurfaceFormat.Color, DepthFormat.Depth24Stencil8);
+
+            renderTargets[target].SGRMap = new RenderTarget2D(GraphicsDevice, width, height, false,
+                SurfaceFormat.Rgba1010102, DepthFormat.None);
+
+            renderTargets[target].lightMap = new RenderTarget2D(GraphicsDevice, width, height, false,
+                SurfaceFormat.Color, DepthFormat.None);
+
+            renderTargets[target].skyMap = new RenderTarget2D(GraphicsDevice, width, height, false,
+                SurfaceFormat.Color, DepthFormat.Depth24Stencil8);
+
+            renderTargets[target].finalBackBuffer = new RenderTarget2D(GraphicsDevice, width, height, false,
+                SurfaceFormat.Color, DepthFormat.None);
         }
 
         protected override void LoadContent()
         {
             for (int i = 0; i < renderTargets.Length; i++)
             {
-                int width = renderTargets[i].width;
-                int height = renderTargets[i].height;
-
-                renderTargets[i].HalfPixel = -new Vector2(0.5f / (float)width, 0.5f / (float)height);
-
-                renderTargets[i].depthMap = new RenderTarget2D(GraphicsDevice, width, height, false,
-                    SurfaceFormat.Single, DepthFormat.Depth24Stencil8);
-
-                renderTargets[i].colorMap = new RenderTarget2D(GraphicsDevice, width, height, false,
-                    SurfaceFormat.Color, DepthFormat.Depth24Stencil8);
-
-                renderTargets[i].normalMap = new RenderTarget2D(GraphicsDevice, width, height, false,
-                    SurfaceFormat.Rgba1010102, DepthFormat.None);
-
-                renderTargets[i].SGRMap = new RenderTarget2D(GraphicsDevice, width, height, false,
-                    SurfaceFormat.Rgba1010102, DepthFormat.None);
-
-                renderTargets[i].lightMap = new RenderTarget2D(GraphicsDevice, width, height, false,
-                    SurfaceFormat.Color, DepthFormat.None);
-
-                renderTargets[i].skyMap = new RenderTarget2D(GraphicsDevice, width, height, false,
-                    SurfaceFormat.Color, DepthFormat.Depth24Stencil8);
-
-                renderTargets[i].finalBackBuffer = new RenderTarget2D(GraphicsDevice, width, height, false,
-                    SurfaceFormat.Color, DepthFormat.None);
+                reloadTarget(i);
             }
 
             skybox = new Skybox("Skyboxes/skybox", Game.Content);
@@ -114,6 +145,10 @@ namespace ERoD
 
             pointLightShader = Game.Content.Load<Effect>("Shaders/PointLightShader");
             deferredShader = Game.Content.Load<Effect>("Shaders/DeferredRender");
+
+            TextureQuad.ParticleEffect = Game.Content.Load<Effect>("Shaders/ParticleEffect");
+
+            heatHaze = new BumpmapBlur(Game, true);
 
             deferredShadowShader = Game.Content.Load<Effect>("Shaders/DeferredShadowShader");
 
@@ -138,6 +173,15 @@ namespace ERoD
         public void Draw(GameTime gameTime, int renderTargetIndex)
         {
             RenderDeferred(gameTime, renderTargets[renderTargetIndex]);
+        }
+
+        public override void Update(GameTime gameTime)
+        {
+            foreach (ThrusterEmitter emitter in Emitters)
+            {
+                emitter.Emit(gameTime);
+                emitter.Update(gameTime);
+            }
         }
 
         private void RenderDeferred(GameTime gameTime, DeferredRenderTarget target)
@@ -169,6 +213,24 @@ namespace ERoD
             GraphicsDevice.SetRenderTargets(target.finalBackBuffer);
             DrawDeferred(target);
 
+            DrawParticles(gameTime, target);
+
+            GraphicsDevice.SetRenderTarget(null);
+        }
+
+        private void DrawParticles(GameTime gameTime, DeferredRenderTarget target)
+        {
+            // Particles
+            TextureQuad.ParticleEffect.Parameters["DepthMap"].SetValue(target.depthMap);
+            TextureQuad.ParticleEffect.Parameters["HalfPixel"].SetValue(target.HalfPixel);
+
+            GraphicsDevice.SetRenderTarget(target.particleMap);
+            GraphicsDevice.Clear(Color.Black);
+
+            foreach(ThrusterEmitter emitter in Emitters)
+            {
+                emitter.Draw(GraphicsDevice, Camera);
+            }
             GraphicsDevice.SetRenderTarget(null);
         }
 
@@ -224,9 +286,10 @@ namespace ERoD
             // Load Light Params
             directionalLightShader.Parameters["HalfPixel"].SetValue(target.HalfPixel);
             directionalLightShader.Parameters["LightDirection"].SetValue(directionalLight.Direction);
-            directionalLightShader.Parameters["Color"].SetValue(directionalLight.Color.ToVector3());
+            directionalLightShader.Parameters["LightColor"].SetValue(directionalLight.Color.ToVector3());
 
             directionalLightShader.Parameters["NormalMap"].SetValue(target.normalMap);
+            directionalLightShader.Parameters["ColorMap"].SetValue(target.colorMap);
             directionalLightShader.Parameters["SGRMap"].SetValue(target.SGRMap);
             directionalLightShader.Parameters["DepthMap"].SetValue(target.depthMap);
             directionalLightShader.Parameters["Power"].SetValue(directionalLight.Intensity);
@@ -295,7 +358,7 @@ namespace ERoD
             pointLightShader.Parameters["SidesLengthVS"].SetValue(new Vector2(Camera.TanFovy * Camera.AspectRatio, -Camera.TanFovy));
             pointLightShader.Parameters["FarPlane"].SetValue(Camera.FarPlane);
 
-            pointLightShader.Parameters["Color"].SetValue(pointLight.Color.ToVector3());
+            pointLightShader.Parameters["LightColor"].SetValue(pointLight.Color.ToVector3());
             pointLightShader.Parameters["LightRadius"].SetValue(pointLight.Radius);
             pointLightShader.Parameters["LightIntensity"].SetValue(pointLight.Intensity);
 
@@ -349,7 +412,7 @@ namespace ERoD
         public void RenderDebug(DeferredRenderTarget target)
         {
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
-            spriteBatch.Draw(target.colorMap, new Rectangle(1, 1, target.w, target.h), Color.White);
+            spriteBatch.Draw(target.particleMap, new Rectangle(1, 1, target.w, target.h), Color.White);
             spriteBatch.Draw(target.SGRMap, new Rectangle((target.w * 4) + 4, 1, target.w, target.h), Color.White);
             spriteBatch.Draw(target.normalMap, new Rectangle(target.w + 2, 1, target.w, target.h), Color.White);
 
