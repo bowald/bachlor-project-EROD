@@ -319,7 +319,7 @@ namespace ERoD
                 }
                 airTime = 0;
             }
-            Debug.WriteLine("Airtime: " + airTime);
+            //Debug.WriteLine("Airtime: " + airTime);
             // Turning, strafing and rolling the ship
             if (gamePadState.ThumbSticks.Left.X != 0)
             {
