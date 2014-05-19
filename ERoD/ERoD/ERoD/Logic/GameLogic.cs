@@ -18,7 +18,7 @@ namespace ERoD
         CollisionHandler CollisionHandler;
 
         // A list of all the players currently racing
-        List<Player> Players;
+        public List<Player> Players;
 
         List<Trigger> Triggers; // No use at the moment.
 

@@ -23,6 +23,8 @@ namespace ERoD
             }
         }
 
+        public HUD UserInterface;
+
         public PostProcessingManager Manager;
 
         public GamePadState GamePadState { get; set; }
@@ -69,6 +71,11 @@ namespace ERoD
             freeCamera = new FreeCamera(game, 0.1f, 7000.0f, new Vector3(25f, 150.0f, 25f), 270.0f);
             freeCamera.Initialize(Viewport);
             FreeCameraActive = true;
+        }
+
+        public void initializeHUD(Player player)
+        {
+            UserInterface = new HUD(Game, player, viewport);
         }
 
         public void SetChaseTarget(Ship ship)
