@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
@@ -12,6 +14,7 @@ namespace ERoD
         public Ship Ship;
         public String Name;
         public int PlayerIndex;
+        public int Boost; //Boosttime
 
         public Player(Ship ship, int playerIndex)
         {
@@ -20,6 +23,16 @@ namespace ERoD
             Ship = ship;
             Lap = 0; //start before 1st checkpt
             LastCheckpoint = 0;
+            Boost = GameConstants.BoostMaxTime;
+        }
+
+        public void AllowedToBoost(bool active)
+        {
+            Ship.AllowedToBoost = active;
+        }
+
+        public void Update(GameTime gameTime)
+        {
         }
     }
 }

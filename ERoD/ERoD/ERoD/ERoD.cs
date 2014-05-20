@@ -588,6 +588,7 @@ namespace ERoD
             }
 
             space.Update();
+            GameLogic.Update(gameTime);
 
             #region LightHelper
 

@@ -22,6 +22,10 @@ namespace ERoD
         ShipState State;
         float airTime = 0;
         float bestAirTime = 0;
+        float boostTimer = 0;
+        float currentVelocity = 0;
+        public int BoostTimeToSubtract = 0;
+        public Boolean AllowedToBoost = true;
         BVector3 shipVelocity = BVector3.Zero;
 
         enum ShipState
@@ -286,6 +290,20 @@ namespace ERoD
             State = ShipState.Destroyed;
         }
 
+        public int getBoostSubtract()
+        {
+            int result = BoostTimeToSubtract;
+            BoostTimeToSubtract = 0;
+            return result;
+        }
+
+        private void updateBoostTime(){
+            if (BoostTimeToSubtract < Math.Floor(boostTimer))
+            {
+                BoostTimeToSubtract++;
+            }
+        }
+
 
         public void NormalUpdate(GameTime gameTime, GamePadState gamePadState)
         {
@@ -293,6 +311,7 @@ namespace ERoD
             BVector3 forward = BVector3.Zero;
             BVector3 shipStrafe = BVector3.Zero;
             BVector3 downward = BVector3.Zero;
+            BVector3 boostSpeed = BVector3.Zero;
             Single roll = 0;
 
             //Aircontroll
@@ -344,12 +363,30 @@ namespace ERoD
             {
                 shipVelocity *= ObjectConstants.Decceleration;
             }
+            //Boost
+            if (gamePadState.IsButtonDown(Buttons.B) && AllowedToBoost)
+            {
+                if (!(currentVelocity > ObjectConstants.MaxSpeed + GameConstants.BoostSpeed) && boostTimer > 0.5f )
+                {
+                    boostSpeed = Entity.OrientationMatrix.Forward * GameConstants.BoostSpeed;
+                }
+                boostTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
+            }
+            else
+            {
+                if (currentVelocity > ObjectConstants.MaxSpeed)
+                 {
+                     boostSpeed = Entity.OrientationMatrix.Forward * -GameConstants.BoostSpeed;
+                 }
+                 boostTimer = 0;                
+            }
             // Applies the roll
             BEPUutilities.Quaternion AddRot = BEPUutilities.Quaternion.CreateFromYawPitchRoll(0, 0, -roll);
             Entity.Orientation *= AddRot;
             // Applies all speed
-            Entity.LinearVelocity = shipStrafe + shipVelocity + downward;
-
+            Entity.LinearVelocity = shipStrafe + shipVelocity + downward + boostSpeed;
+            currentVelocity = shipVelocity.Length() + boostSpeed.Length();
+            angularVelocity = BVector3.Zero;
             // Checks for collitions
             foreach (StaticCollidable c in Collidables)
             {
@@ -358,7 +395,7 @@ namespace ERoD
                 dontCollide(new BRay(Entity.Position, Entity.OrientationMatrix.Right), ObjectConstants.SideCollideLength, gamePadState.ThumbSticks.Left.X, c);
             }
 
-            angularVelocity = BVector3.Zero;
+            updateBoostTime();
         }
 
 
