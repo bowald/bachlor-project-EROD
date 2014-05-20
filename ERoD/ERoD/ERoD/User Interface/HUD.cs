@@ -186,7 +186,7 @@ namespace ERoD
             Checkpoints.Message = "";
             Checkpoints.Color = Color.Firebrick;
 
-            Boost = new BarComponent(x + (int)(width * 0.05f), y + height - (int)(height * 0.35f), new Vector2(width * 0.01f, height * 0.3f), 7.0f, spriteBatch, game.GraphicsDevice);
+            Boost = new BarComponent(x + (int)(width * 0.05f), y + height - (int)(height * 0.35f), new Vector2(width * 0.01f, height * 0.3f), GameConstants.BoostMaxTime, spriteBatch, game.GraphicsDevice);
         }
 
         public override void Update(GameTime gameTime)

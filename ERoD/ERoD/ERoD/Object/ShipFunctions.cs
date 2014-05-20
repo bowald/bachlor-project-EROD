@@ -22,10 +22,10 @@ namespace ERoD
         ShipState State;
         float airTime = 0;
         float bestAirTime = 0;
-        float boostTimer = 0;
+        public float boostTimer = 0;
         float currentVelocity = 0;
-        public int BoostTimeToSubtract = 0;
         public Boolean AllowedToBoost = true;
+        public Boolean Boosting = false;
         BVector3 shipVelocity = BVector3.Zero;
 
         enum ShipState
@@ -289,22 +289,6 @@ namespace ERoD
             Entity.BecomeDynamic(100);
             State = ShipState.Destroyed;
         }
-
-        public int getBoostSubtract()
-        {
-            int result = BoostTimeToSubtract;
-            BoostTimeToSubtract = 0;
-            return result;
-        }
-
-        private void updateBoostTime(){
-            if (BoostTimeToSubtract < Math.Ceiling(boostTimer))
-            {
-                BoostTimeToSubtract++;
-            }
-        }
-
-
         public void NormalUpdate(GameTime gameTime, GamePadState gamePadState)
         {
             float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
@@ -371,6 +355,7 @@ namespace ERoD
                     boostSpeed = Entity.OrientationMatrix.Forward * GameConstants.BoostSpeed;
                 }
                 boostTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
+                Boosting = true;
             }
             else
             {
@@ -378,8 +363,9 @@ namespace ERoD
                  {
                      boostSpeed = Entity.OrientationMatrix.Forward * -GameConstants.BoostSpeed;
                  }
-                 boostTimer = 0;                
+                Boosting = false;
             }
+            Debug.WriteLine(boostTimer);
             // Applies the roll
             BEPUutilities.Quaternion AddRot = BEPUutilities.Quaternion.CreateFromYawPitchRoll(0, 0, -roll);
             Entity.Orientation *= AddRot;
@@ -394,8 +380,6 @@ namespace ERoD
                 dontCollide(new BRay(Entity.Position, Entity.OrientationMatrix.Left), ObjectConstants.SideCollideLength, gamePadState.ThumbSticks.Left.X, c);
                 dontCollide(new BRay(Entity.Position, Entity.OrientationMatrix.Right), ObjectConstants.SideCollideLength, gamePadState.ThumbSticks.Left.X, c);
             }
-
-            updateBoostTime();
         }
 
 
