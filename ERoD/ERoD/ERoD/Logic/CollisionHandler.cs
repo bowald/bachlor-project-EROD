@@ -64,7 +64,7 @@ namespace ERoD
         // Also sets its tag to be equal to its entityobject
         public void addShipGroup(Ship ship)
         {
-            Debug.WriteLine("Added the ship to the collision group!");
+            //Debug.WriteLine("Added the ship to the collision group!");
             ship.Entity.CollisionInformation.Tag = ship;
             ship.Entity.CollisionInformation.CollisionRules.Group = ShipGroup;
             Ships.Add(ship.Entity, ship);

@@ -106,7 +106,6 @@
     <Compile Include="Logic\Triggers\Trigger.cs" />
     <Compile Include="Object\BaseObject.cs" />
     <Compile Include="Object\EntityObject.cs" />
-    <Compile Include="Object\Ground.cs" />
     <Compile Include="Object\ObjectConstants.cs" />
     <Compile Include="Object\Particle\BaseEmitter.cs" />
     <Compile Include="Object\Particle\Particle.cs" />

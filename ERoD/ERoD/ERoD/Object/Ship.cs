@@ -23,7 +23,7 @@ namespace ERoD
             AddCollidable(((ITerrain)Game.Services.GetService(typeof(ITerrain))).PhysicTerrain);
         }
 
-        public void Update(GameTime gameTime, GamePadState gamePadState)
+        public void Update(GameTime gameTime, GamePadState gamePadState, int index)
         {
             if (gamePadState.IsButtonDown(Buttons.Y))
             {
@@ -35,7 +35,7 @@ namespace ERoD
             }
             if (State == ShipState.Normal)
             {
-                NormalUpdate(gameTime, gamePadState);
+                NormalUpdate(gameTime, gamePadState, index);
             }
             else
             {

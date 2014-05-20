@@ -289,7 +289,7 @@ namespace ERoD
             Entity.BecomeDynamic(100);
             State = ShipState.Destroyed;
         }
-        public void NormalUpdate(GameTime gameTime, GamePadState gamePadState)
+        public void NormalUpdate(GameTime gameTime, GamePadState gamePadState, int index)
         {
             float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
             BVector3 forward = BVector3.Zero;
@@ -350,6 +350,7 @@ namespace ERoD
             //Boost
             if (gamePadState.IsButtonDown(Buttons.RightShoulder) && AllowedToBoost)
             {
+                SoundManager.PlayBoostSound(index);
                 if (!(currentVelocity > ObjectConstants.MaxSpeed + GameConstants.BoostSpeed))
                 {
                     boostSpeed = Entity.OrientationMatrix.Forward * GameConstants.BoostSpeed;
@@ -359,13 +360,14 @@ namespace ERoD
             }
             else
             {
+                SoundManager.FadeBoostSound(index);
                 if (currentVelocity > ObjectConstants.MaxSpeed)
                  {
                      boostSpeed = Entity.OrientationMatrix.Forward * -GameConstants.BoostSpeed;
                  }
                 Boosting = false;
             }
-            Debug.WriteLine(boostTimer);
+            //Debug.WriteLine(boostTimer);
             // Applies the roll
             BEPUutilities.Quaternion AddRot = BEPUutilities.Quaternion.CreateFromYawPitchRoll(0, 0, -roll);
             Entity.Orientation *= AddRot;

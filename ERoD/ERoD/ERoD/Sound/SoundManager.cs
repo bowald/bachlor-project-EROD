@@ -11,9 +11,14 @@ namespace ERoD
     {
         private static SoundEffect menuSelection;
         private static SoundEffect goSound;
+        private static SoundEffect boostSound;
+
+        private static bool[] boostPlaying = new bool[4];
 
         private static SoundEffectInstance menuSelectionInstance;
         private static SoundEffectInstance goSoundInstance;
+        private static SoundEffectInstance[] boostSoundInstance = new SoundEffectInstance[4];
+        
 
         private static SoundEffect menuMusic;
         private static SoundEffect raceMusic;
@@ -27,6 +32,7 @@ namespace ERoD
             raceMusic = game.Content.Load<SoundEffect>("Sound/MusicGame");
             menuMusic = game.Content.Load<SoundEffect>("Sound/Expanse");
             goSound = game.Content.Load<SoundEffect>("Sound/GoStart");
+            boostSound = game.Content.Load<SoundEffect>("Sound/BoostLoop");
         }
 
         public static void PlayMenuSelection()
@@ -75,11 +81,36 @@ namespace ERoD
             menuMusicInstance.Play();
         }
 
-        internal static void PlayGoSound()
+        public static void PlayGoSound()
         {
             goSoundInstance = goSound.CreateInstance();
 
             goSoundInstance.Play();
+        }
+
+        public static void FadeBoostSound(int index)
+        {
+            if (boostSoundInstance[index] != null && !boostSoundInstance[index].IsDisposed)
+            {
+                boostSoundInstance[index].Stop();
+                boostPlaying[index] = false;
+            }
+        }
+
+        public static void PlayBoostSound(int index)
+        {
+            if (boostPlaying[index])
+            {
+                return;
+            }
+            if (boostSoundInstance[index] == null || boostSoundInstance[index].IsDisposed) 
+            {
+                boostSoundInstance[index] = boostSound.CreateInstance();
+                boostSoundInstance[index].Volume = 0.4f;
+            }
+
+            boostSoundInstance[index].Play();
+            boostPlaying[index] = true;
         }
     }
 }
