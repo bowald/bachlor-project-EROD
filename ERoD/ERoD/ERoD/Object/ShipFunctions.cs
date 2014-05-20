@@ -298,7 +298,7 @@ namespace ERoD
         }
 
         private void updateBoostTime(){
-            if (BoostTimeToSubtract < Math.Floor(boostTimer))
+            if (BoostTimeToSubtract < Math.Ceiling(boostTimer))
             {
                 BoostTimeToSubtract++;
             }
@@ -366,7 +366,7 @@ namespace ERoD
             //Boost
             if (gamePadState.IsButtonDown(Buttons.B) && AllowedToBoost)
             {
-                if (!(currentVelocity > ObjectConstants.MaxSpeed + GameConstants.BoostSpeed) && boostTimer > 0.5f )
+                if (!(currentVelocity > ObjectConstants.MaxSpeed + GameConstants.BoostSpeed))
                 {
                     boostSpeed = Entity.OrientationMatrix.Forward * GameConstants.BoostSpeed;
                 }
