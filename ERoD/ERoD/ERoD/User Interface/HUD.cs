@@ -97,13 +97,18 @@ namespace ERoD
                   {
                   float percent = valueCurrent / valueMax;
  
-                  Color backgroundColor = new Color(0, 0, 0, 128);
-                  Color barColor = new Color(0, 255, 0, 200);
-                  if (percent < 0.50)
-                     barColor = new Color(255, 255, 0, 200);
-                  if (percent < 0.20)
-                     barColor = new Color(255, 0, 0, 200);
- 
+                  Color backgroundColor = new Color(0, 0, 0, 192);
+                  Color barColor = new Color(0, 255, 255, 200);
+                   if (percent < 0.40)
+                  {
+                      barColor = Color.Lerp(new Color(255, 255, 0, 200), new Color(255, 0, 0, 200), (1f - (percent / 0.40f)));
+                  }
+                  else if (percent < 0.75)
+                  {
+                      barColor = Color.Lerp(barColor, new Color(255, 255, 0, 200), (1f - ((percent - 0.40f) / 0.35f)));
+                  }
+
+                  // set size of background and draw it
                   Rectangle backgroundRectangle = new Rectangle();
                   backgroundRectangle.Width = (int)dimension.X;
                   backgroundRectangle.Height = (int)dimension.Y;
@@ -113,19 +118,13 @@ namespace ERoD
                   Texture2D dummyTexture = new Texture2D(graphicsDevice, 1, 1);
                   dummyTexture.SetData(new Color[] { backgroundColor });
  
-                  //spriteBatch.Draw(dummyTexture, backgroundRectangle, backgroundColor);
- 
-                  backgroundRectangle.Width = (int)(dimension.X);
-                  backgroundRectangle.Height = (int)(dimension.Y);
-                  backgroundRectangle.X = (int)position.X; //+ (int)(dimension.X * 0.05);
-                  backgroundRectangle.Y = (int)position.Y; //+ (int)(dimension.Y*0.25);
- 
                   spriteBatch.Draw(dummyTexture, backgroundRectangle, backgroundColor);
- 
-                  backgroundRectangle.Width = (int)(dimension.X);
-                  backgroundRectangle.Height = (int)(dimension.Y * percent);
-                  backgroundRectangle.X = (int)position.X;
-                  backgroundRectangle.Y = (int)position.Y + (int)(dimension.Y * (1 -percent));
+    
+                // set size of bar anb draw it
+                  backgroundRectangle.Width = (int)(dimension.X) - 2;
+                  backgroundRectangle.Height = (int)(dimension.Y * percent) - 2;
+                  backgroundRectangle.X = (int)position.X + 1;
+                  backgroundRectangle.Y = (int)position.Y + (int)(dimension.Y * (1 -percent) + 1);
  
                   dummyTexture = new Texture2D(graphicsDevice, 1, 1);
                   dummyTexture.SetData(new Color[] { barColor });
@@ -186,7 +185,8 @@ namespace ERoD
             Checkpoints.Message = "";
             Checkpoints.Color = Color.Firebrick;
 
-            Boost = new BarComponent(x + (int)(width * 0.05f), y + height - (int)(height * 0.35f), new Vector2(width * 0.01f, height * 0.3f), GameConstants.BoostMaxTime, spriteBatch, game.GraphicsDevice);
+            Boost = new BarComponent(x + (int)(width * 0.05f), y + (int)(height * 0.60f), new Vector2(width * 0.01f, height * 0.3f), GameConstants.BoostMaxTime, spriteBatch, game.GraphicsDevice);
+            
         }
 
         public override void Update(GameTime gameTime)

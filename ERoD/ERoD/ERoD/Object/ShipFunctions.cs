@@ -348,7 +348,7 @@ namespace ERoD
                 shipVelocity *= ObjectConstants.Decceleration;
             }
             //Boost
-            if (gamePadState.IsButtonDown(Buttons.B) && AllowedToBoost)
+            if (gamePadState.IsButtonDown(Buttons.RightShoulder) && AllowedToBoost)
             {
                 if (!(currentVelocity > ObjectConstants.MaxSpeed + GameConstants.BoostSpeed))
                 {

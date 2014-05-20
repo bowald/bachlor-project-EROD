@@ -33,7 +33,9 @@ sampler2D TextureSampler = sampler_state
 	Texture = (Texture);
 	AddressU = CLAMP;
 	AddressV = CLAMP;
-	Filter = LINEAR;
+	MipFilter = LINEAR;
+	MagFilter = LINEAR;
+	MinFilter = Anisotropic;
 };
 
 
