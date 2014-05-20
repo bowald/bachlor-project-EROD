@@ -62,7 +62,7 @@ namespace ERoD
             }
         }
 
-        public class BarComponent(){
+        public class BarComponent{
             private SpriteBatch spriteBatch;
             private GraphicsDevice graphicsDevice;
  
@@ -74,9 +74,9 @@ namespace ERoD
  
             private bool enabled;
 
-            public BarComponent(Vector2 position, Vector2 dimension, float valueMax, SpriteBatch spriteBatch, GraphicsDevice graphicsDevice)
+            public BarComponent(int x, int y, Vector2 dimension, float valueMax, SpriteBatch spriteBatch, GraphicsDevice graphicsDevice)
                {
-               this.position = position;
+               this.position = new Vector2(x,y);
                this.dimension = dimension;
                this.valueMax = valueMax;
                this.spriteBatch = spriteBatch;
@@ -113,19 +113,19 @@ namespace ERoD
                   Texture2D dummyTexture = new Texture2D(graphicsDevice, 1, 1);
                   dummyTexture.SetData(new Color[] { backgroundColor });
  
+                  //spriteBatch.Draw(dummyTexture, backgroundRectangle, backgroundColor);
+ 
+                  backgroundRectangle.Width = (int)(dimension.X);
+                  backgroundRectangle.Height = (int)(dimension.Y);
+                  backgroundRectangle.X = (int)position.X; //+ (int)(dimension.X * 0.05);
+                  backgroundRectangle.Y = (int)position.Y; //+ (int)(dimension.Y*0.25);
+ 
                   spriteBatch.Draw(dummyTexture, backgroundRectangle, backgroundColor);
  
-                  backgroundRectangle.Width = (int)(dimension.X*0.9);
-                  backgroundRectangle.Height = (int)(dimension.Y*0.5);
-                  backgroundRectangle.X = (int)position.X + (int)(dimension.X * 0.05);
-                  backgroundRectangle.Y = (int)position.Y + (int)(dimension.Y*0.25);
- 
-                  spriteBatch.Draw(dummyTexture, backgroundRectangle, backgroundColor);
- 
-                  backgroundRectangle.Width = (int)(dimension.X * 0.9 * percent);
-                  backgroundRectangle.Height = (int)(dimension.Y * 0.5);
-                  backgroundRectangle.X = (int)position.X + (int)(dimension.X * 0.05);
-                  backgroundRectangle.Y = (int)position.Y + (int)(dimension.Y * 0.25);
+                  backgroundRectangle.Width = (int)(dimension.X);
+                  backgroundRectangle.Height = (int)(dimension.Y * percent);
+                  backgroundRectangle.X = (int)position.X;
+                  backgroundRectangle.Y = (int)position.Y + (int)(dimension.Y * (1 -percent));
  
                   dummyTexture = new Texture2D(graphicsDevice, 1, 1);
                   dummyTexture.SetData(new Color[] { barColor });
@@ -185,19 +185,22 @@ namespace ERoD
             Checkpoints = new TextItem(x + (int)(width * 0.99f) - (int)checkstrln.X, y + (int)lapstrln.Y, 0.4f * scaleY, Lap1);
             Checkpoints.Message = "";
             Checkpoints.Color = Color.Firebrick;
+
+            Boost = new BarComponent(x + (int)(width * 0.05f), y + height - (int)(height * 0.35f), new Vector2(width * 0.01f, height * 0.3f), 7.0f, spriteBatch, game.GraphicsDevice);
         }
 
         public override void Update(GameTime gameTime)
         {
             Laps.Message = "Lap " + player.Lap.ToString() + "/" + GameConstants.NumberOfLaps;
             Checkpoints.Message = "Checkpoint " + player.LastCheckpoint.ToString() + "/" + (GameConstants.NumberOfCheckpoints + 1);
+            Boost.update(player.Boost);
 
         }
 
         public override void Draw(GameTime gameTime)
         {
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
-
+            Boost.Draw();
             //spriteBatch.Draw(Background.Texture, Background.Rect, Color.White);
 
             spriteBatch.End();
