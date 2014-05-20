@@ -26,6 +26,7 @@ namespace ERoD
 
         public int WinnerIndex = -1;
         public float RaceTime = 0.0f;
+        public int secondes = 0;
 
         Space Space
         {
@@ -114,6 +115,50 @@ namespace ERoD
                 }
             }
             return null;
+        }
+
+        public void updatePlayers(GameTime gameTime)
+        {
+            foreach (Player p in Players)
+            {
+                p.Update(gameTime);
+            }
+        }
+
+
+        public void updateBoost(GameTime gameTime)
+        {
+            foreach (Player p in Players)
+            {
+                p.Boost -= p.Ship.getBoostSubtract();
+                if (p.Boost < 0)
+                {
+                    p.Ship.AllowedToBoost = false;
+                    p.Boost = -1;
+                }
+                if (p.Boost < GameConstants.BoostMaxTime)
+                {
+                    p.Boost++;
+                }
+                else
+                {
+                    p.Ship.AllowedToBoost = true;
+                }
+
+                Debug.WriteLine(p.Boost);
+            }
+        }
+
+
+
+        public void Update(GameTime gameTime)
+        {
+            if (secondes < Math.Ceiling(RaceTime))
+            {
+                updateBoost(gameTime);
+                secondes++;
+            }
+            updatePlayers(gameTime);
         }
     }
 }
