@@ -62,6 +62,79 @@ namespace ERoD
             }
         }
 
+        public class BarComponent{
+            private SpriteBatch spriteBatch;
+            private GraphicsDevice graphicsDevice;
+ 
+            private Vector2 position;
+            private Vector2 dimension;
+ 
+            private float valueMax;
+            private float valueCurrent;
+ 
+            private bool enabled;
+
+            public BarComponent(int x, int y, Vector2 dimension, float valueMax, SpriteBatch spriteBatch, GraphicsDevice graphicsDevice)
+               {
+               this.position = new Vector2(x,y);
+               this.dimension = dimension;
+               this.valueMax = valueMax;
+               this.spriteBatch = spriteBatch;
+               this.graphicsDevice = graphicsDevice;
+               this.enabled = true;
+               }
+            public void enable(bool enabled)
+               {
+               this.enabled = enabled;
+               }
+            public void update(float valueCurrent)
+               {
+               this.valueCurrent = valueCurrent;
+               }
+            public void Draw()
+               {
+               if (enabled)
+                  {
+                  float percent = valueCurrent / valueMax;
+ 
+                  Color backgroundColor = new Color(0, 0, 0, 128);
+                  Color barColor = new Color(0, 255, 0, 200);
+                  if (percent < 0.50)
+                     barColor = new Color(255, 255, 0, 200);
+                  if (percent < 0.20)
+                     barColor = new Color(255, 0, 0, 200);
+ 
+                  Rectangle backgroundRectangle = new Rectangle();
+                  backgroundRectangle.Width = (int)dimension.X;
+                  backgroundRectangle.Height = (int)dimension.Y;
+                  backgroundRectangle.X = (int)position.X;
+                  backgroundRectangle.Y = (int)position.Y;
+ 
+                  Texture2D dummyTexture = new Texture2D(graphicsDevice, 1, 1);
+                  dummyTexture.SetData(new Color[] { backgroundColor });
+ 
+                  //spriteBatch.Draw(dummyTexture, backgroundRectangle, backgroundColor);
+ 
+                  backgroundRectangle.Width = (int)(dimension.X);
+                  backgroundRectangle.Height = (int)(dimension.Y);
+                  backgroundRectangle.X = (int)position.X; //+ (int)(dimension.X * 0.05);
+                  backgroundRectangle.Y = (int)position.Y; //+ (int)(dimension.Y*0.25);
+ 
+                  spriteBatch.Draw(dummyTexture, backgroundRectangle, backgroundColor);
+ 
+                  backgroundRectangle.Width = (int)(dimension.X);
+                  backgroundRectangle.Height = (int)(dimension.Y * percent);
+                  backgroundRectangle.X = (int)position.X;
+                  backgroundRectangle.Y = (int)position.Y + (int)(dimension.Y * (1 -percent));
+ 
+                  dummyTexture = new Texture2D(graphicsDevice, 1, 1);
+                  dummyTexture.SetData(new Color[] { barColor });
+ 
+                  spriteBatch.Draw(dummyTexture, backgroundRectangle, barColor);
+                  }
+               }
+        }
+
         public class CenteredTextItem : TextItem
         {
             public CenteredTextItem(int x, int y, float scale, SpriteFont font)
@@ -85,7 +158,7 @@ namespace ERoD
         // Text
         private TextItem Laps;
         private TextItem Checkpoints;
-
+        private BarComponent Boost;
         private Player player;
 
         public HUD(Game game, Player player, Viewport viewport)
@@ -112,19 +185,22 @@ namespace ERoD
             Checkpoints = new TextItem(x + (int)(width * 0.99f) - (int)checkstrln.X, y + (int)lapstrln.Y, 0.4f * scaleY, Lap1);
             Checkpoints.Message = "";
             Checkpoints.Color = Color.Firebrick;
+
+            Boost = new BarComponent(x + (int)(width * 0.05f), y + height - (int)(height * 0.35f), new Vector2(width * 0.01f, height * 0.3f), 7.0f, spriteBatch, game.GraphicsDevice);
         }
 
         public override void Update(GameTime gameTime)
         {
             Laps.Message = "Lap " + player.Lap.ToString() + "/" + GameConstants.NumberOfLaps;
-
             Checkpoints.Message = "Checkpoint " + player.LastCheckpoint.ToString() + "/" + (GameConstants.NumberOfCheckpoints + 1);
+            Boost.update(player.Boost);
+
         }
 
         public override void Draw(GameTime gameTime)
         {
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
-
+            Boost.Draw();
             //spriteBatch.Draw(Background.Texture, Background.Rect, Color.White);
 
             spriteBatch.End();
