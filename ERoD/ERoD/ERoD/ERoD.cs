@@ -124,15 +124,15 @@ namespace ERoD
             Viewport left = new Viewport();
             left.X = 0;
             left.Y = 0;
-            left.Width = original.Width / 2;
+            left.Width = original.Width / 2 - 1;
             left.Height = original.Height;
             left.MinDepth = 0;
             left.MaxDepth = 1;
 
             Viewport right = new Viewport();
-            right.X = original.Width / 2;
+            right.X = original.Width / 2 + 1;
             right.Y = 0;
-            right.Width = original.Width / 2;
+            right.Width = original.Width / 2 - 1;
             right.Height = original.Height;
             right.MinDepth = 0;
             right.MaxDepth = 1;
@@ -140,32 +140,32 @@ namespace ERoD
             Viewport topLeft = new Viewport();
             topLeft.X = 0;
             topLeft.Y = 0;
-            topLeft.Width = original.Width / 2;
-            topLeft.Height = original.Height / 2;
+            topLeft.Width = original.Width / 2 - 1;
+            topLeft.Height = original.Height / 2 - 1;
             topLeft.MinDepth = 0;
             topLeft.MaxDepth = 1;
 
             Viewport topRight = new Viewport();
-            topRight.X = original.Width / 2;
+            topRight.X = original.Width / 2 + 1;
             topRight.Y = 0;
-            topRight.Width = original.Width / 2;
-            topRight.Height = original.Height / 2;
+            topRight.Width = original.Width / 2 - 1;
+            topRight.Height = original.Height / 2 - 1;
             topRight.MinDepth = 0;
             topRight.MaxDepth = 1;
 
             Viewport bottomLeft = new Viewport();
             bottomLeft.X = 0;
-            bottomLeft.Y = original.Height / 2;
-            bottomLeft.Width = original.Width / 2;
-            bottomLeft.Height = original.Height / 2;
+            bottomLeft.Y = original.Height / 2 + 1;
+            bottomLeft.Width = original.Width / 2 - 1;
+            bottomLeft.Height = original.Height / 2 - 1;
             bottomLeft.MinDepth = 0;
             bottomLeft.MaxDepth = 1;
 
             Viewport bottomRight = new Viewport();
-            bottomRight.X = original.Width / 2;
-            bottomRight.Y = original.Height / 2;
-            bottomRight.Width = original.Width / 2;
-            bottomRight.Height = original.Height / 2;
+            bottomRight.X = original.Width / 2 + 1;
+            bottomRight.Y = original.Height / 2 + 1;
+            bottomRight.Width = original.Width / 2 - 1;
+            bottomRight.Height = original.Height / 2 - 1;
             bottomRight.MinDepth = 0;
             bottomRight.MaxDepth = 1;
 
