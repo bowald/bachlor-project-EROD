@@ -25,7 +25,7 @@ namespace ERoD
 
         public const float Gravity = -9.82f;
 
-        public const int BoostMaxTime = 7; //in secondes
+        public const float BoostMaxTime = 7.0f; //in secondes
         public const float BoostSpeed = 30.0f; //Amount of speed added during boost.
     }
 }

@@ -14,7 +14,7 @@ namespace ERoD
         public Ship Ship;
         public String Name;
         public int PlayerIndex;
-        public int Boost; //Boosttime
+        public float Boost; //Boosttime
 
         public Player(Ship ship, int playerIndex)
         {
@@ -33,6 +33,13 @@ namespace ERoD
 
         public void Update(GameTime gameTime)
         {
+            Boost -= Ship.boostTimer;
+            Ship.boostTimer = 0;
+            if (Boost < 0)
+            {
+                Boost = 0;
+                Ship.AllowedToBoost = false;
+            }
         }
     }
 }

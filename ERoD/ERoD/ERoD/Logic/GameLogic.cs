@@ -130,15 +130,9 @@ namespace ERoD
         {
             foreach (Player p in Players)
             {
-                p.Boost -= p.Ship.getBoostSubtract();
-                if (p.Boost < 0)
+                if (p.Boost < GameConstants.BoostMaxTime && !p.Ship.Boosting)
                 {
-                    p.Ship.AllowedToBoost = false;
-                    p.Boost = -1;
-                }
-                if (p.Boost < GameConstants.BoostMaxTime)
-                {
-                    p.Boost++;
+                    p.Boost ++;
                 }
                 else
                 {
