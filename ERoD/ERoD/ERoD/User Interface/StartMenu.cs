@@ -219,7 +219,7 @@ namespace ERoD
 
             if (pressed)
             {
-                SoundManager.MenuSelection.Play();
+                SoundManager.PlayMenuSelection();
             }
 
             if (CurrentGamePadState.Buttons.Back == ButtonState.Pressed)

@@ -212,7 +212,7 @@ namespace ERoD
             fontPos = new Microsoft.Xna.Framework.Vector2(graphics.GraphicsDevice.Viewport.Width / 2,
                 graphics.GraphicsDevice.Viewport.Height / 2);
 
-            LoadingTexture = Content.Load<Texture2D>("Textures/loading");
+            LoadingTexture = Content.Load<Texture2D>("Textures/loading_wheel");
 
             Menu = new StartMenu(this);
 
@@ -223,6 +223,7 @@ namespace ERoD
         /// Load Game content that depends on the number of players selected
         /// 
         /// </summary>
+        Model shipPhysics; //possible nullpointer if model is deallocated?
         private void LoadGameContent(int numberOfPlayers, bool firstTime)
         {
 
@@ -287,9 +288,10 @@ namespace ERoD
             #region Ship loading
 
             Model shipModel = Content.Load<Model>("Models/racer");
+            shipPhysics = Content.Load<Model>("Models/racer_collision");
+
             Vector3 shipScale = new Vector3(0.14f, 0.14f, 0.14f);
             Vector3 shipPosition = new Vector3(865, -45, -255);
-
 
             if (firstTime) 
             {
@@ -335,7 +337,7 @@ namespace ERoD
             shipGlow[4] = glow100;
             shipGlow[5] = glow100;
             
-            ConvexHullShape shipShape = CreateConvexHullShape(shipModel, shipScale);
+            ConvexHullShape shipShape = CreateConvexHullShape(shipPhysics, shipScale);
             //BoxShape shipShape = new BoxShape(10,5,20);
             for (int i = 0; i < views.Length; i++)
             {
@@ -475,10 +477,19 @@ namespace ERoD
 
             if (CurrentState == GameState.GAME)
             {
+                SoundManager.PlayRaceMusic();
                 GameLogic.RaceTime += (float)gameTime.ElapsedGameTime.TotalSeconds;
                 UpdateGameLoop(gameTime);
                 base.Update(gameTime);
 
+                if (KeyBoardState.IsKeyDown(Keys.Enter))
+                {
+                    /* Hack to end races without restarting during demo */
+                    CurrentState = GameState.GAME_OVER;
+                    gameOverFade = 0.0f;
+                    GameLogic.WinnerIndex = 0;
+                    ResultScreen = new ResultScreen(this, GameLogic.WinnerIndex, GameLogic.RaceTime);
+                }
                 // Check for a winner
                 if (GameLogic.WinnerIndex >= 0) // is -1 if there is no winner yet
                 {
@@ -489,13 +500,16 @@ namespace ERoD
             }
             else if (CurrentState == GameState.LOAD_GAME)
             {
+                SoundManager.StopMenuMusic();
                 LoadGameContent(NumberOfPlayers, firstRun);
                 space.Update();
                 CurrentState = GameState.GAME;
+                SoundManager.PlayGoSound();
                 firstRun = false;
             }
             else if (CurrentState == GameState.GAME_OVER)
             {
+                SoundManager.PlayRaceMusic();
                 UpdateGameLoop(gameTime);
                 gameOverFade += (float)gameTime.ElapsedGameTime.TotalSeconds;
                 base.Update(gameTime);
@@ -523,6 +537,7 @@ namespace ERoD
             }
             else if (CurrentState == GameState.MENU)
             {
+                SoundManager.PlayMenuMusic();
                 // Update Menu (Input)
                 StartMenu.MenuState menuState = Menu.Update(gameTime);
                 switch(menuState)
@@ -687,7 +702,9 @@ namespace ERoD
             {
                 GraphicsDevice.Clear(Color.Black);
                 spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque);
-                spriteBatch.Draw(LoadingTexture, new Rectangle(0, 0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height), Color.White);
+                int width = GraphicsDevice.Viewport.Width;
+                int height = GraphicsDevice.Viewport.Height;
+                spriteBatch.Draw(LoadingTexture, new Rectangle((int)(width * 0.41f), (int)(height * 0.5f - width * 0.09f), (int)(width * 0.18f), (int)(width * 0.18f)), Color.White);
                 spriteBatch.End();
             }
             else if (CurrentState == GameState.MENU)
