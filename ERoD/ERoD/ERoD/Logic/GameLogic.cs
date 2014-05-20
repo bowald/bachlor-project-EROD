@@ -71,7 +71,7 @@ namespace ERoD
 
         public void CheckpointPassed(int checkpointID, Player player)
         {
-            Console.WriteLine("{0} has passed checkpoint {1}", player.Name, checkpointID);
+            //Console.WriteLine("{0} has passed checkpoint {1}", player.Name, checkpointID);
             int lastID = player.LastCheckpoint;
 
             // If the Checkpoint hit is the next Checkpoint
@@ -96,7 +96,7 @@ namespace ERoD
                     if (player.Lap == GameConstants.NumberOfLaps + 1)
                     {
                         // A player finished the race.
-                        Console.WriteLine("A player finished the race");
+                        //Console.WriteLine("A player finished the race");
                         WinnerIndex = player.PlayerIndex;
                         // Set game state to GAME_OVER
                     }
@@ -139,7 +139,7 @@ namespace ERoD
                     p.Ship.AllowedToBoost = true;
                 }
 
-                Debug.WriteLine(p.Boost);
+                //Debug.WriteLine(p.Boost);
             }
         }
 
